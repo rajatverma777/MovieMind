@@ -38,7 +38,7 @@ export function AppProvider({ children }) {
   const [authErr, setAuthErr] = useState('')
 
   // ── API config ────────────────────────────────────────────────────────
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_TMDB_API_KEY || '')
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_TMDB_API_KEY || 'DEMO')
 
   // ── User data ─────────────────────────────────────────────────────────
   const [watchlist,      setWatchlist]  = useState(() => {
