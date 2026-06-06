@@ -11,15 +11,15 @@ export const useApp = () => {
   return c
 }
 
-// ── Fake user "database" stored in localStorage / memory ──────────────────
-const REGISTERED_USERS = (() => {
+// User database helper functions
+const getStoredUsers = () => {
   try {
     const saved = localStorage.getItem('moviemind_users')
     return saved ? JSON.parse(saved) : []
   } catch {
     return []
   }
-})()
+}
 
 export function AppProvider({ children }) {
   // ── Navigation ────────────────────────────────────────────────────────
@@ -92,19 +92,21 @@ export function AppProvider({ children }) {
     setAuthErr('')
     await new Promise(r => setTimeout(r, 900)) // simulate network
 
-    const exists = REGISTERED_USERS.find(u => u.email === email)
+    const cleanEmail = email.trim().toLowerCase()
+    const users = getStoredUsers()
+    const exists = users.find(u => u.email.trim().toLowerCase() === cleanEmail)
     if (exists) { setAuthErr('An account with this email already exists.'); return false }
 
-    const newUser = { name, email, password, avatar: name[0].toUpperCase() }
-    REGISTERED_USERS.push(newUser)
+    const newUser = { name, email: cleanEmail, password, avatar: name[0].toUpperCase() }
+    users.push(newUser)
     try {
-      localStorage.setItem('moviemind_users', JSON.stringify(REGISTERED_USERS))
+      localStorage.setItem('moviemind_users', JSON.stringify(users))
     } catch (e) {
       console.error(e)
     }
-    setUser({ name, email, avatar: newUser.avatar })
-    localStorage.setItem('moviemind_current_user', JSON.stringify({ name, email, avatar: newUser.avatar }))
-    loadUserData(email)
+    setUser({ name, email: cleanEmail, avatar: newUser.avatar })
+    localStorage.setItem('moviemind_current_user', JSON.stringify({ name, email: cleanEmail, avatar: newUser.avatar }))
+    loadUserData(cleanEmail)
     return true
   }, [loadUserData])
 
@@ -113,16 +115,19 @@ export function AppProvider({ children }) {
     setAuthErr('')
     await new Promise(r => setTimeout(r, 900))
 
+    const cleanEmail = email.trim().toLowerCase()
+
     // Demo account — always works
-    if (email === 'demo@moviemind.ai' && password === 'demo123') {
-      const demoUser = { name: 'Demo User', email, avatar: 'D' }
+    if (cleanEmail === 'demo@moviemind.ai' && password === 'demo123') {
+      const demoUser = { name: 'Demo User', email: cleanEmail, avatar: 'D' }
       setUser(demoUser)
       localStorage.setItem('moviemind_current_user', JSON.stringify(demoUser))
-      loadUserData(email)
+      loadUserData(cleanEmail)
       return true
     }
 
-    const found = REGISTERED_USERS.find(u => u.email === email && u.password === password)
+    const users = getStoredUsers()
+    const found = users.find(u => u.email.trim().toLowerCase() === cleanEmail && u.password === password)
     if (!found) { setAuthErr('Incorrect email or password.'); return false }
 
     const loggedInUser = { name: found.name, email: found.email, avatar: found.avatar }
