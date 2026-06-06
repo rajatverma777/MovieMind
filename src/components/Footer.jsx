@@ -21,7 +21,7 @@ export default function Footer() {
             </button>
           ))}
         </div>
-        <p style={{ color: 'rgba(255,255,255,.18)', fontSize: 11 }}>Made with ❤️ by Rajat</p>
+        <p style={{ color: 'rgba(255,255,255,.18)', fontSize: 11 }}>Made by Rajat</p>
       </div>
     </footer>
   )
