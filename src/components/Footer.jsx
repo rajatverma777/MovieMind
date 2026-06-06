@@ -21,7 +21,7 @@ export default function Footer() {
             </button>
           ))}
         </div>
-        <p style={{ color: 'rgba(255,255,255,.18)', fontSize: 11 }}>React • TMDB API • Claude AI</p>
+        <p style={{ color: 'rgba(255,255,255,.18)', fontSize: 11 }}>Made with ❤️ by Rajat</p>
       </div>
     </footer>
   )
