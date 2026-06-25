@@ -1,4 +1,4 @@
-# 🎬 CineMind AI — AI-Powered Movie Streaming Platform
+# 🎬 MovieMind AI — AI-Powered Movie Streaming Platform
 
 > A premium, cinematic Netflix-inspired platform built with React, TMDB API, and Claude AI.  
 > **Resume-ready portfolio project** — full AI recommendation engine, live data, and a real chatbot.
@@ -24,16 +24,42 @@
 
 ---
 
-## 🧠 AI Recommendation Engine
+## ⚙️ System Architecture & Data Pipelines
 
-File: `src/utils/recommend.js`
-
+### 1. AI Recommendation Engine Pipeline
+Data flows dynamically from user preferences to similarity scoring:
 ```
-User Watchlist → Genre Vectors → Average Taste Profile
-Candidate Pool → Genre Vectors → Cosine Similarity Score → Ranked Results
+[User Watchlist Movies] ──> [Extract Movie Genre IDs] ──> [Compute Average Taste Vector]
+                                                                     │
+                                                                     ▼
+[Ranked AI Recommendations] <── [Sort by Cosine Similarity] <── [Compare Candidate Pool Vectors]
 ```
+- **File**: [recommend.js](file:///Users/rajatverma/Downloads/cinemind-ai/src/utils/recommend.js)
+- **Vector Profile**: User preferences are mapped into a multi-dimensional genre space by averaging the genre vectors of all films in their watchlist.
+- **Cosine Similarity Matcher**: Evaluates candidate films by measuring the angle between the user's taste vector ($A$) and candidate movie vectors ($B$):
+  \[\text{Cosine Similarity} = \cos(\theta) = \frac{A \cdot B}{\|A\| \cdot \|B\|}\]
 
-**Cosine similarity:** `cos(θ) = (A · B) / (|A| × |B|)`
+### 2. User Authentication & Session Pipeline
+To prevent data loss and support page reloads:
+```
+[User Input Credentials] ──> [Trim Whitespace & Lowercase Email] ──> [Query Stored User Database]
+                                                                                │
+                                                                                ▼
+[Preserved App State] <── [Sync to 'moviemind_current_user'] <── [Validate Password & Sign In]
+```
+- **Validation**: Incoming email addresses are cleaned (whitespaces trimmed, lowercase normalized) to prevent locking out users from mobile keyboard auto-spacing or casing differences.
+- **Persistence**: User account registrations (`moviemind_users`) and active login sessions (`moviemind_current_user`) are dynamically synchronized directly to `localStorage`, protecting them from page refreshes or tab discard.
+
+### 3. Build & CI/CD Deployment Pipeline
+Continuous deployment is configured using GitHub and Vercel:
+```
+[Git Commit & Push (main)] ──> [GitHub Remote Hook] ──> [Vercel Deployment Trigger]
+                                                                   │
+                                                                   ▼
+[Production Site Live] <── [Environment Variables Inject] <── [Vite Optimization Build]
+```
+- **Build Server**: Compiles modern JavaScript (ES6+), compiles styling assets via Tailwind PostCSS, and splits chunks to generate optimized static files in `dist/`.
+- **Environment Variables**: Dynamically maps the TMDB API key to prevent exposing keys, falling back gracefully to standard Demo Mode if none is provided.
 
 - `1.0` = perfect genre match
 - `0.0` = completely different genres
@@ -138,6 +164,18 @@ npx gh-pages -d dist
 | Accent Blue | `#0ea5e9` |
 | Font Display | Bebas Neue |
 | Font Body | DM Sans |
+
+---
+
+## 🛠️ Recent Updates & Enhancements
+
+We recently added several optimizations to improve usability, account security, and branding:
+* **Branding & Rebranding**: Fully rebranded the app from CineMind to **MovieMind AI**, featuring redesigned headers, customized taglines, updated Claude Chatbot prompts, and a custom SVG favicon (matching the red "M" Bebas Neue design).
+* **Direct LocalStorage Auth Sync**: Replaced the volatile module-level array database with a helper function that reads from and writes to `localStorage` dynamically. This ensures that user sign-ups and watchlists persist properly even after HMR reload or browser restart.
+* **Autofill-Safe Credentials**: Added automatic whitespace trimming and case-insensitive matching for email inputs on both Login and Signup forms to prevent authentication errors.
+* **Password Visibility Toggle**: Integrated hide/show interactive button toggles (🙈 / 👁️) in login and signup password forms.
+* **Mock Database Cleanup**: Fixed broken poster URLs and adjusted incorrect movie IDs (such as *The Dark Knight*) in our mock database list for error-free offline catalog renders.
+* **Footer Credits**: Customized site footer credits to read "Made with ❤️ by Rajat".
 
 ---
 
