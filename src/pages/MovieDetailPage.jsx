@@ -9,29 +9,40 @@ import Spinner     from '@/components/Spinner'
 
 export default function MovieDetailPage({ movieId }) {
   const { tmdb, watchlist, toggleWatchlist, navigate, addToRecent, isDemo } = useApp()
-  const [movie,  setMovie]  = useState(null)
-  const [busy,   setBusy]   = useState(true)
-  const [tk,     setTk]     = useState(null)
-  const [showT,  setShowT]  = useState(false)
-  const [tab,    setTab]    = useState('overview')
+  const [movie,     setMovie]     = useState(null)
+  const [busy,      setBusy]      = useState(true)
+  const [tk,        setTk]        = useState(null)
+  const [showT,     setShowT]     = useState(false)
+  const [tab,       setTab]       = useState('overview')
+  const [providers, setProviders] = useState(null)   // { link, flatrate, rent, buy }
 
   useEffect(() => {
-    setBusy(true); setTab('overview'); setTk(null)
+    setBusy(true); setTab('overview'); setTk(null); setProviders(null)
     ;(async () => {
       try {
         if (isDemo) {
           const f = MOCK_MOVIES.find(m => m.id === movieId) || MOCK_MOVIES[0]
           setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 8) } })
+          // Demo: JustWatch search link as fallback
+          setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
         } else if (tmdb) {
-          const d = await tmdb.detail(movieId)
+          const [d, wp] = await Promise.all([
+            tmdb.detail(movieId),
+            tmdb.watchProviders(movieId).catch(() => null),
+          ])
           setMovie(d)
           const t = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')
           if (t) setTk(t.key)
           addToRecent(d)
+          // Try IN (India) first, then US as fallback
+          const wpResult = wp?.results
+          const region = wpResult?.IN || wpResult?.US || null
+          if (region) setProviders(region)
         }
       } catch {
         const f = MOCK_MOVIES.find(m => m.id === movieId) || MOCK_MOVIES[0]
         setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 6) } })
+        setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
       } finally { setBusy(false) }
     })()
   }, [movieId, tmdb, isDemo])
@@ -99,7 +110,7 @@ export default function MovieDetailPage({ movieId }) {
             </div>
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 22 }}>
+            <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 18 }}>
               <button className="btn-r" onClick={() => setShowT(true)} style={{ border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 ▶ {tk ? 'Watch Trailer' : 'Play'}
               </button>
@@ -107,6 +118,75 @@ export default function MovieDetailPage({ movieId }) {
                 {inWL ? '✓ In Watchlist' : '+ Watchlist'}
               </button>
             </div>
+
+            {/* ── Where to Watch ──────────────────────────────────────── */}
+            {providers && (
+              <div style={{ marginBottom: 22, padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 12 }}>
+                <p style={{ color: 'rgba(255,255,255,.44)', fontSize: 10, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', marginBottom: 10, fontFamily: "'DM Sans',sans-serif" }}>
+                  📺 Where to Watch
+                </p>
+
+                {/* Streaming providers with logos */}
+                {providers.flatrate && providers.flatrate.length > 0 ? (
+                  <div>
+                    <p style={{ color: 'rgba(255,255,255,.32)', fontSize: 10, marginBottom: 8, fontFamily: "'DM Sans',sans-serif" }}>Stream</p>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      {providers.flatrate.map(p => (
+                        <a
+                          key={p.provider_id}
+                          href={providers.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Watch on ${p.provider_name}`}
+                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textDecoration: 'none', transition: 'transform .2s' }}
+                          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                          <img
+                            src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                            alt={p.provider_name}
+                            style={{ width: 42, height: 42, borderRadius: 10, border: '1px solid rgba(255,255,255,.1)' }}
+                            onError={e => { e.target.style.display = 'none' }}
+                          />
+                          <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 9, fontFamily: "'DM Sans',sans-serif", textAlign: 'center', maxWidth: 50, lineHeight: 1.2 }}>
+                            {p.provider_name}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Demo mode or no providers found → JustWatch search button
+                  <div>
+                    <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12, fontFamily: "'DM Sans',sans-serif", marginBottom: 10 }}>
+                      {isDemo ? 'Connect TMDB API for real-time availability. Find streaming options:' : 'Not available for streaming — check rent/buy options:'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Rent / Buy count badges */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {providers.rent && providers.rent.length > 0 && (
+                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: '#d4a843', background: 'rgba(212,168,67,.1)', border: '1px solid rgba(212,168,67,.25)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif" }}>
+                      🛒 Rent ({providers.rent.length})
+                    </a>
+                  )}
+                  {providers.buy && providers.buy.length > 0 && (
+                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: '#0ea5e9', background: 'rgba(14,165,233,.1)', border: '1px solid rgba(14,165,233,.22)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif" }}>
+                      🛍 Buy ({providers.buy.length})
+                    </a>
+                  )}
+                  {providers.link && (
+                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: 'rgba(255,255,255,.52)', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif", display: 'flex', alignItems: 'center', gap: 5 }}>
+                      🌐 All options on JustWatch →
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.06)', marginBottom: 16 }}>
