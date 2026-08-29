@@ -119,89 +119,198 @@ export default function MovieDetailPage({ movieId }) {
               </button>
             </div>
 
-            {/* ── Where to Watch ──────────────────────────────────────── */}
-            {providers && (
-              <div style={{ marginBottom: 22, padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 12 }}>
-                <p style={{ color: 'rgba(255,255,255,.44)', fontSize: 10, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', marginBottom: 10, fontFamily: "'DM Sans',sans-serif" }}>
-                  📺 Where to Watch
-                </p>
+            {/* ── WHERE TO WATCH ──────────────────────────────────────── */}
+            {providers && (() => {
+              const flatrate = providers.flatrate || []
+              const rent     = providers.rent     || []
+              const buy      = providers.buy      || []
+              const hasAny   = flatrate.length > 0 || rent.length > 0 || buy.length > 0
 
-                {/* Streaming providers with logos */}
-                {providers.flatrate && providers.flatrate.length > 0 ? (
-                  <div>
-                    <p style={{ color: 'rgba(255,255,255,.32)', fontSize: 10, marginBottom: 8, fontFamily: "'DM Sans',sans-serif" }}>Stream</p>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                      {providers.flatrate.map(p => (
-                        <a
-                          key={p.provider_id}
-                          href={providers.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title={`Watch on ${p.provider_name}`}
-                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textDecoration: 'none', transition: 'transform .2s' }}
-                          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                        >
+              // OTT timeline helpers (for "not yet on OTT" state)
+              const relDate   = movie?.release_date ? new Date(movie.release_date) : null
+              const today     = new Date()
+              const isFuture  = relDate && relDate > today
+              const daysOld   = relDate ? Math.floor((today - relDate) / 86400000) : null
+              // Standard theatrical-to-OTT window: ~90 days (Hollywood) / 56 days (some India releases)
+              const estOttDate = relDate ? new Date(relDate.getTime() + 90 * 86400000) : null
+              const estPassed  = estOttDate && estOttDate < today
+              const pct = relDate && estOttDate
+                ? Math.min(100, Math.max(4, Math.floor(((today - relDate) / (estOttDate - relDate)) * 100)))
+                : 0
+              const fmtDate = d => d?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+
+              const ProviderRow = ({ label, list, accentColor, accentBg }) => list.length === 0 ? null : (
+                <div style={{ marginBottom: 14 }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.9px', textTransform: 'uppercase', color: accentColor, marginBottom: 10, fontFamily: "'DM Sans',sans-serif" }}>
+                    {label}
+                  </p>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {list.map(p => (
+                      <a
+                        key={p.provider_id}
+                        href={providers.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`${label} on ${p.provider_name}`}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textDecoration: 'none', transition: 'transform .22s cubic-bezier(.34,1.56,.64,1)' }}
+                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.12) translateY(-2px)'}
+                        onMouseOut={e  => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
+                      >
+                        <div style={{ width: 46, height: 46, borderRadius: 12, overflow: 'hidden', border: `1px solid ${accentBg}`, boxShadow: `0 4px 12px rgba(0,0,0,.4)`, flexShrink: 0 }}>
                           <img
-                            src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                            src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
                             alt={p.provider_name}
-                            style={{ width: 42, height: 42, borderRadius: 10, border: '1px solid rgba(255,255,255,.1)' }}
-                            onError={e => { e.target.style.display = 'none' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            onError={e => { e.target.parentElement.style.background = '#1a1a2e'; e.target.style.display = 'none' }}
                           />
-                          <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 9, fontFamily: "'DM Sans',sans-serif", textAlign: 'center', maxWidth: 50, lineHeight: 1.2 }}>
-                            {p.provider_name}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
+                        </div>
+                        <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 9, fontFamily: "'DM Sans',sans-serif", textAlign: 'center', maxWidth: 52, lineHeight: 1.3, fontWeight: 500 }}>
+                          {p.provider_name.length > 12 ? p.provider_name.split(' ')[0] : p.provider_name}
+                        </span>
+                      </a>
+                    ))}
                   </div>
-                ) : isDemo ? (
-                  /* Demo mode — no real provider data available */
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 22 }}>🎬</span>
-                    <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                      Add your TMDB API key to see real-time streaming availability.
-                    </p>
-                  </div>
-                ) : (
-                  /* Live mode but no streaming providers in this region yet */
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', background: 'rgba(212,168,67,.06)', border: '1px solid rgba(212,168,67,.18)', borderRadius: 10 }}>
-                    <span style={{ fontSize: 24, flexShrink: 0 }}>🕐</span>
-                    <div>
-                      <p style={{ color: '#d4a843', fontWeight: 700, fontSize: 12, fontFamily: "'DM Sans',sans-serif", marginBottom: 3 }}>
-                        Not yet available on OTT
-                      </p>
-                      <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 11, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                        This movie hasn't landed on any streaming platform in your region yet.
-                        It may be available to rent or buy — check below.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Rent / Buy count badges */}
-                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {providers.rent && providers.rent.length > 0 && (
-                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 11, color: '#d4a843', background: 'rgba(212,168,67,.1)', border: '1px solid rgba(212,168,67,.25)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif" }}>
-                      🛒 Rent ({providers.rent.length})
-                    </a>
-                  )}
-                  {providers.buy && providers.buy.length > 0 && (
-                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 11, color: '#0ea5e9', background: 'rgba(14,165,233,.1)', border: '1px solid rgba(14,165,233,.22)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif" }}>
-                      🛍 Buy ({providers.buy.length})
-                    </a>
-                  )}
-                  {providers.link && (
-                    <a href={providers.link} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 11, color: 'rgba(255,255,255,.52)', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif", display: 'flex', alignItems: 'center', gap: 5 }}>
-                      🌐 All options on JustWatch →
-                    </a>
-                  )}
                 </div>
-              </div>
-            )}
+              )
+
+              return (
+                <div style={{ marginBottom: 22, borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,.08)', background: 'rgba(255,255,255,.02)' }}>
+
+                  {/* Header bar */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.06)', background: 'rgba(255,255,255,.03)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ fontSize: 13 }}>📺</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.9px', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', fontFamily: "'DM Sans',sans-serif" }}>
+                        Where to Watch
+                      </span>
+                      {!isDemo && hasAny && (
+                        <span style={{ fontSize: 9, color: 'rgba(255,255,255,.25)', fontFamily: "'DM Sans',sans-serif" }}>· India</span>
+                      )}
+                    </div>
+                    {providers.link && (
+                      <a href={providers.link} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 10, color: '#0ea5e9', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif", fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, opacity: .8, transition: 'opacity .2s' }}
+                        onMouseOver={e => e.currentTarget.style.opacity = '1'}
+                        onMouseOut={e  => e.currentTarget.style.opacity = '.8'}>
+                        JustWatch ↗
+                      </a>
+                    )}
+                  </div>
+
+                  <div style={{ padding: '16px 16px 12px' }}>
+
+                    {/* ── Demo mode ── */}
+                    {isDemo ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'rgba(14,165,233,.06)', border: '1px solid rgba(14,165,233,.18)', borderRadius: 10 }}>
+                        <span style={{ fontSize: 22, flexShrink: 0 }}>🔑</span>
+                        <div>
+                          <p style={{ color: 'white', fontWeight: 700, fontSize: 12, fontFamily: "'DM Sans',sans-serif", marginBottom: 2 }}>Add TMDB API Key</p>
+                          <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 11, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.5 }}>
+                            Connect your API key from TMDB to see live streaming availability (Netflix, Prime Video, JioHotstar & more).
+                          </p>
+                        </div>
+                      </div>
+
+                    ) : hasAny ? (
+                      /* ── Has providers → show Stream / Rent / Buy rows ── */
+                      <div>
+                        <ProviderRow label="Stream Free"     list={flatrate} accentColor="#10b981" accentBg="rgba(16,185,129,.25)" />
+                        {flatrate.length > 0 && (rent.length > 0 || buy.length > 0) && (
+                          <div style={{ height: 1, background: 'rgba(255,255,255,.05)', margin: '4px 0 14px' }} />
+                        )}
+                        <ProviderRow label="Rent"            list={rent}     accentColor="#d4a843" accentBg="rgba(212,168,67,.25)" />
+                        {rent.length > 0 && buy.length > 0 && (
+                          <div style={{ height: 1, background: 'rgba(255,255,255,.05)', margin: '4px 0 14px' }} />
+                        )}
+                        <ProviderRow label="Buy / Download"  list={buy}      accentColor="#0ea5e9" accentBg="rgba(14,165,233,.25)" />
+
+                        {/* All options CTA */}
+                        <a href={providers.link} target="_blank" rel="noopener noreferrer"
+                          style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 8, fontSize: 11, color: 'rgba(255,255,255,.55)', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif", fontWeight: 600, transition: 'all .2s' }}
+                          onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,.08)'; e.currentTarget.style.color = 'white' }}
+                          onMouseOut={e  => { e.currentTarget.style.background = 'rgba(255,255,255,.04)'; e.currentTarget.style.color = 'rgba(255,255,255,.55)' }}>
+                          🌐 See all options on JustWatch →
+                        </a>
+                      </div>
+
+                    ) : (
+                      /* ── No providers anywhere → theatrical / coming soon card ── */
+                      <div>
+                        {isFuture ? (
+                          /* Movie hasn't released in theaters yet */
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: 'rgba(139,92,246,.07)', border: '1px solid rgba(139,92,246,.22)', borderRadius: 11, marginBottom: 14 }}>
+                            <span style={{ fontSize: 26, flexShrink: 0 }}>🎬</span>
+                            <div>
+                              <p style={{ color: '#8b5cf6', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans',sans-serif", marginBottom: 3 }}>Coming to Theaters</p>
+                              <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                                This film releases in cinemas on <strong style={{ color: 'white' }}>{fmtDate(relDate)}</strong>. OTT streaming typically follows 3–6 months later.
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Released theatrically but OTT not yet confirmed */
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: 'rgba(229,9,20,.05)', border: '1px solid rgba(229,9,20,.18)', borderRadius: 11, marginBottom: 16 }}>
+                              <span style={{ fontSize: 26, flexShrink: 0 }}>🎭</span>
+                              <div>
+                                <p style={{ color: '#e50914', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans',sans-serif", marginBottom: 3 }}>
+                                  Not on OTT Yet
+                                </p>
+                                <p style={{ color: 'rgba(255,255,255,.52)', fontSize: 11, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                                  Currently showing in cinemas. Hollywood films typically arrive on streaming platforms <strong style={{ color: 'rgba(255,255,255,.8)' }}>3–6 months</strong> after their theatrical debut.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Theatrical → OTT timeline */}
+                            {relDate && estOttDate && (
+                              <div style={{ marginBottom: 14 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
+                                  <div style={{ textAlign: 'left' }}>
+                                    <p style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, letterSpacing: '.6px', textTransform: 'uppercase', marginBottom: 2 }}>In Theaters</p>
+                                    <p style={{ fontSize: 11, color: 'white', fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>{fmtDate(relDate)}</p>
+                                  </div>
+                                  <div style={{ textAlign: 'center' }}>
+                                    <p style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, letterSpacing: '.6px', textTransform: 'uppercase', marginBottom: 2 }}>Progress</p>
+                                    <p style={{ fontSize: 11, color: '#d4a843', fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>{pct}%</p>
+                                  </div>
+                                  <div style={{ textAlign: 'right' }}>
+                                    <p style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, letterSpacing: '.6px', textTransform: 'uppercase', marginBottom: 2 }}>
+                                      {estPassed ? 'Est. OTT Date' : 'Estimated OTT'}
+                                    </p>
+                                    <p style={{ fontSize: 11, color: estPassed ? '#10b981' : '#d4a843', fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>
+                                      {estPassed ? '⏳ Overdue' : `~${fmtDate(estOttDate)}`}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Progress bar */}
+                                <div style={{ height: 5, background: 'rgba(255,255,255,.07)', borderRadius: 99, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: pct >= 100 ? 'linear-gradient(90deg,#10b981,#34d399)' : 'linear-gradient(90deg,#e50914,#d4a843)', transition: 'width 1s ease' }} />
+                                </div>
+                                <p style={{ fontSize: 10, color: 'rgba(255,255,255,.28)', fontFamily: "'DM Sans',sans-serif", marginTop: 5, textAlign: 'center' }}>
+                                  Based on the standard 90-day theatrical window · Estimate only
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Notify CTA */}
+                        <a
+                          href={`https://www.justwatch.com/in/search?q=${encodeURIComponent(movie?.title || '')}`}
+                          target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'rgba(14,165,233,.1)', border: '1px solid rgba(14,165,233,.28)', borderRadius: 9, fontSize: 12, color: '#0ea5e9', textDecoration: 'none', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, transition: 'all .2s' }}
+                          onMouseOver={e => { e.currentTarget.style.background = 'rgba(14,165,233,.2)'; e.currentTarget.style.boxShadow = '0 0 18px rgba(14,165,233,.18)' }}
+                          onMouseOut={e  => { e.currentTarget.style.background = 'rgba(14,165,233,.1)'; e.currentTarget.style.boxShadow = 'none' }}>
+                          🔔 Get notified when it hits OTT →
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.06)', marginBottom: 16 }}>
