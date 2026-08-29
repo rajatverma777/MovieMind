@@ -11,8 +11,9 @@ export function createTMDBService(apiKey) {
     topRated:  ()   => q('/movie/top_rated'),
     nowPlay:   ()   => q('/movie/now_playing'),
     search:    s    => q('/search/movie', { query: s }),
-    detail:         id  => q(`/movie/${id}`, { append_to_response: 'videos,credits,similar' }),
+    detail:         id  => q(`/movie/${id}`, { append_to_response: 'videos,credits,similar,release_dates,keywords' }),
     watchProviders: id  => q(`/movie/${id}/watch/providers`),
+    person:         id  => q(`/person/${id}`, { append_to_response: 'movie_credits' }),
     genre:     ids  => q('/discover/movie', { with_genres: ids.join(','), sort_by: 'popularity.desc' }),
     img:       imgUrl,
     async validate() {

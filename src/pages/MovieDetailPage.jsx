@@ -9,12 +9,28 @@ import Spinner     from '@/components/Spinner'
 
 export default function MovieDetailPage({ movieId }) {
   const { tmdb, watchlist, toggleWatchlist, navigate, addToRecent, isDemo } = useApp()
-  const [movie,     setMovie]     = useState(null)
-  const [busy,      setBusy]      = useState(true)
-  const [tk,        setTk]        = useState(null)
-  const [showT,     setShowT]     = useState(false)
-  const [tab,       setTab]       = useState('overview')
-  const [providers, setProviders] = useState(null)   // { link, flatrate, rent, buy }
+  const [movie,      setMovie]      = useState(null)
+  const [busy,       setBusy]       = useState(true)
+  const [tk,         setTk]         = useState(null)
+  const [showT,      setShowT]      = useState(false)
+  const [tab,        setTab]        = useState('overview')
+  const [providers,  setProviders]  = useState(null)
+  const [actorModal, setActorModal] = useState(null)  // full person object
+  const [actorBusy,  setActorBusy]  = useState(false)
+
+  const openActor = async (person) => {
+    setActorModal({ ...person, _loading: true })
+    setActorBusy(true)
+    try {
+      if (tmdb && !isDemo) {
+        const data = await tmdb.person(person.id)
+        setActorModal(data)
+      } else {
+        setActorModal({ ...person, biography: '', _loading: false })
+      }
+    } catch { setActorModal({ ...person, biography: '', _loading: false }) }
+    finally { setActorBusy(false) }
+  }
 
   useEffect(() => {
     setBusy(true); setTab('overview'); setTk(null); setProviders(null)
@@ -54,13 +70,26 @@ export default function MovieDetailPage({ movieId }) {
   if (busy)  return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={52} /></div>
   if (!movie) return <div style={{ padding: 80, textAlign: 'center', color: 'rgba(255,255,255,.38)' }}>Movie not found</div>
 
-  const inWL    = watchlist.some(m => m.id === movie.id)
-  const cast    = movie.credits?.cast?.slice(0, 12) || []
-  const similar = movie.similar?.results?.slice(0, 8) || []
-  const dirs    = movie.credits?.crew?.filter(c => c.job === 'Director') || []
-  const bgSrc   = imgUrl(movie.backdrop_path, 'original') || `https://placehold.co/1280x720/0d0d18/1a1a2e?text=${encodeURIComponent(movie.title)}`
-  const pSrc    = imgUrl(movie.poster_path,   'w342')     || `https://placehold.co/205x308/13131f/444?text=${encodeURIComponent(movie.title)}`
-  const genres  = movie.genres || (movie.genre_ids || []).map(id => ({ id, name: GN[id] || '?' }))
+  // ── Derived data ────────────────────────────────────────────────────────
+  const inWL      = watchlist.some(m => m.id === movie.id)
+  const cast      = movie.credits?.cast?.slice(0, 14) || []
+  const similar   = movie.similar?.results?.slice(0, 8) || []
+  const dirs      = movie.credits?.crew?.filter(c => c.job === 'Director') || []
+  const bgSrc     = imgUrl(movie.backdrop_path, 'original') || `https://placehold.co/1280x720/0d0d18/1a1a2e?text=${encodeURIComponent(movie.title)}`
+  const pSrc      = imgUrl(movie.poster_path,   'w342')     || `https://placehold.co/205x308/13131f/444?text=${encodeURIComponent(movie.title)}`
+  const genres    = movie.genres || (movie.genre_ids || []).map(id => ({ id, name: GN[id] || '?' }))
+  const keywords  = movie.keywords?.keywords?.slice(0, 12) || []
+  const companies = movie.production_companies?.filter(c => c.logo_path)?.slice(0, 5) || []
+  const langs     = movie.spoken_languages?.map(l => l.english_name || l.name).filter(Boolean) || []
+  const countries = movie.production_countries?.map(c => c.name).filter(Boolean) || []
+  const collection = movie.belongs_to_collection || null
+
+  // Content rating — try IN then US
+  const certRaw = (() => {
+    const rd = movie.release_dates?.results || []
+    const find = iso => rd.find(r => r.iso_3166_1 === iso)?.release_dates?.find(d => d.certification)?.certification
+    return find('IN') || find('US') || null
+  })()
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -106,12 +135,52 @@ export default function MovieDetailPage({ movieId }) {
               </div>
               <span style={{ color: 'rgba(255,255,255,.52)', fontSize: 12, background: 'rgba(255,255,255,.05)', padding: '5px 11px', borderRadius: 7, border: '1px solid rgba(255,255,255,.07)' }}>📅 {movie.release_date?.split('-')[0]}</span>
               {movie.runtime && <span style={{ color: 'rgba(255,255,255,.52)', fontSize: 12, background: 'rgba(255,255,255,.05)', padding: '5px 11px', borderRadius: 7, border: '1px solid rgba(255,255,255,.07)' }}>⏱ {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>}
+              {certRaw && (
+                <span style={{ color: '#10b981', fontSize: 11, fontWeight: 700, background: 'rgba(16,185,129,.1)', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(16,185,129,.28)', letterSpacing: '.3px', fontFamily: "'DM Sans',sans-serif" }}>
+                  {certRaw}
+                </span>
+              )}
+              {langs.length > 0 && (
+                <span title={langs.join(', ')} style={{ color: 'rgba(255,255,255,.45)', fontSize: 11, background: 'rgba(255,255,255,.04)', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.07)', fontFamily: "'DM Sans',sans-serif", maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  🗣️ {langs.slice(0, 2).join(', ')}{langs.length > 2 ? ` +${langs.length - 2}` : ''}
+                </span>
+              )}
+              {countries.length > 0 && (
+                <span title={countries.join(', ')} style={{ color: 'rgba(255,255,255,.45)', fontSize: 11, background: 'rgba(255,255,255,.04)', padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,.07)', fontFamily: "'DM Sans',sans-serif" }}>
+                  🌍 {countries[0]}{countries.length > 1 ? ` +${countries.length - 1}` : ''}
+                </span>
+              )}
             </div>
 
             {/* Genres */}
-            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 18 }}>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: keywords.length > 0 ? 10 : 18 }}>
               {genres.map(g => <GenreChip key={g.id} id={g.id} />)}
             </div>
+
+            {/* Keywords / Tags */}
+            {keywords.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+                {keywords.map(k => (
+                  <span key={k.id} style={{ fontSize: 10, color: 'rgba(255,255,255,.42)', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 20, padding: '3px 10px', fontFamily: "'DM Sans',sans-serif", cursor: 'default' }}>
+                    {k.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Collection / Franchise badge */}
+            {collection && (
+              <div style={{ marginBottom: 18, padding: '11px 14px', background: 'rgba(139,92,246,.07)', border: '1px solid rgba(139,92,246,.22)', borderRadius: 11, display: 'flex', alignItems: 'center', gap: 12 }}>
+                {collection.poster_path && (
+                  <img src={imgUrl(collection.poster_path, 'w92')} alt={collection.name}
+                    style={{ width: 36, height: 54, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                )}
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', color: '#8b5cf6', fontFamily: "'DM Sans',sans-serif", marginBottom: 2 }}>Part of a Collection</p>
+                  <p style={{ fontSize: 13, color: 'white', fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>{collection.name}</p>
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 18 }}>
@@ -316,7 +385,7 @@ export default function MovieDetailPage({ movieId }) {
               )
             })()}
 
-            {/* Tabs */}
+            {/* ── Tabs ─────────────────────────────────────────────────── */}
             <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.06)', marginBottom: 16 }}>
               {['overview', 'cast', 'similar'].map(t => (
                 <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: 12, textTransform: 'capitalize', color: tab === t ? 'white' : 'rgba(255,255,255,.36)', borderBottom: tab === t ? '2px solid #e50914' : '2px solid transparent', marginBottom: -1, transition: 'all .2s' }}>{t}</button>
@@ -330,24 +399,33 @@ export default function MovieDetailPage({ movieId }) {
                 {dirs.length > 0 && <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12 }}>Director: <span style={{ color: 'white', fontWeight: 500 }}>{dirs.map(d => d.name).join(', ')}</span></p>}
               </div>
             )}
+
             {tab === 'cast' && (
               <div className="fi">
                 {cast.length ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                    {cast.map(p => (
-                      <div key={p.id} style={{ textAlign: 'center', width: 68 }}>
-                        <div style={{ width: 54, height: 54, borderRadius: '50%', margin: '0 auto 5px', overflow: 'hidden', border: '2px solid rgba(255,255,255,.06)', background: '#1a1a2e' }}>
-                          <img src={imgUrl(p.profile_path, 'w185') || `https://placehold.co/54x54/1a1a2e/555?text=${p.name[0]}`} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            onError={e => e.target.src = `https://placehold.co/54x54/1a1a2e/555?text=${p.name[0]}`} />
+                  <>
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", marginBottom: 12 }}>Click any cast member for bio & filmography</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {cast.map(p => (
+                        <div key={p.id} onClick={() => openActor(p)}
+                          style={{ textAlign: 'center', width: 72, cursor: 'pointer', transition: 'transform .2s' }}
+                          onMouseOver={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                          onMouseOut={e  => e.currentTarget.style.transform = 'translateY(0)'}>
+                          <div style={{ width: 58, height: 58, borderRadius: '50%', margin: '0 auto 6px', overflow: 'hidden', border: '2px solid rgba(255,255,255,.07)', background: '#1a1a2e', position: 'relative' }}>
+                            <img src={imgUrl(p.profile_path, 'w185') || `https://placehold.co/58x58/1a1a2e/555?text=${p.name[0]}`} alt={p.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={e => e.target.src = `https://placehold.co/58x58/1a1a2e/555?text=${p.name[0]}`} />
+                          </div>
+                          <p style={{ fontSize: 10, color: 'white', fontWeight: 600, lineHeight: 1.3 }}>{p.name}</p>
+                          <p style={{ fontSize: 9, color: 'rgba(255,255,255,.32)', lineHeight: 1.3 }}>{p.character?.split('/')?.[0]}</p>
                         </div>
-                        <p style={{ fontSize: 10, color: 'white', fontWeight: 600, lineHeight: 1.3 }}>{p.name}</p>
-                        <p style={{ fontSize: 9, color: 'rgba(255,255,255,.32)' }}>{p.character?.split('/')?.[0]}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </>
                 ) : <p style={{ color: 'rgba(255,255,255,.32)', fontSize: 12 }}>No cast data in demo mode — connect TMDB API for full cast.</p>}
               </div>
             )}
+
             {tab === 'similar' && (
               <div className="fi">
                 {similar.length ? (
@@ -357,11 +435,113 @@ export default function MovieDetailPage({ movieId }) {
                 ) : <p style={{ color: 'rgba(255,255,255,.32)', fontSize: 12 }}>No similar movies found.</p>}
               </div>
             )}
+
+            {/* ── Production Companies ──────────────────────────────────── */}
+            {companies.length > 0 && (
+              <div style={{ marginTop: 28, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.06)' }}>
+                <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.8px', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", marginBottom: 12 }}>Production</p>
+                <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {companies.map(c => (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: .7, transition: 'opacity .2s' }}
+                      onMouseOver={e => e.currentTarget.style.opacity = '1'}
+                      onMouseOut={e  => e.currentTarget.style.opacity = '.7'}>
+                      <img src={`https://image.tmdb.org/t/p/w92${c.logo_path}`} alt={c.name}
+                        style={{ height: 22, maxWidth: 70, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                        onError={e => e.target.style.display = 'none'} />
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,.55)', fontFamily: "'DM Sans',sans-serif" }}>{c.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {showT && <TrailerModal videoKey={tk} onClose={() => setShowT(false)} />}
+
+      {/* ── Actor Detail Modal ───────────────────────────────────────────── */}
+      {actorModal && (
+        <div onClick={() => setActorModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.82)', backdropFilter: 'blur(10px)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'fadeIn .2s ease' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#0e0e1c', border: '1px solid rgba(255,255,255,.09)', borderRadius: 18, width: '100%', maxWidth: 560, maxHeight: '86vh', overflowY: 'auto', position: 'relative' }}>
+
+            {/* Close */}
+            <button onClick={() => setActorModal(null)}
+              style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'white', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+              ✕
+            </button>
+
+            {actorBusy ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 60 }}><Spinner size={40} /></div>
+            ) : (
+              <>
+                {/* Header */}
+                <div style={{ display: 'flex', gap: 18, padding: '24px 24px 0' }}>
+                  <div style={{ width: 90, height: 120, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#1a1a2e', border: '1px solid rgba(255,255,255,.07)' }}>
+                    <img src={imgUrl(actorModal.profile_path, 'w185') || `https://placehold.co/90x120/1a1a2e/555?text=${(actorModal.name||'?')[0]}`}
+                      alt={actorModal.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={e => e.target.src = `https://placehold.co/90x120/1a1a2e/555?text=${(actorModal.name||'?')[0]}`} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28, color: 'white', marginBottom: 5 }}>{actorModal.name}</h2>
+                    {actorModal.known_for_department && (
+                      <span style={{ fontSize: 11, color: '#e50914', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, background: 'rgba(229,9,20,.1)', border: '1px solid rgba(229,9,20,.22)', borderRadius: 5, padding: '2px 9px' }}>
+                        {actorModal.known_for_department}
+                      </span>
+                    )}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                      {actorModal.birthday && (
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', fontFamily: "'DM Sans',sans-serif" }}>
+                          🎂 {new Date(actorModal.birthday).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {!actorModal.deathday && ` (${new Date().getFullYear() - new Date(actorModal.birthday).getFullYear()} yrs)`}
+                        </span>
+                      )}
+                      {actorModal.place_of_birth && (
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', fontFamily: "'DM Sans',sans-serif" }}>📍 {actorModal.place_of_birth}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                {actorModal.biography && (
+                  <div style={{ padding: '16px 24px 0' }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", marginBottom: 8 }}>Biography</p>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', fontFamily: "'DM Sans',sans-serif", lineHeight: 1.75 }}>
+                      {actorModal.biography.length > 480 ? actorModal.biography.slice(0, 480) + '…' : actorModal.biography}
+                    </p>
+                  </div>
+                )}
+
+                {/* Known For */}
+                {actorModal.movie_credits?.cast?.length > 0 && (
+                  <div style={{ padding: '16px 24px 24px' }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', fontFamily: "'DM Sans',sans-serif", marginBottom: 12 }}>Known For</p>
+                    <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
+                      {[...actorModal.movie_credits.cast]
+                        .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+                        .slice(0, 8)
+                        .map(m => (
+                          <div key={m.id} style={{ flexShrink: 0, width: 80, textAlign: 'center' }}>
+                            <div style={{ width: 80, height: 112, borderRadius: 9, overflow: 'hidden', background: '#1a1a2e', marginBottom: 5, border: '1px solid rgba(255,255,255,.06)' }}>
+                              <img src={m.poster_path ? `https://image.tmdb.org/t/p/w154${m.poster_path}` : `https://placehold.co/80x112/1a1a2e/444?text=${encodeURIComponent(m.title?.[0]||'?')}`}
+                                alt={m.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={e => e.target.src = `https://placehold.co/80x112/1a1a2e/444?text=?`} />
+                            </div>
+                            <p style={{ fontSize: 9, color: 'rgba(255,255,255,.65)', fontFamily: "'DM Sans',sans-serif", lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</p>
+                            {m.vote_average > 0 && <p style={{ fontSize: 8, color: '#d4a843', fontFamily: "'DM Sans',sans-serif" }}>⭐ {m.vote_average.toFixed(1)}</p>}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
