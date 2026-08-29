@@ -155,12 +155,27 @@ export default function MovieDetailPage({ movieId }) {
                       ))}
                     </div>
                   </div>
-                ) : (
-                  // Demo mode or no providers found → JustWatch search button
-                  <div>
-                    <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12, fontFamily: "'DM Sans',sans-serif", marginBottom: 10 }}>
-                      {isDemo ? 'Connect TMDB API for real-time availability. Find streaming options:' : 'Not available for streaming — check rent/buy options:'}
+                ) : isDemo ? (
+                  /* Demo mode — no real provider data available */
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 22 }}>🎬</span>
+                    <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                      Add your TMDB API key to see real-time streaming availability.
                     </p>
+                  </div>
+                ) : (
+                  /* Live mode but no streaming providers in this region yet */
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', background: 'rgba(212,168,67,.06)', border: '1px solid rgba(212,168,67,.18)', borderRadius: 10 }}>
+                    <span style={{ fontSize: 24, flexShrink: 0 }}>🕐</span>
+                    <div>
+                      <p style={{ color: '#d4a843', fontWeight: 700, fontSize: 12, fontFamily: "'DM Sans',sans-serif", marginBottom: 3 }}>
+                        Not yet available on OTT
+                      </p>
+                      <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 11, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                        This movie hasn't landed on any streaming platform in your region yet.
+                        It may be available to rent or buy — check below.
+                      </p>
+                    </div>
                   </div>
                 )}
 
