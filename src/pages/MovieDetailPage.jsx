@@ -34,10 +34,14 @@ export default function MovieDetailPage({ movieId }) {
           const t = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')
           if (t) setTk(t.key)
           addToRecent(d)
-          // Try IN (India) first, then US as fallback
+          // Try IN (India) first, then US as fallback; always set so section always renders
           const wpResult = wp?.results
-          const region = wpResult?.IN || wpResult?.US || null
-          if (region) setProviders(region)
+          const region   = wpResult?.IN || wpResult?.US || {}
+          // Ensure JustWatch link is always available even when no provider data exists
+          if (!region.link) {
+            region.link = `https://www.justwatch.com/in/search?q=${encodeURIComponent(d?.title || '')}`
+          }
+          setProviders(region)
         }
       } catch {
         const f = MOCK_MOVIES.find(m => m.id === movieId) || MOCK_MOVIES[0]
