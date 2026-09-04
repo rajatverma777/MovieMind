@@ -9,14 +9,15 @@ import Spinner     from '@/components/Spinner'
 
 export default function MovieDetailPage({ movieId }) {
   const { tmdb, watchlist, toggleWatchlist, navigate, addToRecent, isDemo } = useApp()
-  const [movie,      setMovie]      = useState(null)
-  const [busy,       setBusy]       = useState(true)
-  const [tk,         setTk]         = useState(null)
-  const [showT,      setShowT]      = useState(false)
-  const [tab,        setTab]        = useState('overview')
-  const [providers,  setProviders]  = useState(null)
-  const [actorModal, setActorModal] = useState(null)  // full person object
-  const [actorBusy,  setActorBusy]  = useState(false)
+  const [movie,       setMovie]      = useState(null)
+  const [busy,        setBusy]       = useState(true)
+  const [tk,          setTk]         = useState(null)
+  const [allTrailers, setAllTrailers] = useState([])   // all video objects across languages
+  const [showT,       setShowT]      = useState(false)
+  const [tab,         setTab]        = useState('overview')
+  const [providers,   setProviders]  = useState(null)
+  const [actorModal,  setActorModal] = useState(null)  // full person object
+  const [actorBusy,   setActorBusy]  = useState(false)
 
   const openActor = async (person) => {
     setActorModal({ ...person, _loading: true })
@@ -33,7 +34,7 @@ export default function MovieDetailPage({ movieId }) {
   }
 
   useEffect(() => {
-    setBusy(true); setTab('overview'); setTk(null); setProviders(null)
+    setBusy(true); setTab('overview'); setTk(null); setProviders(null); setAllTrailers([])
     ;(async () => {
       try {
         if (isDemo) {
@@ -47,8 +48,21 @@ export default function MovieDetailPage({ movieId }) {
             tmdb.watchProviders(movieId).catch(() => null),
           ])
           setMovie(d)
-          const t = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')
-          if (t) setTk(t.key)
+
+          // Extract all trailers + teasers from all languages for the language switcher
+          const videos = d.videos?.results || []
+          const usableVideos = videos.filter(v =>
+            v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser' || v.type === 'Clip')
+          )
+          setAllTrailers(usableVideos)
+
+          // Default trailer key: prefer English trailer first, then any trailer
+          const enTrailer = usableVideos.find(v => v.type === 'Trailer' && v.iso_639_1 === 'en')
+          const anyTrailer = usableVideos.find(v => v.type === 'Trailer')
+          const fallback   = usableVideos[0]
+          const best = enTrailer || anyTrailer || fallback
+          if (best) setTk(best.key)
+
           addToRecent(d)
           // Try IN (India) first, then US as fallback; always set so section always renders
           const wpResult = wp?.results
@@ -183,9 +197,19 @@ export default function MovieDetailPage({ movieId }) {
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 18 }}>
+            <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
               <button className="btn-r" onClick={() => setShowT(true)} style={{ border: 'none', padding: '12px 24px', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 ▶ {tk ? 'Watch Trailer' : 'Play'}
+                {/* Show language count badge if multiple languages available */}
+                {allTrailers.length > 1 && (() => {
+                  const langs = [...new Set(allTrailers.map(v => v.iso_639_1).filter(Boolean))]
+                  if (langs.length > 1) return (
+                    <span style={{ fontSize: 9, background: 'rgba(255,255,255,.2)', borderRadius: 4, padding: '1px 5px', fontWeight: 700, letterSpacing: '.3px' }}>
+                      {langs.length} LANG
+                    </span>
+                  )
+                  return null
+                })()}
               </button>
               <button onClick={() => toggleWatchlist(movie)} style={{ border: inWL ? '1px solid #e50914' : '1px solid rgba(255,255,255,.13)', cursor: 'pointer', padding: '12px 20px', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, background: inWL ? 'rgba(229,9,20,.1)' : 'rgba(255,255,255,.06)', color: inWL ? '#e50914' : 'white', transition: 'all .2s' }}>
                 {inWL ? '✓ In Watchlist' : '+ Watchlist'}
@@ -458,7 +482,7 @@ export default function MovieDetailPage({ movieId }) {
         </div>
       </div>
 
-      {showT && <TrailerModal videoKey={tk} onClose={() => setShowT(false)} />}
+      {showT && <TrailerModal videoKey={tk} trailers={allTrailers} onClose={() => setShowT(false)} />}
 
       {/* ── Actor Detail Modal ───────────────────────────────────────────── */}
       {actorModal && (
