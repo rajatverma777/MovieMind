@@ -91,55 +91,76 @@ export default function TrailerModal({ videoKey, trailers = [], onClose }) {
           </button>
         </div>
 
-        {/* Language selector — only shown when multiple languages exist */}
-        {hasMultipleLangs && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 16px',
-            borderBottom: '1px solid rgba(255,255,255,.05)',
-            background: 'rgba(255,255,255,.015)',
-            flexWrap: 'wrap',
+        {/* Language selector — always visible */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 16px',
+          borderBottom: '1px solid rgba(255,255,255,.05)',
+          background: 'rgba(255,255,255,.015)',
+          flexWrap: 'wrap',
+        }}>
+          <span style={{
+            fontSize: 10,
+            color: 'rgba(255,255,255,.35)',
+            fontFamily: "'DM Sans',sans-serif",
+            fontWeight: 700,
+            letterSpacing: '.7px',
+            textTransform: 'uppercase',
+            flexShrink: 0,
           }}>
-            <span style={{
-              fontSize: 10,
-              color: 'rgba(255,255,255,.35)',
+            🎙 Audio:
+          </span>
+
+          {langs.length > 0 ? langs.map(lang => (
+            <button
+              key={lang}
+              onClick={() => hasMultipleLangs && setActiveLang(lang)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 22,
+                border: activeLang === lang
+                  ? '1px solid rgba(229,9,20,.6)'
+                  : '1px solid rgba(255,255,255,.1)',
+                background: activeLang === lang
+                  ? 'rgba(229,9,20,.15)'
+                  : 'rgba(255,255,255,.04)',
+                color: activeLang === lang ? '#ff6060' : 'rgba(255,255,255,.45)',
+                fontFamily: "'DM Sans',sans-serif",
+                fontSize: 12,
+                fontWeight: activeLang === lang ? 700 : 500,
+                cursor: hasMultipleLangs ? 'pointer' : 'default',
+                transition: 'all .18s ease',
+                letterSpacing: '.2px',
+              }}
+            >
+              {getLangName(lang)}
+            </button>
+          )) : (
+            // Fallback when no language data from TMDB
+            <button style={{
+              padding: '6px 14px',
+              borderRadius: 22,
+              border: '1px solid rgba(229,9,20,.6)',
+              background: 'rgba(229,9,20,.15)',
+              color: '#ff6060',
               fontFamily: "'DM Sans',sans-serif",
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: '.7px',
-              textTransform: 'uppercase',
-              flexShrink: 0,
+              cursor: 'default',
             }}>
-              🎙 Language:
+              🇬🇧 English
+            </button>
+          )}
+
+          {langs.length <= 1 && (
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,.22)', fontFamily: "'DM Sans',sans-serif", marginLeft: 4 }}>
+              · Only English available for this title
             </span>
-            {langs.map(lang => (
-              <button
-                key={lang}
-                onClick={() => setActiveLang(lang)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 22,
-                  border: activeLang === lang
-                    ? '1px solid rgba(229,9,20,.6)'
-                    : '1px solid rgba(255,255,255,.1)',
-                  background: activeLang === lang
-                    ? 'rgba(229,9,20,.15)'
-                    : 'rgba(255,255,255,.04)',
-                  color: activeLang === lang ? '#ff6060' : 'rgba(255,255,255,.65)',
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontSize: 12,
-                  fontWeight: activeLang === lang ? 700 : 500,
-                  cursor: 'pointer',
-                  transition: 'all .18s ease',
-                  letterSpacing: '.2px',
-                }}
-              >
-                {getLangName(lang)}
-              </button>
-            ))}
-          </div>
-        )}
+          )}
+        </div>
+
 
         {/* Video */}
         <div style={{ aspectRatio: '16/9' }}>
