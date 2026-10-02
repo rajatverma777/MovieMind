@@ -9,7 +9,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     }
   },
-  server: { port: 5173, open: true },
+  server: {
+    port: 5173,
+    open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      }
+    }
+  },
   build: {
     outDir: 'dist',
     rollupOptions: {

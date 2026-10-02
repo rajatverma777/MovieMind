@@ -1,5 +1,5 @@
 // src/context/AppContext.jsx
-// Full auth system: login, logout, signup, user avatar, persist across refresh
+// Global state management: navigation, TMDB service, watchlist, and recently viewed
 
 import { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import { createTMDBService } from '@/services/tmdb'
@@ -11,74 +11,32 @@ export const useApp = () => {
   return c
 }
 
-// User database helper functions
-const getStoredUsers = () => {
-  try {
-    const saved = localStorage.getItem('moviemind_users')
-    return saved ? JSON.parse(saved) : []
-  } catch {
-    return []
-  }
-}
-
 export function AppProvider({ children }) {
   // ── Navigation ────────────────────────────────────────────────────────
   const [page,    setPage]    = useState('landing')
   const [movieId, setMovieId] = useState(null)
 
-  // ── Auth ──────────────────────────────────────────────────────────────
-  const [user,    setUser]    = useState(() => {
-    try {
-      const saved = localStorage.getItem('moviemind_current_user')
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
-  const [authErr, setAuthErr] = useState('')
-
   // ── API config ────────────────────────────────────────────────────────
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_TMDB_API_KEY || 'DEMO')
 
-  // ── User data ─────────────────────────────────────────────────────────
-  const [watchlist,      setWatchlist]  = useState(() => {
+  // ── User data (persisted in localStorage) ─────────────────────────────
+  const [watchlist, setWatchlist] = useState(() => {
     try {
-      const savedUser = localStorage.getItem('moviemind_current_user')
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser)
-        const wl = localStorage.getItem(`moviemind_watchlist_${parsed.email}`)
-        return wl ? JSON.parse(wl) : []
-      }
-    } catch {}
-    return []
-  })
-  const [recentlyViewed, setRecent]     = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('moviemind_current_user')
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser)
-        const r = localStorage.getItem(`moviemind_recent_${parsed.email}`)
-        return r ? JSON.parse(r) : []
-      }
-    } catch {}
-    return []
+      const saved = localStorage.getItem('moviemind_watchlist')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
 
-  // Helper to load user-specific watchlist and recents
-  const loadUserData = useCallback((email) => {
+  const [recentlyViewed, setRecent] = useState(() => {
     try {
-      const wl = localStorage.getItem(`moviemind_watchlist_${email}`)
-      setWatchlist(wl ? JSON.parse(wl) : [])
+      const saved = localStorage.getItem('moviemind_recent')
+      return saved ? JSON.parse(saved) : []
     } catch {
-      setWatchlist([])
+      return []
     }
-    try {
-      const r = localStorage.getItem(`moviemind_recent_${email}`)
-      setRecent(r ? JSON.parse(r) : [])
-    } catch {
-      setRecent([])
-    }
-  }, [])
+  })
 
   // ── Navigate ──────────────────────────────────────────────────────────
   const navigate = useCallback((p, id = null) => {
@@ -87,93 +45,28 @@ export function AppProvider({ children }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  // ── Sign up ───────────────────────────────────────────────────────────
-  const signUp = useCallback(async ({ name, email, password }) => {
-    setAuthErr('')
-    await new Promise(r => setTimeout(r, 900)) // simulate network
-
-    const cleanEmail = email.trim().toLowerCase()
-    const users = getStoredUsers()
-    const exists = users.find(u => u.email.trim().toLowerCase() === cleanEmail)
-    if (exists) { setAuthErr('An account with this email already exists.'); return false }
-
-    const newUser = { name, email: cleanEmail, password, avatar: name[0].toUpperCase() }
-    users.push(newUser)
-    try {
-      localStorage.setItem('moviemind_users', JSON.stringify(users))
-    } catch (e) {
-      console.error(e)
-    }
-    setUser({ name, email: cleanEmail, avatar: newUser.avatar })
-    localStorage.setItem('moviemind_current_user', JSON.stringify({ name, email: cleanEmail, avatar: newUser.avatar }))
-    loadUserData(cleanEmail)
-    return true
-  }, [loadUserData])
-
-  // ── Sign in ───────────────────────────────────────────────────────────
-  const signIn = useCallback(async ({ email, password }) => {
-    setAuthErr('')
-    await new Promise(r => setTimeout(r, 900))
-
-    const cleanEmail = email.trim().toLowerCase()
-
-    // Demo account — always works
-    if (cleanEmail === 'demo@moviemind.ai' && password === 'demo123') {
-      const demoUser = { name: 'Demo User', email: cleanEmail, avatar: 'D' }
-      setUser(demoUser)
-      localStorage.setItem('moviemind_current_user', JSON.stringify(demoUser))
-      loadUserData(cleanEmail)
-      return true
-    }
-
-    const users = getStoredUsers()
-    const found = users.find(u => u.email.trim().toLowerCase() === cleanEmail && u.password === password)
-    if (!found) { setAuthErr('Incorrect email or password.'); return false }
-
-    const loggedInUser = { name: found.name, email: found.email, avatar: found.avatar }
-    setUser(loggedInUser)
-    localStorage.setItem('moviemind_current_user', JSON.stringify(loggedInUser))
-    loadUserData(found.email)
-    return true
-  }, [loadUserData])
-
-  // ── Sign out ──────────────────────────────────────────────────────────
-  const signOut = useCallback(() => {
-    setUser(null)
-    localStorage.removeItem('moviemind_current_user')
-    setWatchlist([])
-    setRecent([])
-    navigate('landing')
-  }, [navigate])
-
-  // ── Watchlist ─────────────────────────────────────────────────────────
-  const toggleWatchlist = useCallback(movie =>
+  // ── Watchlist management ──────────────────────────────────────────────
+  const toggleWatchlist = useCallback(movie => {
     setWatchlist(prev => {
       const next = prev.some(m => m.id === movie.id)
         ? prev.filter(m => m.id !== movie.id)
         : [...prev, movie]
       try {
-        const savedUser = localStorage.getItem('moviemind_current_user')
-        if (savedUser) {
-          const parsed = JSON.parse(savedUser)
-          localStorage.setItem(`moviemind_watchlist_${parsed.email}`, JSON.stringify(next))
-        }
+        localStorage.setItem('moviemind_watchlist', JSON.stringify(next))
       } catch {}
       return next
-    }), [])
+    })
+  }, [])
 
-  const addToRecent = useCallback(movie =>
+  const addToRecent = useCallback(movie => {
     setRecent(prev => {
       const next = [movie, ...prev.filter(m => m.id !== movie.id)].slice(0, 12)
       try {
-        const savedUser = localStorage.getItem('moviemind_current_user')
-        if (savedUser) {
-          const parsed = JSON.parse(savedUser)
-          localStorage.setItem(`moviemind_recent_${parsed.email}`, JSON.stringify(next))
-        }
+        localStorage.setItem('moviemind_recent', JSON.stringify(next))
       } catch {}
       return next
-    }), [])
+    })
+  }, [])
 
   // ── TMDB service ──────────────────────────────────────────────────────
   const isDemo = apiKey === 'DEMO'
@@ -185,8 +78,6 @@ export function AppProvider({ children }) {
   const value = {
     // navigation
     navigate, page, movieId,
-    // auth
-    user, authErr, setAuthErr, signIn, signUp, signOut,
     // tmdb
     tmdb, apiKey, setApiKey, isDemo,
     // data

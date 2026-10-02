@@ -1,4 +1,4 @@
-import { GID } from '@/data/constants'
+import { GID } from '../data/constants.js'
 
 export function buildGenreVector(movie) {
   const v = new Array(GID.length).fill(0)

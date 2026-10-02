@@ -13,7 +13,7 @@ const tooltipStyle = {
 }
 
 export default function DashboardPage() {
-  const { user, watchlist, recentlyViewed, navigate } = useApp()
+  const { watchlist, recentlyViewed, navigate } = useApp()
 
   const genreData = useMemo(() => {
     const c = {}
@@ -57,7 +57,7 @@ export default function DashboardPage() {
           Your <span style={{ color: '#e50914' }}>Dashboard</span>
         </h1>
         <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 13 }}>
-          Welcome back, {user?.name || 'Cinephile'} · AI-Powered Insights
+          Personal Taste & Watchlist Analytics · AI-Powered Insights
         </p>
       </div>
 

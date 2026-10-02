@@ -2,8 +2,6 @@ import { AppProvider, useApp } from '@/context/AppContext'
 import Navbar          from '@/components/Navbar'
 import SetupPage       from '@/pages/SetupPage'
 import LandingPage     from '@/pages/LandingPage'
-import LoginPage       from '@/pages/LoginPage'
-import SignupPage      from '@/pages/SignupPage'
 import MovieDetailPage from '@/pages/MovieDetailPage'
 import SearchPage      from '@/pages/SearchPage'
 import WatchlistPage   from '@/pages/WatchlistPage'
@@ -17,8 +15,6 @@ function Router() {
   if (!apiKey) return <SetupPage />
 
   const pages = {
-    login:     <LoginPage />,
-    signup:    <SignupPage />,
     movie:     <MovieDetailPage movieId={movieId} />,
     search:    <SearchPage />,
     watchlist: <WatchlistPage />,
