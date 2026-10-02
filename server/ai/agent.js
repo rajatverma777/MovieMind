@@ -41,6 +41,71 @@ async function executeTool(toolCall, watchlist) {
 }
 
 /**
+ * Attempt a complete LangChain agent execution with a specific Gemini model
+ */
+async function attemptAgentPipeline({ message, history, watchlist, modelName }) {
+  const model = getGeminiModel({ modelName })
+  const modelWithTools = model.bindTools(allTools)
+
+  // 1. Build Message Chain — exactly ONE SystemMessage for Gemini API
+  let fullSystemInstruction = SYSTEM_PROMPT
+  if (Array.isArray(watchlist) && watchlist.length > 0) {
+    const titles = watchlist.slice(0, 6).map(m => m.title).join(', ')
+    fullSystemInstruction += `\n\nUSER WATCHLIST CONTEXT:\nThe user has these films saved in their watchlist: ${titles}. Factor this preference context into your recommendations when relevant.`
+  }
+
+  const messages = [new SystemMessage(fullSystemInstruction)]
+
+  // Add last 6 turns of conversation history (Human and AI only)
+  const recentHistory = Array.isArray(history) ? history.slice(-6) : []
+  for (const h of recentHistory) {
+    if (h.role === 'user' && h.content) {
+      messages.push(new HumanMessage(h.content))
+    } else if (h.role === 'assistant' && h.content) {
+      messages.push(new AIMessage(h.content))
+    }
+  }
+
+  // Add current user prompt
+  messages.push(new HumanMessage(message))
+
+  // 2. First Invocation: Model decides whether to call tools
+  const firstResponse = await modelWithTools.invoke(messages)
+
+  // 3. Handle Tool Calls if Gemini requested them
+  if (firstResponse.tool_calls && firstResponse.tool_calls.length > 0) {
+    messages.push(firstResponse)
+
+    // Execute each tool call and collect ToolMessages
+    for (const tc of firstResponse.tool_calls) {
+      const toolResult = await executeTool(tc, watchlist)
+      messages.push(
+        new ToolMessage({
+          content: toolResult,
+          tool_call_id: tc.id || tc.name,
+          name: tc.name
+        })
+      )
+    }
+
+    // 4. Final Invocation with Structured Output
+    const structuredModel = model.withStructuredOutput(ChatResponseSchema)
+    const structuredResult = await structuredModel.invoke(messages)
+    return structuredResult
+  }
+
+  // Conversational response without tool calls
+  const textContent = typeof firstResponse.content === 'string'
+    ? firstResponse.content
+    : JSON.stringify(firstResponse.content)
+
+  return {
+    message: textContent,
+    recommendations: []
+  }
+}
+
+/**
  * Main LangChain Agent Runner
  */
 export async function runMovieMindAgent({ message, history = [], watchlist = [] }) {
@@ -77,70 +142,21 @@ export async function runMovieMindAgent({ message, history = [], watchlist = [] 
     }
   }
 
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash'
   try {
-    const model = getGeminiModel()
-    const modelWithTools = model.bindTools(allTools)
-
-    // 2. Build Message Chain — exactly ONE SystemMessage for Gemini API
-    let fullSystemInstruction = SYSTEM_PROMPT
-    if (Array.isArray(watchlist) && watchlist.length > 0) {
-      const titles = watchlist.slice(0, 6).map(m => m.title).join(', ')
-      fullSystemInstruction += `\n\nUSER WATCHLIST CONTEXT:\nThe user has these films saved in their watchlist: ${titles}. Factor this preference context into your recommendations when relevant.`
-    }
-
-    const messages = [new SystemMessage(fullSystemInstruction)]
-
-    // Add last 6 turns of conversation history (Human and AI only)
-    const recentHistory = Array.isArray(history) ? history.slice(-6) : []
-    for (const h of recentHistory) {
-      if (h.role === 'user' && h.content) {
-        messages.push(new HumanMessage(h.content))
-      } else if (h.role === 'assistant' && h.content) {
-        messages.push(new AIMessage(h.content))
-      }
-    }
-
-    // Add current user prompt
-    messages.push(new HumanMessage(message))
-
-    // 3. First Invocation: Model decides whether to call tools
-    const firstResponse = await modelWithTools.invoke(messages)
-
-    // 4. Handle Tool Calls if Gemini requested them
-    if (firstResponse.tool_calls && firstResponse.tool_calls.length > 0) {
-      messages.push(firstResponse)
-
-      // Execute each tool call and collect ToolMessages
-      for (const tc of firstResponse.tool_calls) {
-        const toolResult = await executeTool(tc, watchlist)
-        messages.push(
-          new ToolMessage({
-            content: toolResult,
-            tool_call_id: tc.id || tc.name,
-            name: tc.name
-          })
-        )
-      }
-
-      // 5. Final Invocation with Structured Output
-      const structuredModel = model.withStructuredOutput(ChatResponseSchema)
-      const structuredResult = await structuredModel.invoke(messages)
-      return structuredResult
-    }
-
-    // If no tools were called, check if response can be formatted via structured output
-    // or return directly if conversational
-    const textContent = typeof firstResponse.content === 'string'
-      ? firstResponse.content
-      : JSON.stringify(firstResponse.content)
-
-    // For conversational responses without tool calls
-    return {
-      message: textContent,
-      recommendations: []
-    }
+    return await attemptAgentPipeline({ message, history, watchlist, modelName: primaryModel })
   } catch (err) {
-    console.error('[MovieMindAgent] Agent error:', err)
+    console.error(`[MovieMindAgent] Error with ${primaryModel}:`, err?.message || err)
+
+    // Automatic failover to backup model if quota/rate-limited or busy
+    if (primaryModel !== 'gemini-2.5-flash-lite') {
+      try {
+        console.log('[MovieMindAgent] Failing over to gemini-2.5-flash-lite...')
+        return await attemptAgentPipeline({ message, history, watchlist, modelName: 'gemini-2.5-flash-lite' })
+      } catch (backupErr) {
+        console.error('[MovieMindAgent] Backup model error:', backupErr?.message || backupErr)
+      }
+    }
 
     // Resilient fallback: compute deterministic recommendations
     try {

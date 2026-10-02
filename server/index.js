@@ -18,7 +18,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'MovieMind AI Server',
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
     geminiConfigured: !!process.env.GEMINI_API_KEY,
     tmdbConfigured: !!(process.env.TMDB_API_KEY || process.env.VITE_TMDB_API_KEY)
   })
