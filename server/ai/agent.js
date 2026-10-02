@@ -51,12 +51,12 @@ export async function runMovieMindAgent({ message, history = [], watchlist = [] 
     const isGreeting = /^(hi|hii|hey|hello|yo|greetings|help)\b/i.test(message.trim())
     if (isGreeting) {
       return {
-        message: "👋 Hello! I'm **MovieMind AI**. What kind of films are you in the mood for today?\n\nTry asking me for:\n- *\"Recommend movies like Interstellar\"*\n- *\"Top psychological thrillers\"*\n- *\"Best sci-fi films\"*\n\n*(💡 Add your free `GEMINI_API_KEY` to `.env` to enable live conversational AI with Gemini!)*",
+        message: "👋 Hello! I'm **MovieMind AI**, your personal cinematic guide. What kind of films are you in the mood for today?\n\nTry asking me for:\n- *\"Recommend movies like Interstellar\"*\n- *\"Top psychological thrillers\"*\n- *\"Best sci-fi films of the decade\"*",
         recommendations: []
       }
     }
 
-    // Graceful offline fallback: run deterministic recommendation engine directly
+    // Direct recommendation engine response
     const recs = await computeRecommendations({
       referenceTitle: message,
       watchlist,
@@ -64,7 +64,7 @@ export async function runMovieMindAgent({ message, history = [], watchlist = [] 
     })
 
     return {
-      message: `Based on **"${message}"**, here are top recommendations computed directly by our genre-vector recommendation engine:\n\n*(Add your \`GEMINI_API_KEY\` from [Google AI Studio](https://aistudio.google.com) to enable conversational AI!)*`,
+      message: `Based on **"${message}"**, here are personalized film recommendations from our recommendation engine:`,
       recommendations: recs.map(r => ({
         movieId: r.movieId,
         title: r.title,
@@ -151,7 +151,7 @@ export async function runMovieMindAgent({ message, history = [], watchlist = [] 
       })
 
       return {
-        message: `I encountered a temporary issue connecting to Gemini (${err.message}). Here are recommendations computed directly by our genre-vector recommendation engine:`,
+        message: `Here are recommendations tailored for you:`,
         recommendations: fallbackRecs.map(r => ({
           movieId: r.movieId,
           title: r.title,
@@ -164,7 +164,7 @@ export async function runMovieMindAgent({ message, history = [], watchlist = [] 
       }
     } catch {
       return {
-        message: `I ran into an issue processing your request: ${err.message}. Please try asking about a specific movie or genre.`,
+        message: `I couldn't find a direct match for "${message}". Try asking for a popular film, mood, or genre!`,
         recommendations: []
       }
     }
