@@ -4,6 +4,10 @@
 import { GID, GN, MOCK_MOVIES, TMDB_BASE } from '../../src/data/constants.js'
 import { buildGenreVector, cosineSimilarity, getRecommendations } from '../../src/utils/recommend.js'
 
+let cachedPool = null
+let lastPoolFetch = 0
+const POOL_TTL = 15 * 60 * 1000 // 15 minutes in-memory cache
+
 /**
  * Searches TMDB for a movie by title
  */
@@ -12,41 +16,42 @@ async function searchTmdbMovie(title, apiKey) {
     return MOCK_MOVIES.find(m => m.title.toLowerCase().includes(title.toLowerCase())) || null
   }
   try {
-    const res = await fetch(`${TMDB_BASE}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`)
-    if (!res.ok) return null
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 3000)
+    const res = await fetch(`${TMDB_BASE}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`, { signal: controller.signal })
+    clearTimeout(timer)
+    if (!res.ok) return MOCK_MOVIES.find(m => m.title.toLowerCase().includes(title.toLowerCase())) || null
     const data = await res.json()
-    return data.results?.[0] || null
+    return data.results?.[0] || MOCK_MOVIES.find(m => m.title.toLowerCase().includes(title.toLowerCase())) || null
   } catch (err) {
-    console.error('[RecommendationEngine] TMDB search error:', err.message)
-    return null
+    return MOCK_MOVIES.find(m => m.title.toLowerCase().includes(title.toLowerCase())) || null
   }
 }
 
 /**
- * Fetches a candidate pool of movies from TMDB (popular + top rated)
+ * Fetches a candidate pool of movies from TMDB (with fast in-memory caching)
  */
 async function fetchCandidatePool(apiKey) {
   if (!apiKey || apiKey === 'DEMO') {
     return MOCK_MOVIES
   }
+  const now = Date.now()
+  if (cachedPool && (now - lastPoolFetch < POOL_TTL)) {
+    return cachedPool
+  }
   try {
-    const [popularRes, topRatedRes] = await Promise.all([
-      fetch(`${TMDB_BASE}/movie/popular?api_key=${apiKey}&page=1`),
-      fetch(`${TMDB_BASE}/movie/top_rated?api_key=${apiKey}&page=1`)
-    ])
-
-    const popular = popularRes.ok ? (await popularRes.json()).results || [] : []
-    const topRated = topRatedRes.ok ? (await topRatedRes.json()).results || [] : []
-
-    const poolMap = new Map()
-    for (const m of [...popular, ...topRated, ...MOCK_MOVIES]) {
-      if (m && m.id && !poolMap.has(m.id)) {
-        poolMap.set(m.id, m)
-      }
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 3500)
+    const res = await fetch(`${TMDB_BASE}/movie/top_rated?api_key=${apiKey}&page=1`, { signal: controller.signal })
+    clearTimeout(timer)
+    if (res.ok) {
+      const data = await res.json()
+      cachedPool = [...(data.results || []), ...MOCK_MOVIES]
+      lastPoolFetch = now
+      return cachedPool
     }
-    return Array.from(poolMap.values())
+    return MOCK_MOVIES
   } catch (err) {
-    console.error('[RecommendationEngine] Candidate pool fetch error:', err.message)
     return MOCK_MOVIES
   }
 }

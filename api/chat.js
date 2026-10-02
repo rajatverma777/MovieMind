@@ -1,6 +1,8 @@
 // api/chat.js — Vercel Serverless Function for POST /api/chat
 import { runMovieMindAgent } from '../server/ai/agent.js'
 
+export const maxDuration = 30 // Allow up to 30s for AI + tool calling on Vercel
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true')
