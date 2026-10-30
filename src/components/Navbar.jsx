@@ -1,15 +1,15 @@
 // src/components/Navbar.jsx — Apple-Style Dual Liquid Glass Navigation
-// Designed precisely after the reference UI (Image 2):
-// - Ultra-clear transparent liquid glass capsule
-// - Active cyan-blue glowing encapsulated pill with 4-square grid icon
-// - Detached floating circular glass action button with '+'
-// - Upper navigation bar with centered MovieMind Home button
-// - Apple-style dynamic hide on scroll down with speed, show on scroll up
+// Refined Apple visionOS aesthetic:
+// - Frosted liquid glass capsule with subtle dark tint & light blur (prevents text clashing)
+// - Centered MovieMind header button (Home action) in top bar — no extra clutter
+// - Bottom dock with Profile avatar action button replacing '+'
+// - Profile menu directly anchored above the profile button (no more floating far away)
+// - Transparent liquid glass popups with minimal blur
 import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useHideOnScroll } from '@/hooks'
 
-// Minimalist vector SVG icons matching the reference image
+// Minimalist vector SVG icons matching Apple visionOS style
 function GridIcon({ size = 20, color = 'currentColor' }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,11 +64,11 @@ function MoreIcon({ size = 20, color = 'currentColor' }) {
   )
 }
 
-function PlusIcon({ size = 22, color = 'currentColor' }) {
+function UserOutlineIcon({ size = 20, color = 'currentColor' }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round">
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </svg>
   )
 }
@@ -79,7 +79,7 @@ export default function Navbar() {
     setEditProfileModalOpen, setAccountSettingsModalOpen
   } = useApp()
 
-  const { visible, scrolled } = useHideOnScroll(6)
+  const { visible } = useHideOnScroll(6)
   const [showMore, setShowMore] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const moreRef = useRef(null)
@@ -89,8 +89,12 @@ export default function Navbar() {
 
   useEffect(() => {
     const handle = (e) => {
-      if (moreRef.current && !moreRef.current.contains(e.target)) setShowMore(false)
-      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false)
+      if (moreRef.current && !moreRef.current.contains(e.target) && !e.target.closest('.bnav-more-btn')) {
+        setShowMore(false)
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfile(false)
+      }
     }
     const esc = (e) => {
       if (e.key === 'Escape') {
@@ -146,6 +150,7 @@ export default function Navbar() {
       {/* ══════════════════════════════════════════════════════════
           UPPER NAVIGATION BAR — MovieMind Centered Heading (Home Button)
           Smooth Apple-style hide-on-scroll down, show-on-scroll up
+          Only centered heading (No left back button, no right profile button)
       ══════════════════════════════════════════════════════════ */}
       <header
         style={{
@@ -165,242 +170,69 @@ export default function Navbar() {
         <div
           style={{
             height: '100%',
-            background: scrolled ? 'rgba(8, 10, 18, 0.45)' : 'rgba(8, 10, 18, 0.25)',
-            backdropFilter: 'blur(24px) saturate(190%) brightness(1.08)',
-            WebkitBackdropFilter: 'blur(24px) saturate(190%) brightness(1.08)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.35)',
-            padding: '0 24px',
+            background: 'rgba(12, 14, 24, 0.65)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             position: 'relative'
           }}
         >
-          {/* Left Section: Back shortcut if on subpages */}
-          <div style={{ width: 120, display: 'flex', alignItems: 'center' }}>
-            {page !== 'landing' ? (
-              <button
-                onClick={() => go('landing')}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: 16,
-                  padding: '4px 12px',
-                  color: 'rgba(255, 255, 255, 0.75)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  transition: 'all 0.2s',
-                  backdropFilter: 'blur(10px)'
-                }}
-                onMouseOver={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-                  e.currentTarget.style.color = '#ffffff'
-                }}
-                onMouseOut={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)'
-                }}
-              >
-                <span style={{ fontSize: 13 }}>‹</span> Home
-              </button>
-            ) : null}
-          </div>
-
-          {/* EXACT CENTER: MovieMind Heading (Functions directly as Home button) */}
-          <div
+          {/* Centered MovieMind Heading (Home button) */}
+          <button
             onClick={() => go('landing')}
             style={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: 24,
+              padding: '6px 20px',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '6px 20px',
-              borderRadius: 24,
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.18)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
               transition: 'all 0.22s cubic-bezier(0.34, 1.2, 0.64, 1)',
               userSelect: 'none'
             }}
             onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'
-              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.5)'
-              e.currentTarget.style.transform = 'translateX(-50%) scale(1.03)'
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4)'
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.45)'
+              e.currentTarget.style.transform = 'scale(1.02)'
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(56, 189, 248, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35)'
             }}
             onMouseOut={e => {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)'
-              e.currentTarget.style.transform = 'translateX(-50%) scale(1)'
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+              e.currentTarget.style.transform = 'scale(1)'
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
             }}
-            title="MovieMind — Click to return to Home"
           >
             <span style={{ fontSize: 16 }}>🎬</span>
             <span
               style={{
                 fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', cursive",
-                fontSize: 21,
-                letterSpacing: 2.2,
+                fontSize: 20,
+                letterSpacing: 2,
                 color: 'white',
                 fontWeight: 700
               }}
             >
               MOVIE<span style={{ color: '#38bdf8' }}>MIND</span>
             </span>
-          </div>
-
-          {/* Right Section: User CineID / Quick Action */}
-          <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            {user ? (
-              <div
-                onClick={() => { setShowProfile(p => !p); setShowMore(false) }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <span style={{ fontSize: 16 }}>{user.avatar || '🎬'}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  @{user.username}
-                </span>
-                {totalAlerts > 0 && (
-                  <span style={{
-                    position: 'absolute', top: -4, right: -4,
-                    background: '#38bdf8', color: '#090910',
-                    borderRadius: 10, fontSize: 8, fontWeight: 800,
-                    padding: '1px 5px', minWidth: 15, textAlign: 'center'
-                  }}>
-                    {totalAlerts > 9 ? '9+' : totalAlerts}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => go('login')}
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  borderRadius: 20,
-                  padding: '5px 14px',
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Sign In
-              </button>
-            )}
-          </div>
+          </button>
         </div>
       </header>
 
       {/* ══════════════════════════════════════════════════════════
-          PROFILE POPUP MODAL (Glass Sheet)
-      ══════════════════════════════════════════════════════════ */}
-      {showProfile && user && (
-        <div
-          ref={profileRef}
-          style={{
-            position: 'fixed',
-            bottom: 'calc(var(--bnav-h) + 26px)',
-            right: 24,
-            background: 'rgba(12, 14, 24, 0.82)',
-            backdropFilter: 'blur(36px) saturate(2)',
-            WebkitBackdropFilter: 'blur(36px) saturate(2)',
-            border: '1px solid rgba(255,255,255,0.18)',
-            borderRadius: 24,
-            padding: 10,
-            boxShadow: '0 24px 64px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.15)',
-            zIndex: 300,
-            minWidth: 230,
-            animation: 'fadeUp .22s cubic-bezier(.22,1,.36,1)',
-          }}
-        >
-          <div
-            onClick={() => go('profile')}
-            style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer', borderRadius: 14 }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <div style={{ fontSize: 26, marginBottom: 4 }}>{user.avatar || '🎬'}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{user.displayName || user.name}</div>
-            <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 1 }}>@{user.username} · View Profile →</div>
-          </div>
-
-          {[
-            { label: '✏️  Edit Profile', action: () => { setEditProfileModalOpen(true); setShowProfile(false) } },
-            { label: '⚙️  Settings',     action: () => { setAccountSettingsModalOpen(true); setShowProfile(false) } },
-            { label: '📊  My Dashboard', action: () => go('dashboard') },
-          ].map(({ label, action }) => (
-            <button
-              key={label}
-              onClick={action}
-              style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '10px 14px', color: 'rgba(255,255,255,0.8)', fontSize: 13, cursor: 'pointer', borderRadius: 12, fontFamily: 'inherit', transition: 'background .15s' }}
-              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
-              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-            >
-              {label}
-            </button>
-          ))}
-
-          <button
-            onClick={() => { logout(); setShowProfile(false) }}
-            style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '10px 14px', color: '#f87171', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderRadius: 12, fontFamily: 'inherit', marginTop: 2, borderTop: '1px solid rgba(255,255,255,0.06)', transition: 'background .15s' }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
-            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-          >
-            🚪  Sign Out
-          </button>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════
-          MORE MENU POPUP MODAL
-      ══════════════════════════════════════════════════════════ */}
-      {showMore && (
-        <div className="more-menu" ref={moreRef}>
-          {moreItems.map(item => (
-            <button
-              key={item.id}
-              className={`more-item ${page === item.id ? 'active' : ''}`}
-              onClick={() => go(item.id)}
-            >
-              <span className="more-item-icon">{item.icon}</span>
-              <span style={{ fontSize: 11, fontWeight: 600 }}>{item.label}</span>
-              {item.badge > 0 && (
-                <span style={{ fontSize: 9, background: '#38bdf8', color: '#090910', borderRadius: 8, padding: '1px 5px', fontWeight: 800 }}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════
-          BOTTOM LIQUID GLASS DOCK (EXACT IMAGE 2 REPLICA)
-          - Ultra-clear liquid glass capsule with thin white crisp rim
-          - Active item pill with blue neon highlight and 4-square grid icon
-          - Detached floating circular glass button with '+'
+          BOTTOM LIQUID GLASS DOCK
+          - Apple liquid glass capsule with subtle dark tint & light blur
+          - Active item pill with blue neon highlight and vector icon
+          - Detached floating circular glass Profile avatar button
+          - Dynamic profile popup anchored directly above the profile button
           - Hide-on-scroll with Apple-style fluid dynamics
       ══════════════════════════════════════════════════════════ */}
       <div
@@ -413,18 +245,84 @@ export default function Navbar() {
           pointerEvents: visible ? 'all' : 'none'
         }}
       >
-        {/* Main Ultra-Clear Liquid Glass Navigation Capsule */}
+        {/* MORE POPUP MENU (Apple liquid glass with minimal blur) */}
+        {showMore && (
+          <div
+            className="more-menu"
+            ref={moreRef}
+            style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 14px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(14, 17, 28, 0.82)',
+              backdropFilter: 'blur(28px) saturate(190%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: 22,
+              padding: 10,
+              boxShadow: '0 20px 50px rgba(0,0,0,0.65), inset 0 1px 1px rgba(255,255,255,0.2)',
+              zIndex: 350,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 6,
+              minWidth: 280,
+              animation: 'fadeUp .2s cubic-bezier(.16, 1, 0.3, 1)',
+              pointerEvents: 'all'
+            }}
+          >
+            {moreItems.map(item => (
+              <button
+                key={item.id}
+                className={`more-item ${page === item.id ? 'active' : ''}`}
+                onClick={() => go(item.id)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '10px 8px',
+                  borderRadius: 14,
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  background: page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                  color: page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)',
+                  cursor: 'pointer',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  transition: 'all 0.18s ease'
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = '#ffffff'
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)'
+                  e.currentTarget.style.color = page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)'
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{item.icon}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 600 }}>{item.label}</span>
+                {item.badge > 0 && (
+                  <span style={{ fontSize: 8.5, background: '#38bdf8', color: '#090910', borderRadius: 8, padding: '1px 5px', fontWeight: 800 }}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Main Liquid Glass Navigation Capsule */}
         <nav
           className="bottom-nav-pill"
           style={{
-            /* Ultra-clear liquid glass matching reference image */
-            background: 'rgba(255, 255, 255, 0.03)',
-            backdropFilter: 'blur(20px) saturate(180%) brightness(1.15)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%) brightness(1.15)',
-            border: '1px solid rgba(255, 255, 255, 0.42)',
+            background: 'rgba(14, 17, 28, 0.72)',
+            backdropFilter: 'blur(24px) saturate(190%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(190%)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: 100,
             padding: '6px 8px',
-            boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.65), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)',
           }}
         >
           {primaryItems.map(item => {
@@ -436,7 +334,6 @@ export default function Navbar() {
               <button
                 key={item.id}
                 onClick={() => go(item.id)}
-                title={item.label}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -508,8 +405,8 @@ export default function Navbar() {
 
           {/* More Drawer Trigger */}
           <button
+            className="bnav-more-btn"
             onClick={() => { setShowMore(p => !p); setShowProfile(false) }}
-            title="More CineMind Features"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -574,64 +471,164 @@ export default function Navbar() {
           </button>
         </nav>
 
-        {/* Detached Floating Circular Glass Button with '+' (Exact match to Image 2 floating circular button) */}
-        <button
-          className="bnav-circle-btn"
-          onClick={() => {
-            if (user) {
-              setShowProfile(p => !p)
-              setShowMore(false)
-            } else {
-              go('login')
-            }
-          }}
-          title={user ? `@${user.username} — Profile & Quick Suite` : 'Sign In / Quick Menu'}
-          style={{
-            position: 'relative',
-            width: 58,
-            height: 58,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(255, 255, 255, 0.03)',
-            backdropFilter: 'blur(20px) saturate(180%) brightness(1.15)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%) brightness(1.15)',
-            border: '1px solid rgba(255, 255, 255, 0.42)',
-            boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.65)',
-            cursor: 'pointer',
-            color: 'white',
-            transition: 'all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1)'
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'
-            e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.6)'
-            e.currentTarget.style.transform = 'scale(1.06)'
-            e.currentTarget.style.boxShadow = '0 20px 48px rgba(0, 0, 0, 0.5), 0 0 18px rgba(56, 189, 248, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
-          }}
-          onMouseOut={e => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.42)'
-            e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.boxShadow = '0 20px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.65)'
-          }}
-        >
-          <PlusIcon size={22} color="white" />
-          {totalAlerts > 0 && (
-            <span
+        {/* Detached Floating Circular Glass Profile Button with Anchored Popup */}
+        <div style={{ position: 'relative' }} ref={profileRef}>
+          {showProfile && user && (
+            <div
+              className="profile-liquid-menu"
               style={{
                 position: 'absolute',
-                top: 4,
-                right: 4,
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: '#38bdf8',
-                boxShadow: '0 0 8px #38bdf8'
+                bottom: 'calc(100% + 14px)',
+                right: 0,
+                background: 'rgba(14, 17, 28, 0.82)',
+                backdropFilter: 'blur(28px) saturate(190%)',
+                WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                borderRadius: 22,
+                padding: 10,
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                zIndex: 350,
+                minWidth: 230,
+                animation: 'fadeUp .2s cubic-bezier(.16, 1, 0.3, 1)',
+                pointerEvents: 'all'
               }}
-            />
+            >
+              <div
+                onClick={() => go('profile')}
+                style={{
+                  padding: '12px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  cursor: 'pointer',
+                  borderRadius: 14,
+                  transition: 'background 0.15s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'}
+                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div style={{ fontSize: 26, marginBottom: 4 }}>{user.avatar || '🎬'}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255, 255, 255, 0.95)' }}>
+                  {user.displayName || user.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 1 }}>
+                  @{user.username} · View Profile →
+                </div>
+              </div>
+
+              {[
+                { label: '✏️  Edit Profile', action: () => { setEditProfileModalOpen(true); setShowProfile(false) } },
+                { label: '⚙️  Settings',     action: () => { setAccountSettingsModalOpen(true); setShowProfile(false) } },
+                { label: '📊  My Dashboard', action: () => go('dashboard') },
+              ].map(({ label, action }) => (
+                <button
+                  key={label}
+                  onClick={action}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '9px 12px',
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    borderRadius: 10,
+                    fontFamily: 'inherit',
+                    transition: 'background .15s'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  {label}
+                </button>
+              ))}
+
+              <button
+                onClick={() => { logout(); setShowProfile(false) }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '9px 12px',
+                  color: '#f87171',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  borderRadius: 10,
+                  fontFamily: 'inherit',
+                  marginTop: 2,
+                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  transition: 'background .15s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)'}
+                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+              >
+                🚪  Sign Out
+              </button>
+            </div>
           )}
-        </button>
+
+          <button
+            className="bnav-circle-btn"
+            onClick={() => {
+              if (user) {
+                setShowProfile(p => !p)
+                setShowMore(false)
+              } else {
+                go('login')
+              }
+            }}
+            style={{
+              position: 'relative',
+              width: 54,
+              height: 54,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(14, 17, 28, 0.72)',
+              backdropFilter: 'blur(24px) saturate(190%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(190%)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              boxShadow: '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)',
+              cursor: 'pointer',
+              color: 'white',
+              transition: 'all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1)'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.background = 'rgba(22, 26, 42, 0.85)'
+              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.55)'
+              e.currentTarget.style.transform = 'scale(1.06)'
+              e.currentTarget.style.boxShadow = '0 16px 44px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.background = 'rgba(14, 17, 28, 0.72)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+              e.currentTarget.style.transform = 'scale(1)'
+              e.currentTarget.style.boxShadow = '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)'
+            }}
+          >
+            {user ? (
+              <span style={{ fontSize: 24, userSelect: 'none' }}>{user.avatar || '🎬'}</span>
+            ) : (
+              <UserOutlineIcon size={20} color="white" />
+            )}
+            {totalAlerts > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 2,
+                  right: 2,
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: '#38bdf8',
+                  boxShadow: '0 0 8px #38bdf8'
+                }}
+              />
+            )}
+          </button>
+        </div>
       </div>
     </>
   )
