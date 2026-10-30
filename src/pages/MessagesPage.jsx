@@ -509,23 +509,28 @@ export default function MessagesPage() {
     (f.username || '').toLowerCase().includes(searchFilter.toLowerCase())
   )
 
+  // Ensure page always starts at top on mount without any automatic window scroll
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [])
+
   return (
-    <div style={{ minHeight: '100vh', padding: '84px 24px 48px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '68px 20px 96px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── HEADER BAR ──────────────────────────────────────────────────────── */}
-      <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.25)', borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700, color: '#e50914', marginBottom: 6 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(56,189,248,.12)', border: '1px solid rgba(56,189,248,.25)', borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>
             <span>💬</span> REAL-TIME CINEPHILE MESSENGER
           </div>
-          <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 42, color: 'white', letterSpacing: 1, margin: 0 }}>
-            Cine<span style={{ color: '#e50914' }}>Chat</span> & Messages
+          <h1 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 34, color: 'white', letterSpacing: 1, margin: 0 }}>
+            Cine<span style={{ color: '#38bdf8' }}>Chat</span> & Messages
           </h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             onClick={() => navigate('friends')}
-            style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, backdropFilter: 'blur(12px)' }}
           >
             <span>👥</span> Manage Cine-Friends
           </button>
@@ -533,7 +538,7 @@ export default function MessagesPage() {
       </div>
 
       {/* ── MESSENGER MAIN GRID ─────────────────────────────────────────────── */}
-      <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', minHeight: 650, height: 'calc(100vh - 200px)', background: '#090915', border: '1px solid rgba(255,255,255,.08)', borderRadius: 16, overflow: 'hidden' }}>
+      <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', minHeight: 480, height: 'calc(100vh - 180px)', background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
         {/* Left Sidebar: Conversations List (Hidden on mobile if friend selected) */}
         {(!isMobile || !selectedFriend) && (
           <div style={{ borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,.07)', display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,.01)', height: '100%' }}>
@@ -589,7 +594,7 @@ export default function MessagesPage() {
                       style={{
                         padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.04)',
                         background: isSelected ? 'rgba(229,9,20,.12)' : 'transparent',
-                        borderLeft: isSelected ? '3px solid #e50914' : '3px solid transparent',
+                        borderLeft: isSelected ? '3px solid #38bdf8' : '3px solid transparent',
                         cursor: 'pointer', transition: 'all .2s'
                       }}
                     >
@@ -636,7 +641,7 @@ export default function MessagesPage() {
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: 11, color: '#e50914', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
+                          <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <span>@{f.username}</span>
                               <span style={{ fontSize: 9, color: isOnline ? '#10b981' : 'rgba(255,255,255,.3)' }}>
@@ -724,7 +729,7 @@ export default function MessagesPage() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{selectedFriend.displayName || selectedFriend.name}</span>
-                      <span style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>@{selectedFriend.username}</span>
+                      <span style={{ fontSize: 12, color: '#38bdf8', fontWeight: 600 }}>@{selectedFriend.username}</span>
                       <span style={{ fontSize: 10, background: isChatEnabled ? (isSelectedFriendOnline ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)') : 'rgba(239,68,68,0.15)', color: isChatEnabled ? (isSelectedFriendOnline ? '#10b981' : 'rgba(255,255,255,0.4)') : '#f87171', border: `1px solid ${isChatEnabled ? (isSelectedFriendOnline ? '#10b981' : 'transparent') : 'rgba(239,68,68,0.3)'}`, padding: '1px 7px', borderRadius: 6, fontWeight: 600 }}>
                         {isChatEnabled ? (isSelectedFriendOnline ? 'Online' : 'Offline') : '🔒 Chat Disabled'}
                       </span>
@@ -818,10 +823,10 @@ export default function MessagesPage() {
                       {m.text && (
                         <div
                           style={{
-                            background: isMe ? 'linear-gradient(135deg,#e50914,#8b5cf6)' : 'rgba(255,255,255,.06)',
-                            border: isMe ? 'none' : '1px solid rgba(255,255,255,.1)',
+                            background: isMe ? 'linear-gradient(135deg, rgba(56,189,248,0.85), rgba(139,92,246,0.85))' : 'rgba(255,255,255,.07)',
+                            border: isMe ? 'none' : '1px solid rgba(255,255,255,.12)',
                             color: 'white', padding: '10px 15px', borderRadius: isMe ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-                            fontSize: 13, lineHeight: 1.45, boxShadow: isMe ? '0 4px 14px rgba(229,9,20,.2)' : 'none'
+                            fontSize: 13, lineHeight: 1.45, boxShadow: isMe ? '0 4px 14px rgba(56,189,248,.25)' : 'none'
                           }}
                         >
                           {m.text}
@@ -873,7 +878,7 @@ export default function MessagesPage() {
                             </button>
                             <button
                               onClick={() => navigate('movie', m.movieRecommendation.id)}
-                              style={{ background: '#e50914', border: 'none', borderRadius: 6, padding: '5px 10px', color: 'white', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}
+                              style={{ background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: 6, padding: '5px 10px', color: '#090910', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}
                             >
                               Details ➔
                             </button>
@@ -900,8 +905,8 @@ export default function MessagesPage() {
                   type="button"
                   onClick={() => setShareModalOpen(true)}
                   style={{
-                    background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.35)',
-                    color: '#e50914', borderRadius: 8, padding: '10px 14px', fontSize: 12,
+                    background: 'rgba(56,189,248,.12)', border: '1px solid rgba(56,189,248,.3)',
+                    color: '#38bdf8', borderRadius: 8, padding: '10px 14px', fontSize: 12,
                     fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
                   }}
                   title="Send interactive movie card"
@@ -929,8 +934,8 @@ export default function MessagesPage() {
                     type="submit"
                     disabled={!chatInput.trim() || sendingMsg}
                     style={{
-                      background: (chatInput.trim() && !sendingMsg) ? '#e50914' : 'rgba(255,255,255,.08)',
-                      border: 'none', borderRadius: 8, padding: '11px 22px', color: 'white',
+                      background: (chatInput.trim() && !sendingMsg) ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,.08)',
+                      border: 'none', borderRadius: 8, padding: '11px 22px', color: (chatInput.trim() && !sendingMsg) ? '#090910' : 'rgba(255,255,255,.3)',
                       fontWeight: 700, fontSize: 13, cursor: (chatInput.trim() && !sendingMsg) ? 'pointer' : 'default', transition: 'all .2s',
                       opacity: sendingMsg ? 0.7 : 1
                     }}

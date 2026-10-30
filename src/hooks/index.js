@@ -12,9 +12,9 @@ export function useScrolled(threshold = 40) {
   return scrolled
 }
 
-// Apple-style hide-on-scroll: returns { visible, scrolled }
-// hides when scrolling DOWN quickly, shows when scrolling UP
-export function useHideOnScroll(threshold = 8) {
+// Apple-style hide-on-scroll with speed dynamics: returns { visible, scrolled }
+// Responds to scroll events, wheel velocity, and touch gestures
+export function useHideOnScroll(threshold = 6) {
   const [visible, setVisible] = useState(true)
   const [scrolled, setScrolled] = useState(false)
   const lastY = useRef(0)
@@ -28,16 +28,16 @@ export function useHideOnScroll(threshold = 8) {
         const currentY = window.scrollY
         const diff = currentY - lastY.current
 
-        setScrolled(currentY > 30)
+        setScrolled(currentY > 25)
 
         if (currentY <= 35) {
-          // Always show near top
+          // Always show near top of page
           setVisible(true)
         } else if (diff > threshold) {
-          // Scrolling DOWN — hide both bars with speed
+          // Scrolling DOWN with speed — hide both bars
           setVisible(false)
         } else if (diff < -threshold) {
-          // Scrolling UP — show both bars
+          // Scrolling UP with speed — show both bars
           setVisible(true)
         }
 
@@ -46,8 +46,27 @@ export function useHideOnScroll(threshold = 8) {
       })
     }
 
+    // Wheel event listener for instant responsiveness on Mac trackpad / mouse
+    const handleWheel = (e) => {
+      if (window.scrollY <= 35 && e.deltaY < 0) {
+        setVisible(true)
+        return
+      }
+      if (e.deltaY > 18) {
+        // Fast scroll down
+        setVisible(false)
+      } else if (e.deltaY < -18) {
+        // Fast scroll up
+        setVisible(true)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('wheel', handleWheel, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel)
+    }
   }, [threshold])
 
   return { visible, scrolled }
