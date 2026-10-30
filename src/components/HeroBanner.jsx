@@ -8,8 +8,8 @@ import Spinner from './Spinner'
 export default function HeroBanner({ movies, loading }) {
   const { navigate, watchlist, toggleWatchlist } = useApp()
   const [cur, setCur] = useState(0)
-  const pool = movies.slice(0, 5)
-  const m    = pool[cur]
+  const pool = (Array.isArray(movies) && movies.length > 0) ? movies.slice(0, 5) : []
+  const m    = pool[cur] || pool[0]
 
   useEffect(() => {
     if (pool.length <= 1) return
@@ -17,7 +17,7 @@ export default function HeroBanner({ movies, loading }) {
     return () => clearInterval(t)
   }, [pool.length])
 
-  if (loading || !m) return (
+  if (!m) return (
     <div style={{ height: '88vh', background: '#0d0d18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Spinner size={52} />
     </div>

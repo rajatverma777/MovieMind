@@ -9,8 +9,13 @@ import Footer     from '@/components/Footer'
 
 export default function LandingPage() {
   const { tmdb, isDemo, user, navigate } = useApp()
-  const [secs, setSecs] = useState({ tr: [], po: [], tp: [], nw: [] })
-  const [ld,   setLd]   = useState({ tr: true, po: true, tp: true, nw: true })
+  const [secs, setSecs] = useState({
+    tr: MOCK_MOVIES.slice(0, 10),
+    po: MOCK_MOVIES.slice(5, 15),
+    tp: MOCK_MOVIES.slice(10, 20),
+    nw: MOCK_MOVIES.slice(15, 25)
+  })
+  const [ld,   setLd]   = useState({ tr: false, po: false, tp: false, nw: false })
 
   useEffect(() => {
     const go = async (k, fn) => {

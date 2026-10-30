@@ -12,6 +12,7 @@ import mashupRouter from './routes/mashup.js'
 import consensusRouter from './routes/consensus.js'
 import authRouter from './routes/auth.js'
 import socialRouter from './routes/social.js'
+import tmdbRouter from './routes/tmdb.js'
 import { connectDB } from './db/index.js'
 import { getRedisPub } from './redis.js'
 
@@ -63,6 +64,7 @@ app.use('/api/search/semantic', semanticSearchRouter)
 app.use('/api/insights', insightsRouter)
 app.use('/api/ai/mashup', mashupRouter)
 app.use('/api/consensus', consensusRouter)
+app.use('/api/tmdb', tmdbRouter)
 
 // 404 handler for unknown API routes
 app.use((req, res, next) => {
