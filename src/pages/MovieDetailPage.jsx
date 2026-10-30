@@ -6,6 +6,7 @@ import GenreChip   from '@/components/GenreChip'
 import MovieCard   from '@/components/MovieCard'
 import TrailerModal from '@/components/TrailerModal'
 import Spinner     from '@/components/Spinner'
+import MovieInsightsTab from '@/components/MovieInsightsTab'
 
 export default function MovieDetailPage({ movieId }) {
   const { tmdb, watchlist, toggleWatchlist, navigate, addToRecent, isDemo } = useApp()
@@ -411,12 +412,33 @@ export default function MovieDetailPage({ movieId }) {
 
             {/* ── Tabs ─────────────────────────────────────────────────── */}
             <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.06)', marginBottom: 16 }}>
-              {['overview', 'cast', 'similar'].map(t => (
-                <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: 12, textTransform: 'capitalize', color: tab === t ? 'white' : 'rgba(255,255,255,.36)', borderBottom: tab === t ? '2px solid #e50914' : '2px solid transparent', marginBottom: -1, transition: 'all .2s' }}>{t}</button>
+              {[
+                { id: 'overview', label: 'Overview' },
+                { id: 'cast', label: 'Cast' },
+                { id: 'insights', label: '🛡️ AI Shield & Arc' },
+                { id: 'similar', label: 'Similar' }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  style={{
+                    padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: 12,
+                    color: tab === t.id ? 'white' : 'rgba(255,255,255,.36)',
+                    borderBottom: tab === t.id ? '2px solid #e50914' : '2px solid transparent',
+                    marginBottom: -1, transition: 'all .2s'
+                  }}
+                >
+                  {t.label}
+                </button>
               ))}
             </div>
 
             {/* Tab content */}
+            {tab === 'insights' && (
+              <MovieInsightsTab movie={movie} />
+            )}
+
             {tab === 'overview' && (
               <div className="fi">
                 <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 13, lineHeight: 1.8, marginBottom: 14 }}>{movie.overview}</p>

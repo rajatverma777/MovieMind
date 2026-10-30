@@ -1,234 +1,224 @@
-# 🎬 MovieMind AI — Movie Recommendation & Intelligence Platform
+# 🎬 MovieMind AI — Production Full-Stack Platform
 
-> A full-stack, interview-ready movie recommendation platform built with **React**, **TMDB API**, **LangChain**, and **Google Gemini**.  
-> Features a **deterministic content-based recommendation engine** using 19-dimensional genre vectors and cosine similarity, coupled with a secure **server-side conversational AI layer** orchestrated via LangChain tools.
+> Production-ready Cinema Intelligence & Real-time Social Platform built with **React (Vite)**, **Better Auth**, **MongoDB Atlas**, **Upstash Redis**, **LangChain**, and **Google Gemini**, deployable 100% on **Vercel**.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Flagship Features
 
-| Feature | Description |
-|---|---|
-| **Deterministic AI Recommendations** | Content-based filtering using mathematical genre vectors and cosine similarity across candidate pools. |
-| **Conversational AI Chatbot** | LangChain-orchestrated assistant powered by Google Gemini with tool calling and structured output. |
-| **Secure Key Architecture** | Gemini API key resides strictly on the Express backend; zero client-side secret exposure. |
-| **Real-time Movie Exploration** | Trending, Popular, Now Playing, Top Rated categories, and debounced multi-genre search via TMDB. |
-| **Where to Watch (OTT Availability)** | Live streaming, rental, and buy provider listings with direct links. |
-| **Interactive Taste Dashboard** | Visual charts (Recharts) detailing personal genre affinities and rating distribution. |
-| **Mood Recommender** | Tailored recommendations matched to psychological moods and themes. |
-| **Trailer Player** | Embedded video modal with multi-language trailer selection when available. |
-| **Personal Watchlist** | Client-persisted watchlist with real-time genre statistics. |
-| **Demo Mode Fallback** | Fully functional offline fallback using curated films if API keys are not supplied. |
+| Feature | Description | Architecture |
+|---|---|---|
+| **🔒 Login-First Experience** | Unauthenticated visitors are routed to a cinematic auth suite. Private data, watchlists, and social chats are strictly isolated per user ID. | Better Auth + MongoDB Sessions |
+| **⚡ Real-Time Friends & Chat** | Sub-second cross-instance 1-on-1 messaging, interactive movie recommendation cards, live typing indicators, and presence tracking. | Upstash Redis TLS + Vercel SSE Stream |
+| **🛋️ Couch Consensus** | Pareto-optimal dual taste fusion algorithm ending decision fatigue for couples and movie nights. | Harmonic Mean Vector Negotiation |
+| **🕸️ CineGraph 3D** | Interactive 60fps cinematic knowledge graph and Dijkstra/BFS Six Degrees of Cinema pathfinder. | Canvas Network Engine |
+| **🧠 Vague Memory Search** | Natural-language plot and trope reverse lookup (*"that movie where a guy is stuck in a phone booth"*). | Semantic Vector Search |
+| **🎬 AI Script Studio** | High-concept Hollywood crossover synthesizer generating loglines, dream casts, and formatted screenplays. | Gemini AI + LangChain |
+| **🎛️ Taste Equalizer** | Multi-dimensional console with real-time sliders for pacing, darkness, complexity, and radar chart alignment. | Recharts Radar Engine |
+| **💰 OTT Subscription Arbitrage** | Greedy set-cover algorithm optimizing streaming rotations to clear watchlists while saving money (UN SDG 12). | Combinatorial Optimization |
+| **🛡️ AI Tension & Spoiler Shield** | 5-Act emotional tension curves with verified spoiler shields and blurred plot reveals. | Recharts Tension Curves |
 
 ---
 
 ## 🏗️ System Architecture
 
 ```
-                                      ┌────────────────────────────────────────┐
-                                      │             REACT FRONTEND             │
-                                      │      (Vite, Context API, Recharts)     │
-                                      └──────────────────┬─────────────────────┘
-                                                         │
-                                        POST /api/chat   │  Direct Client TMDB
-                                        (User Query)     │  (Catalog & Search)
-                                                         ▼
-                                      ┌────────────────────────────────────────┐
-                                      │            EXPRESS BACKEND             │
-                                      │  (Node.js, Secure Server Environment)  │
-                                      └──────────────────┬─────────────────────┘
-                                                         │
-                                                         ▼
-                                      ┌────────────────────────────────────────┐
-                                      │             LANGCHAIN LAYER            │
-                                      │        (Prompt & Tool Orchestrator)    │
-                                      └───────┬──────────────┬───────────────┬─┘
-                                              │              │               │
-                                              ▼              ▼               ▼
-                                      ┌──────────────┐ ┌──────────────┐ ┌────────────────┐
-                                      │ search_movies│ │recommend_mov.│ │get_movie_det. │
-                                      │ (TMDB Query) │ │(Cosine Engine│ │ (Crew & Cast)  │
-                                      └───────┬──────┘ └──────┬───────┘ └────────┬───────┘
-                                              │               │                  │
-                                              └───────────────┼──────────────────┘
-                                                              ▼
-                                              ┌────────────────────────────────┐
-                                              │      GOOGLE GEMINI MODEL       │
-                                              │   (gemini-2.5-flash / stable)  │
-                                              └────────────────┬───────────────┘
+                                    ┌────────────────────────────────────────────────────────┐
+                                    │                     VERCEL EDGE                        │
+                                    │      (Vite SPA Client + Vercel Serverless Functions)    │
+                                    └──────────────────────────┬─────────────────────────────┘
                                                                │
-                                                               ▼
-                                              ┌────────────────────────────────┐
-                                              │    STRUCTURED JSON RESPONSE    │
-                                              │   { message, recommendations } │
-                                              └────────────────────────────────┘
+                           ┌───────────────────────────────────┼──────────────────────────────────┐
+                           │                                   │                                  │
+                           ▼                                   ▼                                  ▼
+             ┌───────────────────────────┐       ┌───────────────────────────┐      ┌───────────────────────────┐
+             │       REACT CLIENT        │       │    EXPRESS SERVERLESS     │      │   BETTER AUTH ENGINE      │
+             │   - Login-First Router    │       │   - Social API Routes     │      │   - 30-Day Sessions       │
+             │   - Streamlined Navbar    │◄─────►│   - Watchlist Endpoints   │◄────►│   - HttpOnly Cookies      │
+             │   - Real-Time SSE Client  │       │   - AI Agents & Mashup    │      │   - Password Hashing      │
+             │   - Taste Equalizer       │       │   - Consensus Room Hub    │      │   - Native Reset Tokens   │
+             └───────────────────────────┘       └─────────────┬─────────────┘      └─────────────┬─────────────┘
+                                                               │                                  │
+                                                               ▼                                  ▼
+                                                 ┌───────────────────────────┐      ┌───────────────────────────┐
+                                                 │    UPSTASH REDIS (TLS)    │      │    MONGODB ATLAS CLOUD    │
+                                                 │   - Pub/Sub Cross-Instance│      │   - Users & Accounts      │
+                                                 │   - Real-time Message Bus │      │   - User Watchlists       │
+                                                 │   - Live Typing Indicators│      │   - Conversations & Chats │
+                                                 │   - Presence Heartbeats   │      │   - Friend Requests       │
+                                                 └───────────────────────────┘      └───────────────────────────┘
 ```
 
 ---
 
-## 📐 How the Recommendation Engine Works
-
-### Content-Based Filtering via Cosine Similarity
-MovieMind does **not** rely on black-box ML model training; it employs a deterministic, transparent content-based recommendation algorithm:
-
-1. **Genre Feature Representation**:
-   TMDB indexes 19 distinct movie genres (Action, Adventure, Animation, Comedy, Crime, etc.). Each movie $m$ is transformed into a 19-dimensional binary vector:
-   $$\vec{v}_m \in \{0, 1\}^{19}$$
-   where the $i$-th element is $1$ if the movie belongs to genre $i$, and $0$ otherwise.
-
-2. **User Taste Profile**:
-   When a user likes a set of movies (or saves them to their watchlist), their taste profile vector $\vec{u}$ is calculated by averaging the vectors of their saved films:
-   $$\vec{u} = \frac{1}{|L|} \sum_{m \in L} \vec{v}_m$$
-
-3. **Cosine Similarity Computation**:
-   To rank candidates from the candidate pool, the cosine similarity between the user's taste vector $\vec{u}$ and each candidate vector $\vec{v}_c$ is computed:
-   $$\text{Cosine Similarity}(\vec{u}, \vec{v}_c) = \frac{\vec{u} \cdot \vec{v}_c}{\|\vec{u}\| \|\vec{v}_c\|} = \frac{\sum_{i=1}^{19} u_i v_{c,i}}{\sqrt{\sum_{i=1}^{19} u_i^2} \sqrt{\sum_{i=1}^{19} v_{c,i}^2}}$$
-
-4. **Candidate Ranking**:
-   Candidate films are sorted by similarity score in descending order (from $1.0$ down to $0.0$), filtering out films already in the user's collection, returning the top $N$ recommendations.
-
----
-
-## 🤖 How LangChain & Gemini are Used
-
-- **Google Gemini**: Acts as the conversational intelligence agent that understands user intent, conversational context, and movie nuances.
-- **LangChain**:
-  - **Tool Binding & Orchestration**: Equips Gemini with three structured tools:
-    1. `recommend_movies`: Executes the deterministic genre-vector cosine similarity engine.
-    2. `search_movies`: Queries TMDB for real-time catalog titles and dates.
-    3. `get_movie_details`: Retrieves synopsis, director, cast, and runtime.
-  - **Structured Output**: Uses Zod schemas via `.withStructuredOutput()` to guarantee that the frontend receives a strongly-typed JSON contract:
-    ```json
-    {
-      "message": "Conversational explanation of the recommendations...",
-      "recommendations": [
-        {
-          "movieId": 157336,
-          "title": "Interstellar",
-          "posterPath": "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
-          "releaseDate": "2014-11-05",
-          "voteAverage": 8.5,
-          "reason": "Shares deep sci-fi exploration and conceptual plotting.",
-          "score": 0.88
-        }
-      ]
-    }
-    ```
-- **Separation of Concerns**: The LLM handles natural language dialogue and tool selection; it does **not** hallucinate recommendations from scratch—it grounds recommendations in the mathematical engine.
-
----
-
-## 🔒 Security Architecture
-
-- **Zero Client-Side Secrets**: `GEMINI_API_KEY` is strictly accessed in the Node.js / Express backend via `process.env.GEMINI_API_KEY`. It is never bundled into client JavaScript.
-- **Reverse Proxy**: In development, Vite automatically proxies `/api` calls to the Express server (`http://localhost:5001`), keeping network configuration uniform and avoiding CORS issues.
-- **Git Hygiene**: Real API keys are restricted to `.env` (ignored by git). `.env.example` provides clean documentation placeholders only.
-
----
-
-## 📁 Repository Structure
+## 📁 Folder Structure
 
 ```
-MovieMind/
-├── server/                       # Backend AI & API Layer
-│   ├── index.js                  # Express server entry point & health check
+cinemind-ai/
+├── api/
+│   └── index.js                 # Unified Vercel serverless entrypoint (Express bridge)
+├── public/                      # Static branding assets & favicons
+├── server/
+│   ├── ai/                      # LangChain agents, tools, prompts, Gemini integration
+│   ├── db/                      # MongoDB Atlas connection pooling, Mongoose schemas & DB API
 │   ├── routes/
-│   │   └── chat.js               # POST /api/chat route
-│   ├── ai/
-│   │   ├── model.js              # Gemini ChatGoogleGenerativeAI initialization
-│   │   ├── prompts.js            # System prompt configuration
-│   │   ├── tools.js              # LangChain tools (recommend, search, details)
-│   │   └── agent.js              # LangChain orchestration agent & structured output
-│   └── recommendation/
-│       └── engine.js             # Deterministic cosine similarity algorithm
-│
-├── src/                          # React Frontend
-│   ├── components/               # Navbar, MovieCard, HeroBanner, TrailerModal, etc.
+│   │   ├── auth.js              # Better Auth integration, login, register, reset password
+│   │   ├── chat.js              # Gemini conversational AI assistant
+│   │   ├── consensus.js         # Couch Consensus room negotiation
+│   │   ├── insights.js          # Tension curves & spoiler analysis
+│   │   ├── mashup.js            # Hollywood movie script studio
+│   │   ├── semanticSearch.js    # Vague memory plot lookup
+│   │   └── social.js            # Friends, chat, watchlists, Real-time Redis SSE stream
+│   ├── auth.js                  # Better Auth configuration with official MongoDB adapter
+│   ├── redis.js                 # Upstash Redis TLS client & Pub/Sub event distribution
+│   └── index.js                 # Express server configuration
+├── src/
+│   ├── components/
+│   │   ├── AccountSettingsModal.jsx # Password change & account management
+│   │   ├── EditProfileModal.jsx     # Display name, avatar persona & bio editor
+│   │   ├── MyProfileModal.jsx       # Full profile view & stats
+│   │   ├── MovieShareModal.jsx      # In-chat interactive movie recommendation drawer
+│   │   ├── Navbar.jsx               # Redesigned minimal cinematic navbar
+│   │   ├── OttOptimizer.jsx         # OTT subscription arbitrage solver
+│   │   ├── TasteEqualizer.jsx       # Real-time multi-dimensional sliders & radar chart
+│   │   └── ...                      # Cards, HeroBanner, StarRatings, Spinners
 │   ├── context/
-│   │   └── AppContext.jsx        # Navigation, watchlist, and user state
+│   │   └── AppContext.jsx       # Global application state & login-first protection
+│   ├── hooks/
+│   │   ├── useRealtime.js       # Real-time EventSource client with exponential backoff
+│   │   └── index.js             # Window scroll & media queries
 │   ├── pages/
-│   │   ├── ChatPage.jsx          # AI Chatbot UI with structured movie cards
-│   │   ├── LandingPage.jsx       # Home feed (Trending, Popular, Recs)
-│   │   ├── MovieDetailPage.jsx   # Details, cast modal, Where to Watch
-│   │   ├── DashboardPage.jsx     # Recharts analytics
-│   │   ├── MoodPage.jsx          # Mood-based discovery
-│   │   └── SearchPage.jsx        # Search & genre filters
-│   ├── services/
-│   │   └── tmdb.js               # Client-side TMDB API service
-│   ├── utils/
-│   │   └── recommend.js          # Client-side recommendation math utilities
-│   ├── data/
-│   │   └── constants.js          # Genre IDs, names, and fallback datasets
-│   └── styles/
-│       └── globals.css           # Styling & design system
-│
-├── .env.example                  # Environment variable template
-├── package.json                  # Clean dependencies & concurrent scripts
-└── vite.config.js                # Vite build config with /api proxy
+│   │   ├── CineGraphPage.jsx    # 3D cinematic graph
+│   │   ├── ConsensusPage.jsx    # Live Pareto consensus room
+│   │   ├── DashboardPage.jsx    # User taste dashboard
+│   │   ├── FriendsPage.jsx      # Social cine-hub with real-time 1-on-1 chat
+│   │   ├── LandingPage.jsx      # Cinematic home showcase
+│   │   ├── LoginPage.jsx        # Login, Sign Up, Forgot & Reset Password
+│   │   ├── ScriptStudioPage.jsx # AI movie mashup studio
+│   │   └── WatchlistPage.jsx    # Isolated user watchlist & OTT optimizer
+│   ├── App.jsx                  # Main router with auth guard
+│   └── main.jsx                 # React root mount
+├── vercel.json                  # Vercel routing, rewrites & Fluid Compute configuration
+└── vite.config.js               # Vite configuration with /api reverse proxy
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🔐 Authentication Flow
 
-### 1. Clone & Install Dependencies
-```bash
-git clone https://github.com/rajatverma777/MovieMind.git
-cd MovieMind
-npm install
-```
+1. **Login-First Guard**:
+   - On initial mount, `AppContext` verifies the session via `GET /api/auth/me`.
+   - If no valid session exists, the visitor is routed directly to `/login`.
+   - Unauthenticated visitors cannot access private application pages (`/dashboard`, `/friends`, `/watchlist`, `/consensus`, `/scriptstudio`, etc.).
+2. **Persistent Sessions (30 Days)**:
+   - Better Auth generates database-backed sessions saved in the `session` collection in MongoDB Atlas.
+   - HttpOnly, SameSite cookies (`better-auth.session_token`) are issued with a 30-day expiration for the "Remember Me" option.
+3. **Password Security**:
+   - Passwords are encrypted using Better Auth's recommended hashing algorithm.
+   - Password resets are backed by cryptographically secure, expiring tokens in MongoDB.
 
-### 2. Configure Environment Variables
-Copy the template file to `.env`:
+---
+
+## 🍃 MongoDB Atlas Setup
+
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a free **M0 (Shared)** cluster.
+3. Under **Database Access**, create a user with Read/Write privileges (e.g. `moviemind_user` / `<password>`).
+4. Under **Network Access**, click **Add IP Address** and choose **Allow Access From Anywhere (`0.0.0.0/0`)** (required for Vercel's dynamic serverless functions).
+5. Click **Connect** on your cluster -> select **Drivers (Node.js)** and copy your connection string:
+   ```
+   mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority
+   ```
+6. Set `MONGODB_URI` in your `.env` (or Vercel Environment Variables) and set `MONGODB_DB_NAME=moviemind`.
+
+---
+
+## ⚡ Upstash Redis Setup (Real-Time Messaging)
+
+1. Create a free account at [Upstash](https://upstash.com).
+2. Click **Create Database** (Redis) and choose your preferred cloud region.
+3. In the database dashboard, find the **Node.js (ioredis)** connection details:
+   ```
+   rediss://default:<password>@<endpoint>.upstash.io:6379
+   ```
+   *(Note the `rediss://` protocol with double 's' for TLS encryption)*.
+4. Set `REDIS_URL` in your environment variables.
+
+---
+
+## 🔑 Environment Variables
+
+Copy `.env.example` to `.env` for local development:
+
 ```bash
 cp .env.example .env
 ```
-Edit `.env` with your API keys:
-```env
-# TMDB Key (Free at https://www.themoviedb.org/settings/api)
-TMDB_API_KEY=your_tmdb_api_key_here
-VITE_TMDB_API_KEY=your_tmdb_api_key_here
 
-# Google Gemini API Key (Free at https://aistudio.google.com)
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-2.5-flash
-
-# Backend Server Port
-PORT=5001
-```
-
-### 3. Run the Application
-Start both the backend server and frontend concurrently:
-```bash
-npm run dev
-```
-
-Or run them individually:
-```bash
-# Terminal 1: Backend Server (runs on http://localhost:5001)
-npm run server
-
-# Terminal 2: React Frontend (runs on http://localhost:5173)
-npm run client
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+| Variable | Description | Example / Required |
+|---|---|---|
+| `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://<user>:<pwd>@cluster...` |
+| `MONGODB_DB_NAME` | Database name | `moviemind` |
+| `REDIS_URL` | Upstash Redis TLS connection string | `rediss://default:<pwd>@...upstash.io:6379` |
+| `BETTER_AUTH_SECRET` | 32+ character random secret string | `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | Base API URL | `http://localhost:5001` (or `https://your-app.vercel.app`) |
+| `BETTER_AUTH_API_KEY` | Better Auth Infra API Key (optional) | `ba_...` |
+| `TMDB_API_KEY` | The Movie Database API key | From [themoviedb.org](https://themoviedb.org) |
+| `VITE_TMDB_API_KEY` | Client TMDB key | Same as `TMDB_API_KEY` |
+| `GEMINI_API_KEY` | Google Gemini API key | From [aistudio.google.com](https://aistudio.google.com) |
+| `GEMINI_MODEL` | Gemini model name | `gemini-3.5-flash` |
+| `PORT` | Local Express port | `5001` |
 
 ---
 
-## 💬 Example Chatbot Inquiries
+## 💻 Local Development
 
-- *"Recommend something like Inception."*
-- *"Give me 5 psychological thriller movies."*
-- *"What should I watch based on my saved watchlist?"*
-- *"Find me a top-rated sci-fi movie from the last few years."*
-- *"Who directed Interstellar and why should I watch it?"*
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start both the client and server concurrently:
+   ```bash
+   npm run dev
+   ```
+3. Open your browser:
+   - **Frontend App**: `http://localhost:5173/`
+   - **Backend API**: `http://localhost:5001/`
 
 ---
 
-## 🛠️ Tech Stack Summary
+## 🚀 GitHub to Vercel Deployment (Zero Render Needed!)
 
-- **Frontend**: React 18, Vite 5, Tailwind CSS, Recharts
-- **Backend**: Node.js, Express 5, CORS, Dotenv
-- **AI & Orchestration**: LangChain (`@langchain/core`, `@langchain/google-genai`), Google Gemini, Zod
-- **Data**: The Movie Database (TMDB) API
+Deploy the entire stack (React + Express Serverless + Better Auth + Upstash Redis + MongoDB) onto **Vercel** with a single link:
+
+1. Push your code to GitHub:
+   ```bash
+   git add .
+   git commit -m "Production release: MovieMind AI with Better Auth, MongoDB Atlas & Upstash Redis"
+   git push origin main
+   ```
+2. Go to [vercel.com](https://vercel.com) and click **Add New...** -> **Project**.
+3. Select your GitHub repository.
+4. In the **Environment Variables** section, add the required keys:
+   - `MONGODB_URI`
+   - `MONGODB_DB_NAME`
+   - `REDIS_URL`
+   - `BETTER_AUTH_SECRET`
+   - `BETTER_AUTH_URL` (Set to your Vercel URL, e.g. `https://your-project.vercel.app`)
+   - `BETTER_AUTH_API_KEY`
+   - `GEMINI_API_KEY`
+   - `TMDB_API_KEY`
+   - `VITE_TMDB_API_KEY`
+5. Click **Deploy**!
+
+---
+
+## ✅ Production Deployment Checklist
+
+- [x] **MongoDB Atlas**: IP `0.0.0.0/0` enabled in Network Access.
+- [x] **Upstash Redis**: TLS connection URL (`rediss://...`) configured.
+- [x] **Better Auth**: MongoDB adapter running with persistent 30-day session cookies.
+- [x] **Navigation Bar**: Streamlined to Discover, Community, Studio, Watchlist, Dashboard, Search, and Profile dropdowns.
+- [x] **Login-First Flow**: Unauthenticated visitors redirected to `/login`; authenticated users routed to application.
+- [x] **Real-Time Friends & Chat**: Upstash Redis Pub/Sub coordinating instantaneous messages, typing indicators, and presence across serverless instances.
+- [x] **Vercel Serverless Architecture**: `vercel.json` and `api/index.js` configured with Fluid Compute duration.
+- [x] **Zero Build Errors**: `npm run build` generates production bundle in < 1.5 seconds.

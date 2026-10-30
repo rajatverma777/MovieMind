@@ -1,0 +1,241 @@
+{
+  "users": [
+    {
+      "id": "usr_alok1489",
+      "username": "alok_verma",
+      "displayName": "Alok Verma",
+      "avatar": "🕶️",
+      "bio": "Cinema researcher. Huge fan of psychological thrillers and David Fincher.",
+      "favoriteGenres": [
+        53,
+        80,
+        18
+      ],
+      "watchlist": [
+        {
+          "id": 550,
+          "title": "Fight Club",
+          "poster_path": "/jSziioSwPVrOy9Yow3XhWIBDjq1.jpg",
+          "backdrop_path": "/xRyINp9KfMLVjRiO5nCsoRDdvvF.jpg",
+          "vote_average": 8.4,
+          "release_date": "1999-10-15",
+          "genre_ids": [
+            18,
+            53
+          ],
+          "overview": "A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground \"fight clubs\" forming in every town, until an eccentric gets in the way and ignites an out-of-control spiral toward oblivion."
+        },
+        {
+          "id": 27205,
+          "title": "Inception",
+          "poster_path": "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+          "backdrop_path": "/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+          "vote_average": 8.372,
+          "release_date": "2010-07-15",
+          "genre_ids": [
+            28,
+            878,
+            12
+          ],
+          "overview": "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: \"inception\", the implantation of another person's idea into a target's subconscious."
+        }
+      ],
+      "friends": [
+        "usr_yash1499",
+        "usr_rajat_tester_37_kz1v"
+      ],
+      "passwordHash": "0f1eb77e3bd6072742488f08e06f05e1:89f5e78de29bb6a3dc479a7054471ed6f1ee43b6ab667d2d4608cac359b49797133e51043aa330225df1e76c65412802fbf8e3c254e4daf089f003578d131c52",
+      "createdAt": "2026-10-25T18:08:31.217Z"
+    },
+    {
+      "id": "usr_yash1499",
+      "username": "yash_bharadwaj",
+      "displayName": "Yash Bharadwaj",
+      "avatar": "🚀",
+      "bio": "Space, sci-fi and Christopher Nolan enthusiast. Interstellar is cinema perfection.",
+      "favoriteGenres": [
+        878,
+        12,
+        18
+      ],
+      "watchlist": [
+        {
+          "id": 157336,
+          "title": "Interstellar",
+          "poster_path": "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
+          "backdrop_path": "/2ssWTSVklAEc98frZUQhgtGHx7s.jpg",
+          "vote_average": 8.476,
+          "release_date": "2014-11-05",
+          "genre_ids": [
+            12,
+            18,
+            878
+          ],
+          "overview": "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage."
+        },
+        {
+          "id": 335984,
+          "title": "Blade Runner 2049",
+          "poster_path": "/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg",
+          "backdrop_path": "/mVr0UiqyltcfqxbAUcLl9zWL8ah.jpg",
+          "vote_average": 7.595,
+          "release_date": "2017-10-04",
+          "genre_ids": [
+            878,
+            18
+          ],
+          "overview": "Thirty years after the events of the first film, a new blade runner, LAPD Officer K, unearths a long-buried secret that has the potential to plunge what's left of society into chaos. K's discovery leads him on a quest to find Rick Deckard, a former LAPD blade runner who has been missing for 30 years."
+        }
+      ],
+      "friends": [
+        "usr_alok1489"
+      ],
+      "passwordHash": "1f72c1917b387ed40889d370237364d7:714eca2c8c6130ce759f69f96a1d58b059489824ce55287c9a1217a82dca31725fe69ece7182918959d2fcbea00e2587497279efde5886bdc97c94841cb40c8d",
+      "createdAt": "2026-10-26T18:08:31.254Z"
+    },
+    {
+      "id": "usr_priya_cine",
+      "username": "priya_sharma",
+      "displayName": "Priya Sharma",
+      "avatar": "🍿",
+      "bio": "Love heartwarming drama, music scores, and whimsical romance!",
+      "favoriteGenres": [
+        10749,
+        35,
+        10402
+      ],
+      "watchlist": [
+        {
+          "id": 244786,
+          "title": "Whiplash",
+          "poster_path": "/7fn624j5lj3xTme2SgiLCeuedmO.jpg",
+          "backdrop_path": "/wbQa0EnWUyRzQ5d1pHLNRlmsCUP.jpg",
+          "vote_average": 8.375,
+          "release_date": "2014-10-10",
+          "genre_ids": [
+            18,
+            10402,
+            53
+          ],
+          "overview": "Under the direction of a ruthless instructor, a talented young drummer begins to pursue perfection at any cost, even his humanity."
+        }
+      ],
+      "friends": [],
+      "passwordHash": "bef1d513fa2cf25ea33cd7f02bc82a00:e73ee137e76c8e8d74903128752e5216672d2e21ea4559f04067ba4256b050742964ddef30ca707d7dff0abff941a940f9598ab9d1dda6e54bc10d7dc4d13cf6",
+      "createdAt": "2026-10-27T18:08:31.287Z"
+    },
+    {
+      "id": "usr_rajat_tester_37_kz1v",
+      "username": "rajat_tester_37",
+      "displayName": "Rajat Verma",
+      "avatar": "🎬",
+      "bio": "",
+      "favoriteGenres": [
+        878,
+        53
+      ],
+      "watchlist": [],
+      "friends": [
+        "usr_alok1489"
+      ],
+      "passwordHash": "6ca40f0cd025b37fec14ce92907c579d:f74ff5618b9b040ffad21e0cccd06f9c08bc4fd658ff6bfdbda6c2fb0ee5b024faa6dd30b2bc65c1a5d5428285a756a0875211eedbaf631339576dfee119b920",
+      "createdAt": "2026-10-30T18:13:16.526Z"
+    },
+    {
+      "id": "usr_neil_armstrong_zst7",
+      "username": "neil_armstrong",
+      "displayName": "Neil A.",
+      "avatar": "🚀",
+      "bio": "Space movies only",
+      "favoriteGenres": [
+        878
+      ],
+      "watchlist": [],
+      "friends": [],
+      "passwordHash": "813ca94e973b92d57c17bca476545257:0665a968e2321fa5ee5662c6c37e30f6fafea62f66d773ddedf94ed40ef2cbbf4200fb4a5417c4d8de50c00817fe85cb47d50458c2f181ff3825dd395e2f3a41",
+      "createdAt": "2026-10-30T18:21:04.480Z"
+    }
+  ],
+  "friendRequests": [
+    {
+      "id": "req_1793383996574_4fn0",
+      "fromUserId": "usr_rajat_tester_37_kz1v",
+      "toUserId": "usr_alok1489",
+      "status": "accepted",
+      "createdAt": "2026-10-30T18:13:16.574Z"
+    },
+    {
+      "id": "req_1793384492551_xkoz",
+      "fromUserId": "usr_alok_001",
+      "toUserId": "usr_neil_armstrong_zst7",
+      "status": "pending",
+      "createdAt": "2026-10-30T18:21:32.551Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg_seed_1",
+      "fromUserId": "usr_alok1489",
+      "toUserId": "usr_yash1499",
+      "text": "Hey Yash! Have you seen Arrival yet? The linguistic concept was mind-blowing.",
+      "movieRecommendation": {
+        "id": 329865,
+        "title": "Arrival",
+        "poster_path": "/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
+        "vote_average": 7.6,
+        "release_date": "2016-11-10",
+        "genres": [
+          "Drama",
+          "Sci-Fi",
+          "Mystery"
+        ],
+        "personalNote": "Must watch if you love high-concept sci-fi without guns!",
+        "status": "suggested"
+      },
+      "read": true,
+      "createdAt": "2026-10-30T16:08:31.287Z"
+    },
+    {
+      "id": "msg_seed_2",
+      "fromUserId": "usr_yash1499",
+      "toUserId": "usr_alok1489",
+      "text": "Denis Villeneuve is a genius! Adding it right now to my watchlist. Let me recommend Whiplash to you:",
+      "movieRecommendation": {
+        "id": 244786,
+        "title": "Whiplash",
+        "poster_path": "/7fn624j5lj3xTme2SgiLCeuedmO.jpg",
+        "vote_average": 8.4,
+        "release_date": "2014-10-10",
+        "genres": [
+          "Drama",
+          "Music"
+        ],
+        "personalNote": "The tension in the final 15 minutes is unmatched.",
+        "status": "suggested"
+      },
+      "read": true,
+      "createdAt": "2026-10-30T17:38:31.287Z"
+    },
+    {
+      "id": "msg_1793383996578_73bf",
+      "fromUserId": "usr_rajat_tester_37_kz1v",
+      "toUserId": "usr_alok1489",
+      "text": "Bhai Inception ka ending scene dekh! Real ya dream?",
+      "movieRecommendation": {
+        "id": 27205,
+        "title": "Inception",
+        "poster_path": "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+        "vote_average": 8.4,
+        "release_date": "2010",
+        "genres": [
+          "Action",
+          "Sci-Fi"
+        ],
+        "personalNote": "Bhai ye scene repeat pe dekh raha hu!",
+        "status": "suggested"
+      },
+      "read": false,
+      "createdAt": "2026-10-30T18:13:16.578Z"
+    }
+  ]
+}

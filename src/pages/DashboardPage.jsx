@@ -4,6 +4,7 @@ import { useApp } from '@/context/AppContext'
 import { MOCK_MOVIES, GN } from '@/data/constants'
 import { getRecommendations } from '@/utils/recommend'
 import MovieCard from '@/components/MovieCard'
+import TasteEqualizer from '@/components/TasteEqualizer'
 
 const CHART_COLORS = ['#e50914', '#d4a843', '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
 
@@ -70,6 +71,11 @@ export default function DashboardPage() {
             <div style={{ color: 'rgba(255,255,255,.38)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.6px' }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Taste Tuning Console (Equalizer) ── */}
+      <div className="fu d2">
+        <TasteEqualizer />
       </div>
 
       {/* Charts — only show with 2+ movies */}

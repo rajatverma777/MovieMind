@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MovieMind — Capstone Project Report (Milestone 1)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --text: #1f2937;
+      --text-muted: #4b5563;
+      --bg: #ffffff;
+      --border: #e2e8f0;
+      --card-bg: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background-color: #f1f5f9;
+      line-height: 1.65;
+      font-size: 13.5px;
+      padding: 30px 15px;
+    }
+
+    .report-container {
+      max-width: 920px;
+      margin: 0 auto;
+      background: var(--bg);
+      padding: 60px 70px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    /* Print settings for flawless PDF output */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .report-container {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      table, .card, .callout, .workflow-grid, .diagram-container {
+        page-break-inside: avoid;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Header & Cover Banner */
+    .header-banner {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 24px;
+      margin-bottom: 30px;
+    }
+
+    .super-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary-light);
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 25px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 20px;
+      font-size: 13px;
+    }
+
+    .meta-item strong {
+      color: #0f172a;
+      display: inline-block;
+      min-width: 130px;
+    }
+
+    /* Section Headings */
+    h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--primary);
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 36px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #334155;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 14px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Professional Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .status-completed {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .status-active {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .status-scheduled {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    /* Callout & Cards */
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid var(--primary-light);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+
+    .formula-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 18px;
+      border-radius: 6px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      margin: 14px 0;
+      color: #0f172a;
+    }
+
+    /* Structured Visual Flow Cards */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .workflow-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .workflow-step {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      letter-spacing: 0.5px;
+    }
+
+    .workflow-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .workflow-desc {
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.45;
+    }
+
+    /* Diagram visual container */
+    .diagram-container {
+      background: #fdfdfd;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 18px 0;
+    }
+
+    .diagram-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-chain {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chain-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .chain-badge {
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .chain-content {
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .chain-arrow {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1;
+      margin: -4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="report-container">
+    <!-- Header Section -->
+    <div class="header-banner">
+      <div class="super-title">B.Tech Major Project — Milestone 1 Evaluation (Marks: 30)</div>
+      <h1>MovieMind: An Explainable and Conversational Movie Discovery Platform</h1>
+      <div class="meta-grid">
+        <div class="meta-item"><strong>Course:</strong> B.Tech Capstone Project</div>
+        <div class="meta-item"><strong>Department:</strong> Computer Science & Engineering</div>
+        <div class="meta-item"><strong>Team Members:</strong> Rajat Verma (E23CSEU1490)<br>Alok Verma (E23CSEU1489)<br>Yash Bharadwaj (E23CSEU1499)</div>
+        <div class="meta-item"><strong>Submission Date:</strong> October 18, 2026</div>
+        <div class="meta-item"><strong>Prototype URL:</strong> <a href="https://moviemind-eight.vercel.app" target="_blank" style="color:var(--primary-light); text-decoration:none;">moviemind-eight.vercel.app</a></div>
+        <div class="meta-item"><strong>Repository:</strong> <a href="https://github.com/rajatverma777/MovieMind" target="_blank" style="color:var(--primary-light); text-decoration:none;">github.com/rajatverma777/MovieMind</a></div>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <h2>1. Final Problem Statement and Motivation</h2>
+    <h3>1.1 Problem Statement</h3>
+    <p>In modern home entertainment, the rapid expansion of subscription streaming services (Netflix, Prime Video, Disney+ Hotstar, Apple TV+) has caused extreme decision fatigue. Viewers spend between 15 to 20 minutes per viewing session browsing catalogs without reaching a decision.</p>
+    <p>This problem is compounded by four specific architectural limitations:</p>
+    <ol>
+      <li><strong>Catalog Siloing:</strong> Commercial engines are strictly confined to their own licensed libraries and will never suggest matching content hosted on competing platforms.</li>
+      <li><strong>Algorithmic Opacity (The Black-Box Dilemma):</strong> Recommenders utilize complex matrix factorization or deep networks with zero mathematical explainability. Users are offered content without understanding the criteria behind the selection.</li>
+      <li><strong>Rigid Interfaces & Chatbot Hallucinations:</strong> Standard search bars require exact spelling or simple dropdown tags, failing on conversational nuance (e.g., <em>"a rainy psychological thriller with a melancholic mood"</em>). Conversely, general LLMs (like ChatGPT) frequently hallucinate non-existent movie titles, mix up sequels, and provide inaccurate release years.</li>
+      <li><strong>Fragmented Trailer Discovery & Lack of Unified Video Previews:</strong> Currently, movie trailers and teasers are scattered across external video sites and distributor channels. When discovering a movie, viewers must leave the app, open YouTube, dodge clickbait cuts and spoilers, and switch back and forth.</li>
+    </ol>
+
+    <h3>1.2 Motivation</h3>
+    <p><strong>MovieMind</strong> bridges this gap by unifying cross-platform discovery, mathematical explainability, and conversational assistance into a single hub. By combining a 19-dimensional genre vector space model (Cosine Similarity) with embedded high-definition official trailers and an orchestrated Google Gemini AI assistant, MovieMind delivers transparent recommendations with verified metadata and zero hallucinations.</p>
+
+    <!-- Section 2 -->
+    <h2>2. UN Sustainable Development Goals (SDG) Alignment</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Target SDG</th>
+          <th>Specific Target</th>
+          <th>MovieMind Architectural Rationale</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SDG 9: Industry, Innovation, and Infrastructure</strong></td>
+          <td>Target 9.5: Enhance scientific research and technological innovation</td>
+          <td>Demonstrates a decoupled hybrid AI paradigm combining mathematical vector algebra with modern generative models deployed on efficient, low-cost serverless microservices.</td>
+        </tr>
+        <tr>
+          <td><strong>SDG 12: Responsible Consumption and Production</strong></td>
+          <td>Target 12.8: Ensure relevant information for sustainable lifestyles</td>
+          <td>Reduces digital compute and bandwidth waste caused by prolonged, fruitless 20-minute user searches. Promotes privacy-preserving client-side data storage without centralized data harvesting.</td>
+        </tr>
+        <tr>
+          <td><strong>SDG 4: Quality Education & Information Literacy</strong></td>
+          <td>Target 4.4: Increase digital literacy and transparent technology</td>
+          <td>Demystifies recommendation black boxes by displaying explicit Cosine Similarity match percentages (e.g., 82%) and genre convergence reasons to the user.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 3 & 4 -->
+    <h2>3. Background, Context & Literature Review (Recent Research Included)</h2>
+    <p>Recommender Systems (RS) have evolved from classical Matrix Factorization to Content-Based Vector Modeling and modern Tool-Augmented Conversational LLMs. Recent academic literature underscores the necessity of combining generative language models with deterministic domain engines:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Study / Author</th>
+          <th>Focus Area</th>
+          <th>Key Findings & Strengths</th>
+          <th>Identified Limitations Addressed by MovieMind</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Salton & McGill (1983)</strong></td>
+          <td>Vector Space Model (VSM)</td>
+          <td>Mathematically proven, bounded ($[0,1]$), low computational complexity $O(n)$ for similarity calculation.</td>
+          <td>Operates on static feature arrays; lacks natural language dialogue capabilities.</td>
+        </tr>
+        <tr>
+          <td><strong>Adomavicius & Tuzhilin (2005)</strong></td>
+          <td>Content-Based Filtering</td>
+          <td>Solves collaborative filtering cold-start problems; high item independence without tracking user graphs.</td>
+          <td>Requires structured taxonomies; lacks conversational preference elicitation.</td>
+        </tr>
+        <tr>
+          <td><strong>Fan et al. (2023)<br><em>IEEE TKDE</em></strong></td>
+          <td>LLMs in Recommender Systems</td>
+          <td>Proves that LLMs excel as conversational orchestrators when strictly paired with external deterministic search/vector tools.</td>
+          <td>Pure LLM prompting without external tools suffers from high token latency and unverified suggestions.</td>
+        </tr>
+        <tr>
+          <td><strong>Hou et al. (2024)<br><em>ACM TOIS</em></strong></td>
+          <td>Zero-Shot LLM Evaluation</td>
+          <td>Comprehensive benchmark of LLM recommendations; confirms high semantic intent parsing from user queries.</td>
+          <td>Discloses critical **popularity bias and hallucinations** in LLMs unless grounded by verified API catalogs.</td>
+        </tr>
+        <tr>
+          <td><strong>Zhang & Chen (2023)<br><em>Foundations & Trends in IR</em></strong></td>
+          <td>Explainable AI (XAI) in RS</td>
+          <td>Demonstrates that feature-level explainability (e.g., genre overlap %) significantly boosts user trust and adoption.</td>
+          <td>Black-box neural embeddings hide the rationale behind suggestions, degrading user trust.</td>
+        </tr>
+        <tr>
+          <td><strong>Gomez-Uribe & Hunt (2015)<br><em>ACM TMIS</em></strong></td>
+          <td>Netflix Industrial Recommender</td>
+          <td>Highly effective deep matrix factorization driving 80%+ of streams within a single streaming provider.</td>
+          <td>Walled garden (only Netflix titles); complete black-box; lacks unified cross-platform discovery.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 5 -->
+    <h2>4. Gap Analysis</h2>
+    <div class="callout">
+      <strong>The MovieMind Competitive Advantage:</strong> Unlike closed streaming platforms that only recommend internal content, and unlike standalone LLMs (like vanilla ChatGPT) that hallucinate non-existent titles, MovieMind couples real-time TMDB metadata with a mathematically grounded Cosine Similarity engine and conversational tool-calling agent.
+    </div>
+
+    <!-- Section 6 -->
+    <h2>5. Stakeholders & Requirements Engineering</h2>
+    <h3>5.1 Functional Requirements (FR)</h3>
+    <ul>
+      <li><strong>FR-01 (Live Catalog Retrieval):</strong> Dynamic retrieval of trending, top-rated, and now-playing films from TMDB REST API.</li>
+      <li><strong>FR-02 (Title & Keyword Search):</strong> Real-time keyword search with instant query results and fuzzy matching.</li>
+      <li><strong>FR-03 (Unified Trailer Playback):</strong> Direct high-definition official trailer playback embedded in the movie details modal.</li>
+      <li><strong>FR-04 (Client Watchlist Persistence):</strong> Bookmarkable personal watchlist persisted locally via browser Web Storage (LocalStorage).</li>
+      <li><strong>FR-05 (19-Dim Vector Modeling):</strong> Automatic formulation of 19-dimensional genre vectors matching standard TMDB categories.</li>
+      <li><strong>FR-06 (Cosine Similarity Scoring):</strong> Real-time vector dot product ranking against the user's taste profile centroid.</li>
+      <li><strong>FR-07 (Conversational Dialogue):</strong> Multi-turn natural language conversational chat with structured card rendering.</li>
+    </ul>
+
+    <h3>5.2 Non-Functional Requirements (NFR)</h3>
+    <ul>
+      <li><strong>NFR-01 (Performance & Latency):</strong> Vector math computation latency &lt; 100ms; total conversational response &lt; 3.0s.</li>
+      <li><strong>NFR-02 (Security & Isolation):</strong> Zero API key leakage; all secret keys isolated on serverless environment variables.</li>
+      <li><strong>NFR-03 (Fault Tolerance):</strong> Automatic failover between primary Gemini Flash and secondary fallback models.</li>
+      <li><strong>NFR-04 (Privacy by Design):</strong> Client-side taste storage with zero invasive tracking or telemetry logging.</li>
+    </ul>
+
+    <!-- Section 7 -->
+    <h2>6. Technology Stack & Tool Selection</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology Selected</th>
+          <th>Technical Justification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend</strong></td>
+          <td>React 18 + Vite</td>
+          <td>Ultra-fast virtual DOM diffing, modern component state, lightweight bundle (&lt; 100kB).</td>
+        </tr>
+        <tr>
+          <td><strong>Backend API</strong></td>
+          <td>Node.js & Vercel Serverless</td>
+          <td>Asynchronous event loop, instant serverless spin-up, zero idle hosting costs.</td>
+        </tr>
+        <tr>
+          <td><strong>Knowledge Base</strong></td>
+          <td>The Movie Database (TMDB)</td>
+          <td>800,000+ verified film records, standardized 19-genre taxonomies, trailer video endpoints.</td>
+        </tr>
+        <tr>
+          <td><strong>AI Model</strong></td>
+          <td>Google Gemini (3.5 Flash / 2.5 Flash Lite)</td>
+          <td>High inference speed, native structured JSON schema compliance, low latency.</td>
+        </tr>
+        <tr>
+          <td><strong>Agentic Orchestration</strong></td>
+          <td>LangChain (`@langchain/core`)</td>
+          <td>Reliable tool-calling pipeline, prompt template isolation, and structured validation via Zod.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 8 -->
+    <h2>7. 4-Way Feasibility Analysis</h2>
+    <ul>
+      <li><strong>Technical Feasibility:</strong> High. Proven mathematical foundation (Cosine Similarity runs in microseconds); verified Google GenAI and TMDB SDK integration.</li>
+      <li><strong>Economic Feasibility:</strong> High. Designed for zero-cost operation using Vercel Hobby tier, TMDB Free Developer API, and Gemini free-tier quotas.</li>
+      <li><strong>Operational Feasibility:</strong> High. Single-page web application requiring zero native client installation, accessible on all modern browsers and smartphones.</li>
+      <li><strong>Legal / Ethical Feasibility:</strong> High. Fully compliant with TMDB API terms; does not host infringing video files; prioritizes user privacy through client-side state.</li>
+    </ul>
+
+    <!-- Section 9 -->
+    <h2>8. Scope, Risk Analysis & Mitigation</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Risk Category</th>
+          <th>Potential Impact</th>
+          <th>Engineered Mitigation Strategy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>API Rate Limiting (HTTP 429)</strong></td>
+          <td>Chat stalls if Gemini quota is exceeded</td>
+          <td>Automated multi-tier failover: Primary <code>gemini-3.5-flash</code> retries with <code>gemini-2.5-flash-lite</code>, and ultimately falls back to the deterministic engine.</td>
+        </tr>
+        <tr>
+          <td><strong>Network Latency</strong></td>
+          <td>Slow candidate pool loading from TMDB</td>
+          <td>15-minute in-memory LRU candidate cache on backend to prevent repeated API calls.</td>
+        </tr>
+        <tr>
+          <td><strong>LLM Hallucinations</strong></td>
+          <td>Recommending non-existent movies</td>
+          <td>Tool-calling architecture: The LLM is restricted from generating movie lists directly; it must query the verified TMDB recommendation tool.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 10 -->
+    <h2>9. Proposed Solution and Detailed Methodology</h2>
+
+    <h3>9.1 Five-Stage Engineering Methodology</h3>
+    <div class="workflow-grid">
+      <div class="workflow-card">
+        <div class="workflow-step">Stage 1</div>
+        <div class="workflow-title">Data Ingestion</div>
+        <div class="workflow-desc">Real-time REST API fetching from TMDB (/trending, /now_playing, /videos). Payload normalization into standardized JSON records.</div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-step">Stage 2</div>
+        <div class="workflow-title">Vector Modeling</div>
+        <div class="workflow-desc">Mapping categorical movie genres into 19-dimensional binary vectors V_M ∈ {0,1}^19 corresponding to TMDB taxonomy.</div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-step">Stage 3</div>
+        <div class="workflow-title">Cosine Similarity</div>
+        <div class="workflow-desc">Formulating user taste centroid U across watchlist films. Calculating normalized dot product similarity against candidate pools.</div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-step">Stage 4</div>
+        <div class="workflow-title">AI Orchestration</div>
+        <div class="workflow-desc">Google Gemini Flash orchestrated via LangChain tool calling (recommend_movies, search_movies) with Zod structured output.</div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-step">Stage 5</div>
+        <div class="workflow-title">Media Previews</div>
+        <div class="workflow-desc">Embedding official YouTube HD trailers directly into movie modal. Client-side LocalStorage persistence for privacy sovereignty.</div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-step">Verification</div>
+        <div class="workflow-title">Explainability</div>
+        <div class="workflow-desc">Displaying exact Cosine Similarity percentage (e.g., 82% Match) alongside natural language reasons grounded in genre DNA.</div>
+      </div>
+    </div>
+
+    <h3>9.2 Mathematical Formulation (Cosine Similarity Engine)</h3>
+    <p>Each film is mapped to a 19-dimensional binary vector $\vec{V}_M$ matching standard TMDB genre IDs. The user profile $\vec{U}$ is computed as the normalized centroid of liked films. The similarity score is computed as:</p>
+    <div class="formula-box">
+      Cosine Similarity(U, V) = ( U · V ) / ( ||U|| × ||V|| ) = ∑(U_i × V_i) / ( √∑(U_i)² × √∑(V_i)² )
+    </div>
+    <p>Candidate films are sorted in descending order of similarity ($S \in [0.0, 1.0]$), filtering out titles already consumed by the user.</p>
+
+    <h3>9.3 Flow Diagram 1: How the Website Works (End-to-End User Interaction Flow)</h3>
+    <div class="diagram-container">
+      <div class="diagram-title">🌐 Website Interaction & User Flow</div>
+      <div class="step-chain">
+        <div class="chain-item">
+          <span class="chain-badge">Step 1</span>
+          <span class="chain-content"><strong>User Opens Platform:</strong> Landing page initializes and immediately queries TMDB REST endpoints for live Weekly Trending and Now Playing movies.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Step 2</span>
+          <span class="chain-content"><strong>Interactive Navigation:</strong> User can either browse dynamic genre carousels, search via keyword/title, or launch the Conversational AI Chat.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Step 3</span>
+          <span class="chain-content"><strong>Movie Detail & Unified Trailer Preview:</strong> Clicking any film opens a modal with synopsis, cast, ratings, and embedded HD trailer playback without leaving the page.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Step 4</span>
+          <span class="chain-content"><strong>Taste Vector Personalization:</strong> Adding movies to the Watchlist updates the user's 19-dimensional taste centroid vector in browser LocalStorage.</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>9.4 Flow Diagram 2: Conversational AI & Dual-Engine Recommendation Flow</h3>
+    <div class="diagram-container">
+      <div class="diagram-title">🤖 AI Agent & Mathematical Vector Pipeline</div>
+      <div class="step-chain">
+        <div class="chain-item">
+          <span class="chain-badge">User Query</span>
+          <span class="chain-content">User inputs natural language prompt: <em>"Recommend 2 sci-fi movies like Interstellar"</em></span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">LangChain Agent</span>
+          <span class="chain-content">Node.js backend sends prompt + conversation history to <strong>Google Gemini Flash</strong> via LangChain tools.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Tool Calling</span>
+          <span class="chain-content">Gemini identifies recommendation intent and invokes <code>recommend_movies(referenceTitle: "Interstellar")</code>.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Cosine Engine</span>
+          <span class="chain-content">Calculates dot-product similarity against in-memory candidate movie pool and returns top-ranked matches.</span>
+        </div>
+        <div class="chain-arrow">▼</div>
+        <div class="chain-item">
+          <span class="chain-badge">Structured UI Output</span>
+          <span class="chain-content">Gemini formats response into verified JSON cards displaying poster artwork, match percentages, and explanations.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 10 -->
+    <h2>10. Work Completed & Two-Milestone Roadmap</h2>
+    <p>In accordance with Milestone 1 guidelines, the project proposal, feasibility analysis, architecture design, and working UI prototype are complete. The remaining development is organized into Milestone 2:</p>
+
+    <!-- Work Breakdown Table (Clean, Date-Free) -->
+    <table>
+      <thead>
+        <tr>
+          <th>Milestone Phase</th>
+          <th>Work Package / Module</th>
+          <th>Scope & Key Deliverables</th>
+          <th>Execution Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Milestone 1</strong></td>
+          <td><strong>Problem Formulation & Literature Review</strong></td>
+          <td>Define core challenges (catalog siloing, opaque algorithms, trailer fragmentation).</td>
+          <td><span class="status-badge status-completed">Completed</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 1</strong></td>
+          <td><strong>Requirements & Feasibility Analysis</strong></td>
+          <td>Establish Stakeholders, 8 Functional & 5 Non-Functional Requirements, and 4-way feasibility report.</td>
+          <td><span class="status-badge status-completed">Completed</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 1</strong></td>
+          <td><strong>Base UI & TMDB Integration Prototype</strong></td>
+          <td>Build responsive React 18 single-page application, TMDB API movie search, and local watchlist bookmarking.</td>
+          <td><span class="status-badge status-completed">Completed</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 1</strong></td>
+          <td><strong>Milestone 1 Proposal & Defense</strong></td>
+          <td>Formal Capstone Milestone 1 document preparation, SDG mapping, and academic panel evaluation defense.</td>
+          <td><span class="status-badge status-active">Active (Current)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 2</strong></td>
+          <td><strong>Recommendation Engine Implementation</strong></td>
+          <td>Mathematical modeling of 19-dimensional genre vectors, user taste centroid calculation, and Cosine Similarity ranking.</td>
+          <td><span class="status-badge status-scheduled">Scheduled</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 2</strong></td>
+          <td><strong>Backend Proxy & Candidate Caching</strong></td>
+          <td>Node.js / Express serverless API endpoints, environment variable key isolation, and candidate pool in-memory caching.</td>
+          <td><span class="status-badge status-scheduled">Scheduled</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 2</strong></td>
+          <td><strong>Conversational AI & LangChain Tools</strong></td>
+          <td>Integration of Google Gemini Flash via LangChain tool calling (`recommend_movies`, `search_movies`) with structured card output.</td>
+          <td><span class="status-badge status-scheduled">Scheduled</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 2</strong></td>
+          <td><strong>Testing, Benchmarking & User Trials</strong></td>
+          <td>End-to-end latency measurement (&lt; 3s target), recommendation relevance evaluation, and user testing.</td>
+          <td><span class="status-badge status-scheduled">Scheduled</span></td>
+        </tr>
+        <tr>
+          <td><strong>Milestone 2</strong></td>
+          <td><strong>Final Dissertation & Capstone Defense</strong></td>
+          <td>Final code freeze, project documentation, dissertation submission, and presentation before the evaluation committee.</td>
+          <td><span class="status-badge status-scheduled">Scheduled</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 11 -->
+    <h2>11. References (Academic Citations)</h2>
+    <ol style="font-size: 11.5px; line-height: 1.6;">
+      <li><strong>Salton, G., & McGill, M. J. (1983).</strong> <em>Introduction to Modern Information Retrieval.</em> McGraw-Hill, New York.</li>
+      <li><strong>Adomavicius, G., & Tuzhilin, A. (2005).</strong> <em>Toward the next generation of recommender systems: A survey of the state-of-the-art and possible extensions.</em> IEEE Transactions on Knowledge and Data Engineering, 17(6), 734–749.</li>
+      <li><strong>Ricci, F., Rokach, L., & Shapira, B. (2015).</strong> <em>Recommender Systems Handbook.</em> Springer Science+Business Media, New York.</li>
+      <li><strong>Fan, W., Zhao, Z., Li, J., Liu, H., Mei, Q., & Wang, Q. (2023).</strong> <em>Recommender systems in the era of large language models (LLMs).</em> IEEE Transactions on Knowledge and Data Engineering (TKDE), 36(6), 2840–2858.</li>
+      <li><strong>Hou, Y., Zhang, J., Lin, Z., Lu, H., Chen, X., & Zhao, W. X. (2024).</strong> <em>Large language models are zero-shot recommenders: An exploratory study.</em> ACM Transactions on Information Systems (TOIS), 42(3), 1–29.</li>
+      <li><strong>Zhang, Y., & Chen, X. (2023).</strong> <em>Explainable recommendation: A survey and new perspectives.</em> Foundations and Trends® in Information Retrieval, 14(1), 1–101.</li>
+      <li><strong>Gomez-Uribe, C. A., & Hunt, N. (2015).</strong> <em>The Netflix recommender system: Algorithms, business value, and innovation.</em> ACM Transactions on Management Information Systems (TMIS), 6(4), 1–19.</li>
+      <li><strong>Koren, Y., Bell, R., & Volinsky, C. (2009).</strong> <em>Matrix factorization techniques for recommender systems.</em> Computer, 42(8), 30–37.</li>
+      <li><strong>LangChain Documentation (2024).</strong> <em>Agents, Tool Calling, and Structured Outputs in JavaScript.</em> <a href="https://js.langchain.com/" target="_blank">https://js.langchain.com/</a></li>
+      <li><strong>Google DeepMind (2024).</strong> <em>Gemini: A Family of Highly Capable Multimodal Models.</em> Google Technical Report.</li>
+      <li><strong>The Movie Database (TMDB) API (2024).</strong> <em>API Documentation and Developer Guides.</em> <a href="https://developer.themoviedb.org/docs" target="_blank">https://developer.themoviedb.org/docs</a></li>
+      <li><strong>United Nations (2015).</strong> <em>Transforming our world: the 2030 Agenda for Sustainable Development.</em> Resolution adopted by the General Assembly, A/RES/70/1.</li>
+    </ol>
+
+  </div>
+
+</body>
+</html>

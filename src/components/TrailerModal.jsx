@@ -30,7 +30,8 @@ function getBestForLang(videos) {
   )
 }
 
-export default function TrailerModal({ videoKey, trailers = [], onClose }) {
+export default function TrailerModal({ videoKey, trailers = [], onClose, isOpen = true }) {
+  if (isOpen === false) return null
   // Build lang → best video map (only Trailers + Teasers, deduplicated per language)
   const langMap = {}
   trailers
