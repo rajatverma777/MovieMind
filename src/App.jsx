@@ -14,6 +14,7 @@ import CineGraphPage   from '@/pages/CineGraphPage'
 import ScriptStudioPage from '@/pages/ScriptStudioPage'
 import FriendsPage     from '@/pages/FriendsPage'
 import MessagesPage    from '@/pages/MessagesPage'
+import ProfilePage     from '@/pages/ProfilePage'
 import LoginPage       from '@/pages/LoginPage'
 import AuthModal       from '@/components/AuthModal'
 import EditProfileModal from '@/components/EditProfileModal'
@@ -62,6 +63,7 @@ function Router() {
     scriptstudio: <ScriptStudioPage />,
     friends:      <FriendsPage />,
     messages:     <MessagesPage />,
+    profile:      <ProfilePage />,
     login:        <LoginPage />,
   }
 

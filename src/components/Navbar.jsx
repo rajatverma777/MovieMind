@@ -493,22 +493,26 @@ export default function Navbar() {
                   }}
                 >
                   {/* Header info */}
-                  <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)' }}>
+                  <div
+                    onClick={() => { handleNav('profile'); setOpenDropdown(null) }}
+                    style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)', cursor: 'pointer' }}
+                    title="Open Full Profile Page"
+                  >
                     <div style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{user.displayName || user.name}</div>
                     <div style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>@{user.username}</div>
-                    <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.35)', marginTop: 2, fontFamily: 'monospace' }}>
-                      UID: {user.id ? String(user.id).slice(-8) : 'atlas'}
+                    <div style={{ fontSize: 10, color: '#38bdf8', marginTop: 2, fontWeight: 600 }}>
+                      View Full Profile & Dashboard ➔
                     </div>
                   </div>
 
                   {/* 1. My Profile */}
                   <button
-                    onClick={() => { setProfileModalOpen(true); setOpenDropdown(null) }}
-                    style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '9px 16px', color: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, ...S }}
+                    onClick={() => { handleNav('profile'); setOpenDropdown(null) }}
+                    style={{ width: '100%', textAlign: 'left', background: page === 'profile' ? 'rgba(229,9,20,0.1)' : 'transparent', border: 'none', padding: '9px 16px', color: page === 'profile' ? '#e50914' : 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, ...S }}
                     onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    onMouseOut={e => e.currentTarget.style.background = page === 'profile' ? 'rgba(229,9,20,0.1)' : 'transparent'}
                   >
-                    <span>👤</span> My Profile
+                    <span>👤</span> Full Profile & Dashboard
                   </button>
 
                   {/* 2. Edit Profile */}
@@ -628,10 +632,10 @@ export default function Navbar() {
                 </div>
               </div>
               <button
-                onClick={() => { setProfileModalOpen(true); setMobileMenuOpen(false) }}
-                style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 6, padding: '4px 8px', color: 'white', fontSize: 11, cursor: 'pointer' }}
+                onClick={() => { handleNav('profile'); setMobileMenuOpen(false) }}
+                style={{ background: 'rgba(229,9,20,0.2)', border: '1px solid rgba(229,9,20,0.4)', borderRadius: 6, padding: '5px 10px', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
               >
-                Profile
+                Full Profile ➔
               </button>
             </div>
           )}
