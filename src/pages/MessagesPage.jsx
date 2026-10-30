@@ -109,7 +109,8 @@ export default function MessagesPage() {
   const [chatInput, setChatInput] = useState('')
   const [sendingMsg, setSendingMsg] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
-  const messagesEndRef = useRef(null)
+  const chatScrollContainerRef = useRef(null)
+  const prevMsgCountRef = useRef(0)
 
   // ── 1. Fetch Cine-Friends ──────────────────────────────────────────────────
   useEffect(() => {
@@ -240,7 +241,19 @@ export default function MessagesPage() {
                 clean.push(m)
               }
             }
-            setMessages(clean)
+            setMessages(prev => {
+              if (prev.length === clean.length) {
+                const isSame = clean.every((m, i) => {
+                  const p = prev[i]
+                  return (m.id || m._id) === (p.id || p._id) &&
+                         m.read === p.read &&
+                         m.delivered === p.delivered &&
+                         m.text === p.text
+                })
+                if (isSame) return prev // Keep identical reference so re-renders & scroll are avoided
+              }
+              return clean
+            })
           }
 
           if (typeof res.areFriends === 'boolean') {
@@ -270,10 +283,44 @@ export default function MessagesPage() {
     }
   }, [myId, selectedFriend])
 
-  // Auto-scroll chat
+  // Scroll helper strictly scoped to chat container (never scrolls window)
+  const scrollChatToBottom = (smooth = true) => {
+    const el = chatScrollContainerRef.current
+    if (!el) return
+    if (smooth) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    } else {
+      el.scrollTop = el.scrollHeight
+    }
+  }
+
+  // Auto-scroll chat only when new messages are added or when near bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    const el = chatScrollContainerRef.current
+    if (!el) return
+
+    const prevCount = prevMsgCountRef.current
+    const newCount = messages.length
+    prevMsgCountRef.current = newCount
+
+    if (newCount > prevCount) {
+      // Check if user is near bottom (within 150px) or just sent a message
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 160
+      const lastMsg = messages[messages.length - 1]
+      const isSentByMe = lastMsg?.fromUserId === myId
+
+      if (isNearBottom || isSentByMe || prevCount === 0) {
+        scrollChatToBottom(prevCount > 0)
+      }
+    }
+  }, [messages, myId])
+
+  // Reset scroll and snap to bottom when switching friends
+  useEffect(() => {
+    prevMsgCountRef.current = 0
+    const t = setTimeout(() => scrollChatToBottom(false), 60)
+    return () => clearTimeout(t)
+  }, [selectedFriend?.id || selectedFriend?._id])
 
   const selectedFriendId = selectedFriend?.id || selectedFriend?._id
   const isAcceptedFriend = friends.some(f => (f.id || f._id) === selectedFriendId)
@@ -745,7 +792,7 @@ export default function MessagesPage() {
             )}
 
             {/* Messages Scroll Area */}
-            <div style={{ flex: 1, padding: 22, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div ref={chatScrollContainerRef} style={{ flex: 1, padding: 22, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {messages.length === 0 ? (
                 <div style={{ padding: 48, textAlign: 'center', color: 'rgba(255,255,255,.3)', fontSize: 13, margin: 'auto' }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
@@ -844,7 +891,6 @@ export default function MessagesPage() {
                   )
                 })
               )}
-              <div ref={messagesEndRef} />
             </div>
 
             {/* Bottom Composer: Active if mutual friends, Locked if request not accepted */}

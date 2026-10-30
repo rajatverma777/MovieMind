@@ -12,6 +12,47 @@ export function useScrolled(threshold = 40) {
   return scrolled
 }
 
+// Apple-style hide-on-scroll: returns { visible, scrolled }
+// hides when scrolling DOWN quickly, shows when scrolling UP
+export function useHideOnScroll(threshold = 8) {
+  const [visible, setVisible] = useState(true)
+  const [scrolled, setScrolled] = useState(false)
+  const lastY = useRef(0)
+  const ticking = useRef(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (ticking.current) return
+      ticking.current = true
+      requestAnimationFrame(() => {
+        const currentY = window.scrollY
+        const diff = currentY - lastY.current
+
+        setScrolled(currentY > 30)
+
+        if (currentY <= 35) {
+          // Always show near top
+          setVisible(true)
+        } else if (diff > threshold) {
+          // Scrolling DOWN — hide both bars with speed
+          setVisible(false)
+        } else if (diff < -threshold) {
+          // Scrolling UP — show both bars
+          setVisible(true)
+        }
+
+        lastY.current = currentY
+        ticking.current = false
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [threshold])
+
+  return { visible, scrolled }
+}
+
 export function useDebounce(value, delay = 400) {
   const [deb, setDeb] = useState(value)
   useEffect(() => { const id = setTimeout(() => setDeb(value), delay); return () => clearTimeout(id) }, [value, delay])
