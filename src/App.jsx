@@ -27,12 +27,12 @@ function Router() {
 
   if (authChecking) {
     return (
-      <div style={{ minHeight: '100vh', background: '#06060f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <div style={{ width: 44, height: 44, background: '#e50914', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(229,9,20,0.6)' }}>
-          <span style={{ color: 'white', fontFamily: "'Bebas Neue', cursive", fontSize: 26 }}>M</span>
+      <div style={{ minHeight: '100vh', background: '#090910', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ width: 50, height: 50, background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', fontSize: 26, backdropFilter: 'blur(16px)' }}>
+          🎬
         </div>
         <Spinner size={36} />
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
           Authenticating MovieMind Session...
         </div>
       </div>
@@ -44,7 +44,7 @@ function Router() {
   // Login-first enforcement: if unauthenticated or on login page, render full-screen LoginPage without Navbar
   if (!user || page === 'login') {
     return (
-      <div style={{ background: '#06060f', minHeight: '100vh' }}>
+      <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
         <LoginPage />
       </div>
     )

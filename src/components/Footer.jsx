@@ -5,13 +5,15 @@ const LINKS = [['landing','Home'],['search','Search'],['watchlist','Watchlist'],
 export default function Footer() {
   const { navigate } = useApp()
   return (
-    <footer style={{ borderTop: '1px solid rgba(255,255,255,.05)', padding: '34px 24px', marginTop: 16 }}>
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,.06)', padding: '34px 24px 44px', marginTop: 24 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, background: '#e50914', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: 'white', fontFamily: "'Bebas Neue',cursive", fontSize: 17 }}>M</span>
+          <div style={{ width: 28, height: 28, background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>
+            🎬
           </div>
-          <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 18, letterSpacing: 2 }}>MOVIE<span style={{ color: '#e50914' }}>MIND</span> AI</span>
+          <span style={{ fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: -0.2, color: 'rgba(255,255,255,0.9)' }}>
+            MovieMind <span style={{ opacity: 0.45, fontWeight: 400 }}>AI</span>
+          </span>
         </div>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           {LINKS.map(([id, label]) => (

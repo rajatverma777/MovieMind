@@ -18,7 +18,7 @@ export default function HeroBanner({ movies, loading }) {
   }, [pool.length])
 
   if (!m) return (
-    <div style={{ height: '88vh', background: '#0d0d18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ height: '88vh', background: '#090910', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Spinner size={52} />
     </div>
   )
@@ -64,13 +64,13 @@ export default function HeroBanner({ movies, loading }) {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 11, flexWrap: 'wrap' }}>
-          <button className="btn-r" onClick={() => navigate('movie', m.id)} style={{ border: 'none', padding: '13px 30px', borderRadius: 10, fontSize: 15, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <button className="btn-r" onClick={() => navigate('movie', m.id)} style={{ border: 'none', padding: '13px 30px', borderRadius: 12, fontSize: 15, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.92)', color: '#0c0c16' }}>
             ▶ Watch Now
           </button>
-          <button onClick={() => toggleWatchlist(m)} style={{ border: inWL ? '1px solid #e50914' : '1px solid rgba(255,255,255,.14)', cursor: 'pointer', padding: '13px 22px', borderRadius: 10, fontSize: 14, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, background: inWL ? 'rgba(229,9,20,.1)' : 'rgba(255,255,255,.07)', color: inWL ? '#e50914' : 'white', transition: 'all .2s' }}>
+          <button onClick={() => toggleWatchlist(m)} style={{ border: inWL ? '1px solid rgba(140,80,255,0.45)' : '1px solid rgba(255,255,255,.14)', cursor: 'pointer', padding: '13px 22px', borderRadius: 12, fontSize: 14, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, background: inWL ? 'rgba(140,80,255,0.25)' : 'rgba(255,255,255,.07)', color: inWL ? 'rgba(215,185,255,0.95)' : 'white', transition: 'all .2s' }}>
             {inWL ? '✓ Saved' : '+ Watchlist'}
           </button>
-          <button className="btn-g" onClick={() => navigate('movie', m.id)} style={{ border: '1px solid rgba(255,255,255,.12)', padding: '13px 22px', borderRadius: 10, fontSize: 14, fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>
+          <button className="btn-g" onClick={() => navigate('movie', m.id)} style={{ border: '1px solid rgba(255,255,255,.14)', padding: '13px 22px', borderRadius: 12, fontSize: 14, fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>
             ℹ More Info
           </button>
         </div>
@@ -79,7 +79,7 @@ export default function HeroBanner({ movies, loading }) {
       {/* Slide dots */}
       <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 3 }}>
         {pool.map((_, i) => (
-          <button key={i} onClick={() => setCur(i)} style={{ width: i === cur ? 28 : 8, height: 4, borderRadius: 2, background: i === cur ? '#e50914' : 'rgba(255,255,255,.22)', border: 'none', cursor: 'pointer', transition: 'all .3s' }} />
+          <button key={i} onClick={() => setCur(i)} style={{ width: i === cur ? 28 : 8, height: 4, borderRadius: 2, background: i === cur ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,.22)', border: 'none', cursor: 'pointer', transition: 'all .3s' }} />
         ))}
       </div>
     </div>

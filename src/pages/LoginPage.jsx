@@ -291,23 +291,33 @@ export default function LoginPage() {
     <div
       style={{
         minHeight: '100vh',
-        padding: '96px 20px 60px',
+        padding: '80px 20px 80px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        background: 'radial-gradient(ellipse at 50% 15%, rgba(229, 9, 20, 0.12) 0%, #06060f 75%)'
+        background: 'linear-gradient(135deg, #090910 0%, #0d0d18 60%, #0c0a14 100%)',
+        overflow: 'hidden'
       }}
     >
+      {/* Subtle Mesh Gradient Orbs */}
+      <div className="mesh-bg">
+        <div className="mesh-orb" style={{ top: '-10%', left: '15%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(140,80,255,0.22) 0%, transparent 70%)' }} />
+        <div className="mesh-orb" style={{ bottom: '-15%', right: '10%', width: 550, height: 550, background: 'radial-gradient(circle, rgba(80,120,255,0.18) 0%, transparent 70%)', animationDelay: '-6s' }} />
+        <div className="mesh-orb" style={{ top: '40%', right: '25%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(200,100,255,0.14) 0%, transparent 70%)', animationDelay: '-12s' }} />
+      </div>
+
       <div
-        className="glass fu"
+        className="lg-card fu"
         style={{
           width: '100%',
-          maxWidth: 520,
-          borderRadius: 22,
-          background: '#0a0a16',
+          maxWidth: 500,
+          borderRadius: 28,
+          background: 'rgba(255, 255, 255, 0.07)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 28px 72px rgba(0, 0, 0, 0.9)',
+          boxShadow: '0 28px 72px rgba(0, 0, 0, 0.75)',
           overflow: 'hidden',
           position: 'relative',
           zIndex: 2
@@ -321,22 +331,23 @@ export default function LoginPage() {
                 width: 88,
                 height: 88,
                 borderRadius: 24,
-                background: 'rgba(229,9,20,0.15)',
-                border: '2px solid rgba(229,9,20,0.4)',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.2)',
                 margin: '0 auto 18px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 46,
-                boxShadow: '0 0 28px rgba(229,9,20,0.3)'
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(16px)'
               }}
             >
               {user.avatar || '🎬'}
             </div>
-            <h2 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 36, color: 'white', letterSpacing: 1, margin: '0 0 6px' }}>
+            <h2 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif", fontWeight: 700, fontSize: 28, color: 'rgba(255,255,255,0.95)', letterSpacing: -0.5, margin: '0 0 6px' }}>
               {user.displayName || user.name}
             </h2>
-            <div style={{ display: 'inline-block', background: 'rgba(229,9,20,0.15)', border: '1px solid rgba(229,9,20,0.35)', borderRadius: 20, padding: '3px 14px', fontSize: 13, color: '#e50914', fontWeight: 700 }}>
+            <div style={{ display: 'inline-block', background: 'rgba(140,80,255,0.18)', border: '1px solid rgba(140,80,255,0.35)', borderRadius: 20, padding: '3px 14px', fontSize: 13, color: 'rgba(215,185,255,0.95)', fontWeight: 600 }}>
               @{user.username}
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
@@ -344,12 +355,12 @@ export default function LoginPage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, margin: '26px 0 20px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#e50914' }}>{watchlist.length}</div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.95)' }}>{watchlist.length}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Saved Watchlist</div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#10b981' }}>Live</div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>Live</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>MongoDB Session</div>
               </div>
             </div>
@@ -357,20 +368,20 @@ export default function LoginPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
                 onClick={() => navigate('dashboard')}
-                className="btn-r"
-                style={{ border: 'none', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                className="lg-btn-primary"
+                style={{ border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer', justifyContent: 'center' }}
               >
                 📊 Go to Dashboard
               </button>
               <button
                 onClick={() => navigate('friends')}
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', padding: '11px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', padding: '12px 0', borderRadius: 14, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
               >
                 💬 Friends & Real-time Chat
               </button>
               <button
                 onClick={logout}
-                style={{ background: 'transparent', border: '1px solid rgba(229,9,20,0.3)', color: '#ff6b6b', padding: '10px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 4 }}
+                style={{ background: 'transparent', border: '1px solid rgba(255,100,100,0.3)', color: 'rgba(255,120,120,0.9)', padding: '11px 0', borderRadius: 14, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 4 }}
               >
                 🚪 Sign Out
               </button>
@@ -380,13 +391,13 @@ export default function LoginPage() {
           /* ── UNAUTHENTICATED TABS SUITE ───────────────────────────────────────── */
           <div>
             {/* Header / Brand */}
-            <div style={{ padding: '28px 28px 18px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 32, height: 32, background: '#e50914', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: 'white', fontFamily: "'Bebas Neue', cursive", fontSize: 20 }}>M</span>
+            <div style={{ padding: '32px 28px 20px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 18, background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, backdropFilter: 'blur(16px)' }}>
+                  🎬
                 </div>
-                <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 26, letterSpacing: 2, color: 'white' }}>
-                  MOVIE<span style={{ color: '#e50914' }}>MIND</span>
+                <span style={{ fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: -0.5, color: 'rgba(255,255,255,0.95)' }}>
+                  MovieMind <span style={{ fontWeight: 400, opacity: 0.5 }}>AI</span>
                 </span>
               </div>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, ...S }}>
@@ -394,21 +405,22 @@ export default function LoginPage() {
               </p>
 
               {/* Tab Selector Buttons */}
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, marginTop: 18 }}>
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 100, padding: 4, marginTop: 20, border: '1px solid rgba(255,255,255,0.08)' }}>
                 <button
                   type="button"
                   onClick={() => { setTab('signin'); setSignInError('') }}
                   style={{
                     flex: 1,
-                    background: tab === 'signin' ? '#e50914' : 'transparent',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '8px 0',
-                    color: 'white',
+                    background: tab === 'signin' ? 'rgba(255,255,255,0.14)' : 'transparent',
+                    border: tab === 'signin' ? '1px solid rgba(255,255,255,0.22)' : '1px solid transparent',
+                    borderRadius: 90,
+                    padding: '9px 0',
+                    color: tab === 'signin' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.45)',
                     fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
+                    boxShadow: tab === 'signin' ? 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3)' : 'none',
                     ...S
                   }}
                 >
@@ -419,15 +431,16 @@ export default function LoginPage() {
                   onClick={() => { setTab('signup'); setRegError('') }}
                   style={{
                     flex: 1,
-                    background: tab === 'signup' ? '#e50914' : 'transparent',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '8px 0',
-                    color: 'white',
+                    background: tab === 'signup' ? 'rgba(255,255,255,0.14)' : 'transparent',
+                    border: tab === 'signup' ? '1px solid rgba(255,255,255,0.22)' : '1px solid transparent',
+                    borderRadius: 90,
+                    padding: '9px 0',
+                    color: tab === 'signup' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.45)',
                     fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
+                    boxShadow: tab === 'signup' ? 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3)' : 'none',
                     ...S
                   }}
                 >
@@ -436,7 +449,18 @@ export default function LoginPage() {
                 {(tab === 'forgot' || tab === 'reset') && (
                   <button
                     type="button"
-                    style={{ flex: 1, background: '#e50914', border: 'none', borderRadius: 8, padding: '8px 0', color: 'white', fontSize: 13, fontWeight: 700, ...S }}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(255,255,255,0.14)',
+                      border: '1px solid rgba(255,255,255,0.22)',
+                      borderRadius: 90,
+                      padding: '9px 0',
+                      color: 'rgba(255,255,255,0.95)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
+                      ...S
+                    }}
                   >
                     {tab === 'forgot' ? 'Reset' : 'New Key'}
                   </button>
@@ -479,7 +503,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => { setTab('forgot'); setForgotError('') }}
-                        style={{ background: 'transparent', border: 'none', color: '#e50914', fontSize: 12, fontWeight: 600, cursor: 'pointer', ...S }}
+                        style={{ background: 'transparent', border: 'none', color: 'rgba(180,140,255,0.95)', fontSize: 12, fontWeight: 600, cursor: 'pointer', ...S }}
                       >
                         Forgot password?
                       </button>
@@ -511,7 +535,7 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={e => setRememberMe(e.target.checked)}
-                      style={{ accentColor: '#e50914', width: 16, height: 16, cursor: 'pointer' }}
+                      style={{ accentColor: 'rgba(180,130,255,0.9)', width: 16, height: 16, cursor: 'pointer' }}
                     />
                     <span>Remember me on this browser (30-day session)</span>
                   </label>
@@ -521,7 +545,7 @@ export default function LoginPage() {
                     type="submit"
                     className="btn-r"
                     disabled={signInBusy}
-                    style={{ border: 'none', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: signInBusy ? 'not-allowed' : 'pointer', opacity: signInBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4, ...S }}
+                    style={{ background: 'rgba(255,255,255,0.90)', color: '#0c0c16', border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: signInBusy ? 'not-allowed' : 'pointer', opacity: signInBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4, ...S }}
                   >
                     {signInBusy ? 'Authenticating...' : 'Sign In to MovieMind'}
                   </button>
@@ -531,7 +555,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => { setTab('signup'); setRegError('') }}
-                      style={{ background: 'transparent', border: 'none', color: '#e50914', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: 'rgba(180,140,255,0.95)', fontWeight: 700, cursor: 'pointer' }}
                     >
                       Create Account
                     </button>
@@ -664,19 +688,20 @@ export default function LoginPage() {
                           type="button"
                           onClick={() => setRegAvatar(av.emoji)}
                           style={{
-                            background: regAvatar === av.emoji ? 'rgba(229,9,20,0.2)' : 'rgba(255,255,255,0.04)',
-                            border: regAvatar === av.emoji ? '1px solid #e50914' : '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: 8,
-                            padding: '6px 4px',
+                            background: regAvatar === av.emoji ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.04)',
+                            border: regAvatar === av.emoji ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: 12,
+                            padding: '8px 4px',
                             cursor: 'pointer',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: 2
+                            gap: 3,
+                            transition: 'all 0.2s'
                           }}
                         >
                           <span style={{ fontSize: 20 }}>{av.emoji}</span>
-                          <span style={{ fontSize: 9, color: regAvatar === av.emoji ? '#ff4444' : 'rgba(255,255,255,0.6)' }}>{av.label}</span>
+                          <span style={{ fontSize: 9, color: regAvatar === av.emoji ? 'white' : 'rgba(255,255,255,0.5)' }}>{av.label}</span>
                         </button>
                       ))}
                     </div>
@@ -697,13 +722,14 @@ export default function LoginPage() {
                             type="button"
                             onClick={() => toggleGenre(numId)}
                             style={{
-                              background: sel ? 'rgba(229,9,20,0.2)' : 'rgba(255,255,255,0.04)',
-                              border: sel ? '1px solid #e50914' : '1px solid rgba(255,255,255,0.08)',
+                              background: sel ? 'rgba(140,80,255,0.25)' : 'rgba(255,255,255,0.04)',
+                              border: sel ? '1px solid rgba(140,80,255,0.45)' : '1px solid rgba(255,255,255,0.08)',
                               borderRadius: 14,
-                              padding: '4px 10px',
+                              padding: '5px 11px',
                               fontSize: 11,
-                              color: sel ? 'white' : 'rgba(255,255,255,0.6)',
-                              cursor: 'pointer'
+                              color: sel ? 'rgba(230,210,255,0.98)' : 'rgba(255,255,255,0.6)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s'
                             }}
                           >
                             {sel ? '✓ ' : ''}{name}
@@ -733,7 +759,7 @@ export default function LoginPage() {
                     type="submit"
                     className="btn-r"
                     disabled={regBusy}
-                    style={{ border: 'none', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: regBusy ? 'not-allowed' : 'pointer', opacity: regBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 6, ...S }}
+                    style={{ background: 'rgba(255,255,255,0.90)', color: '#0c0c16', border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: regBusy ? 'not-allowed' : 'pointer', opacity: regBusy ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 6, ...S }}
                   >
                     {regBusy ? 'Creating Your CineID...' : 'Create Account & CineID'}
                   </button>
@@ -743,7 +769,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => { setTab('signin'); setSignInError('') }}
-                      style={{ background: 'transparent', border: 'none', color: '#e50914', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: 'rgba(180,140,255,0.95)', fontWeight: 700, cursor: 'pointer' }}
                     >
                       Sign In
                     </button>
@@ -779,7 +805,7 @@ export default function LoginPage() {
                             type="button"
                             onClick={() => setTab('reset')}
                             className="btn-r"
-                            style={{ border: 'none', padding: '8px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, marginTop: 10, width: '100%' }}
+                            style={{ background: 'rgba(255,255,255,0.90)', color: '#0c0c16', border: 'none', padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, marginTop: 10, width: '100%', cursor: 'pointer' }}
                           >
                             Proceed to Reset Password →
                           </button>
@@ -807,7 +833,7 @@ export default function LoginPage() {
                     type="submit"
                     className="btn-r"
                     disabled={forgotBusy}
-                    style={{ border: 'none', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: forgotBusy ? 'not-allowed' : 'pointer', opacity: forgotBusy ? 0.7 : 1, ...S }}
+                    style={{ background: 'rgba(255,255,255,0.90)', color: '#0c0c16', border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: forgotBusy ? 'not-allowed' : 'pointer', opacity: forgotBusy ? 0.7 : 1, ...S }}
                   >
                     {forgotBusy ? 'Generating Reset Token...' : 'Generate Password Reset Token'}
                   </button>
@@ -823,7 +849,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setTab('reset')}
-                      style={{ background: 'transparent', border: 'none', color: '#e50914', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: 'rgba(180,140,255,0.95)', fontWeight: 600, cursor: 'pointer' }}
                     >
                       Already have a token?
                     </button>
@@ -897,7 +923,7 @@ export default function LoginPage() {
                     type="submit"
                     className="btn-r"
                     disabled={resetBusy}
-                    style={{ border: 'none', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: resetBusy ? 'not-allowed' : 'pointer', opacity: resetBusy ? 0.7 : 1, ...S }}
+                    style={{ background: 'rgba(255,255,255,0.90)', color: '#0c0c16', border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: resetBusy ? 'not-allowed' : 'pointer', opacity: resetBusy ? 0.7 : 1, ...S }}
                   >
                     {resetBusy ? 'Updating Password...' : 'Save New Password & Sign In'}
                   </button>

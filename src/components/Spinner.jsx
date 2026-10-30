@@ -4,8 +4,8 @@ export default function Spinner({ size = 28 }) {
       className="spin-a"
       style={{
         width: size, height: size, flexShrink: 0,
-        border: `${Math.max(2, size / 10)}px solid rgba(229,9,20,.18)`,
-        borderTopColor: '#e50914',
+        border: `${Math.max(2, size / 10)}px solid rgba(255,255,255,0.12)`,
+        borderTopColor: 'rgba(255,255,255,0.85)',
         borderRadius: '50%',
       }}
     />
