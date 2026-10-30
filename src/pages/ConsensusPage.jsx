@@ -40,6 +40,8 @@ export default function ConsensusPage() {
   const [localNameB, setLocalNameB] = useState('Partner / Friend')
   const [localMoviesB, setLocalMoviesB] = useState([MOCK_MOVIES[6], MOCK_MOVIES[9]])
   const [localGenresB, setLocalGenresB] = useState([35, 18])
+  const [isReadyB, setIsReadyB] = useState(false)
+  const [movieQueryB, setMovieQueryB] = useState('')
 
   // Movie search / selection in room
   const [movieQuery, setMovieQuery] = useState('')
@@ -162,6 +164,13 @@ export default function ConsensusPage() {
     syncUpdate(isReady, next, selectedGenres)
   }
 
+  const toggleMovieBSelection = (movie) => {
+    setLocalMoviesB(prev => {
+      const exists = prev.some(m => m.id === movie.id)
+      return exists ? prev.filter(m => m.id !== movie.id) : [...prev, movie]
+    })
+  }
+
   const toggleGenreSelection = (gid) => {
     const next = selectedGenres.includes(gid)
       ? selectedGenres.filter(x => x !== gid)
@@ -262,6 +271,11 @@ export default function ConsensusPage() {
   // Filter catalog for quick movie picker
   const filteredCatalog = MOCK_MOVIES.filter(m =>
     !movieQuery.trim() || m.title.toLowerCase().includes(movieQuery.toLowerCase())
+  )
+
+  // Filter catalog for partner quick movie picker (Split-screen)
+  const filteredCatalogB = MOCK_MOVIES.filter(m =>
+    !movieQueryB.trim() || m.title.toLowerCase().includes(movieQueryB.toLowerCase())
   )
 
   const selectedFriendId = selectedFriend?.id || selectedFriend?._id
@@ -653,15 +667,37 @@ export default function ConsensusPage() {
         {/* Split Screen Local User B (Only in Local Mode) */}
         {mode === 'local' && (
           <div style={{ background: 'rgba(236,72,153,.04)', border: '1px solid rgba(236,72,153,.2)', borderRadius: 14, padding: 22 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <span style={{ fontSize: 24 }}>👥</span>
-              <input
-                type="text"
-                value={localNameB}
-                onChange={e => setLocalNameB(e.target.value)}
-                style={{ background: 'none', border: 'none', borderBottom: '1px dashed rgba(236,72,153,.4)', color: 'white', fontSize: 18, fontWeight: 700, outline: 'none', width: 160 }}
-              />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 26 }}>👥</span>
+                <div>
+                  <input
+                    type="text"
+                    value={localNameB}
+                    onChange={e => setLocalNameB(e.target.value)}
+                    style={{ background: 'none', border: 'none', borderBottom: '1px dashed rgba(236,72,153,.5)', color: 'white', fontSize: 18, fontWeight: 700, outline: 'none', width: 170 }}
+                    placeholder="Partner Name"
+                  />
+                  <div style={{ fontSize: 10, color: 'rgba(236,72,153,.8)', textTransform: 'uppercase', marginTop: 2 }}>
+                    Couch Partner · Split Screen
+                  </div>
+                </div>
+              </div>
+
+              {/* Ready Button for Partner */}
+              <button
+                onClick={() => setIsReadyB(!isReadyB)}
+                style={{
+                  background: isReadyB ? '#10b981' : 'rgba(236,72,153,.15)',
+                  color: 'white',
+                  border: isReadyB ? '1px solid #10b981' : '1px solid rgba(236,72,153,.35)',
+                  borderRadius: 8, padding: '8px 18px', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
+                }}
+              >
+                {isReadyB ? '✓ Partner is Ready!' : 'Mark as Ready'}
+              </button>
             </div>
+
             {/* Genres B */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginBottom: 8 }}>
@@ -686,24 +722,83 @@ export default function ConsensusPage() {
                 })}
               </div>
             </div>
-            {/* Movies B */}
-            <div>
+
+            {/* Movies B Inspirations Tray */}
+            <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginBottom: 8 }}>
-                Inspirations:
+                Partner's Selected Inspirations ({localMoviesB.length}):
               </div>
-              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-                {localMoviesB.map(m => (
-                  <div key={m.id} style={{ width: 60, flexShrink: 0, textAlign: 'center' }}>
-                    <img
-                      src={imgUrl(m.poster_path, 'w92')}
-                      alt={m.title}
-                      style={{ width: 60, height: 86, borderRadius: 6, objectFit: 'cover' }}
-                    />
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,.7)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {m.title}
+              {localMoviesB.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,.4)', fontStyle: 'italic', padding: '10px 0' }}>
+                  No films selected yet. Pick 2-3 films from the catalog below!
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 6 }}>
+                  {localMoviesB.map(m => (
+                    <div key={m.id} style={{ position: 'relative', width: 68, flexShrink: 0, textAlign: 'center' }}>
+                      <img
+                        src={imgUrl(m.poster_path, 'w92') || `https://placehold.co/68x96/222/999?text=${m.title[0]}`}
+                        alt={m.title}
+                        style={{ width: 68, height: 96, borderRadius: 6, objectFit: 'cover' }}
+                      />
+                      <button
+                        onClick={() => toggleMovieBSelection(m)}
+                        style={{ position: 'absolute', top: -5, right: -5, width: 18, height: 18, borderRadius: '50%', background: '#ec4899', color: 'white', border: 'none', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Remove movie"
+                      >
+                        ✕
+                      </button>
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.7)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.title}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Catalog Picker for Partner B */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase' }}>
+                  Partner Movie Picker:
+                </span>
+                <input
+                  type="text"
+                  value={movieQueryB}
+                  onChange={e => setMovieQueryB(e.target.value)}
+                  placeholder="Search catalog..."
+                  style={{ background: 'rgba(0,0,0,.3)', border: '1px solid rgba(236,72,153,.3)', borderRadius: 6, padding: '4px 8px', fontSize: 11, color: 'white', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(110px,1fr))', gap: 8, maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
+                {filteredCatalogB.slice(0, 12).map(m => {
+                  const isSelected = localMoviesB.some(sm => sm.id === m.id)
+                  return (
+                    <div
+                      key={m.id}
+                      onClick={() => toggleMovieBSelection(m)}
+                      style={{
+                        background: isSelected ? 'rgba(236,72,153,.2)' : 'rgba(255,255,255,.02)',
+                        border: isSelected ? '1px solid #ec4899' : '1px solid rgba(255,255,255,.06)',
+                        borderRadius: 8, padding: 6, cursor: 'pointer', textAlign: 'center', transition: 'all .2s'
+                      }}
+                    >
+                      <img
+                        src={imgUrl(m.poster_path, 'w92')}
+                        alt={m.title}
+                        style={{ width: '100%', height: 70, objectFit: 'cover', borderRadius: 4, marginBottom: 4 }}
+                      />
+                      <div style={{ fontSize: 10, color: 'white', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.title}
+                      </div>
+                      <div style={{ fontSize: 9, color: isSelected ? '#ec4899' : 'rgba(255,255,255,.4)' }}>
+                        {isSelected ? '✓ Picked' : '+ Add'}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
