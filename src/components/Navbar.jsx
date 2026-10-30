@@ -245,73 +245,6 @@ export default function Navbar() {
           pointerEvents: visible ? 'all' : 'none'
         }}
       >
-        {/* MORE POPUP MENU (Apple liquid glass with minimal blur) */}
-        {showMore && (
-          <div
-            className="more-menu"
-            ref={moreRef}
-            style={{
-              position: 'absolute',
-              bottom: 'calc(100% + 14px)',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'rgba(14, 17, 28, 0.82)',
-              backdropFilter: 'blur(28px) saturate(190%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: 22,
-              padding: 10,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.65), inset 0 1px 1px rgba(255,255,255,0.2)',
-              zIndex: 350,
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 6,
-              minWidth: 280,
-              animation: 'fadeUp .2s cubic-bezier(.16, 1, 0.3, 1)',
-              pointerEvents: 'all'
-            }}
-          >
-            {moreItems.map(item => (
-              <button
-                key={item.id}
-                className={`more-item ${page === item.id ? 'active' : ''}`}
-                onClick={() => go(item.id)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '10px 8px',
-                  borderRadius: 14,
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  background: page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                  color: page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)',
-                  cursor: 'pointer',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  transition: 'all 0.18s ease'
-                }}
-                onMouseOver={e => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                  e.currentTarget.style.color = '#ffffff'
-                }}
-                onMouseOut={e => {
-                  e.currentTarget.style.background = page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)'
-                  e.currentTarget.style.color = page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)'
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                <span style={{ fontSize: 10.5, fontWeight: 600 }}>{item.label}</span>
-                {item.badge > 0 && (
-                  <span style={{ fontSize: 8.5, background: '#38bdf8', color: '#090910', borderRadius: 8, padding: '1px 5px', fontWeight: 800 }}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Main Liquid Glass Navigation Capsule */}
         <nav
           className="bottom-nav-pill"
@@ -403,72 +336,139 @@ export default function Navbar() {
           {/* Thin subtle glass divider */}
           <div style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.18)', margin: '0 2px', flexShrink: 0 }} />
 
-          {/* More Drawer Trigger */}
-          <button
-            className="bnav-more-btn"
-            onClick={() => { setShowMore(p => !p); setShowProfile(false) }}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 3,
-              padding: '7px 16px',
-              borderRadius: 100,
-              cursor: 'pointer',
-              border: showMore ? '1.5px solid #38bdf8' : '1.5px solid transparent',
-              background: showMore ? 'rgba(14, 165, 233, 0.18)' : 'transparent',
-              color: showMore ? '#38bdf8' : 'rgba(255, 255, 255, 0.65)',
-              boxShadow: showMore ? '0 0 16px rgba(56, 189, 248, 0.35)' : 'none',
-              transition: 'all 0.24s cubic-bezier(0.34, 1.2, 0.64, 1)',
-              position: 'relative'
-            }}
-            onMouseOver={e => {
-              if (!showMore) {
-                e.currentTarget.style.color = '#ffffff'
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
-              }
-            }}
-            onMouseOut={e => {
-              if (!showMore) {
-                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
-                e.currentTarget.style.background = 'transparent'
-              }
-            }}
-          >
-            {totalAlerts > 0 && (
-              <span
+          {/* More Drawer Trigger & Anchored Menu */}
+          <div style={{ position: 'relative' }} ref={moreRef}>
+            {showMore && (
+              <div
+                className="more-menu"
                 style={{
                   position: 'absolute',
-                  top: 2,
-                  right: 6,
-                  background: '#38bdf8',
-                  color: '#090910',
-                  borderRadius: 10,
-                  fontSize: 8,
-                  fontWeight: 800,
-                  padding: '1px 5px',
-                  minWidth: 15,
-                  textAlign: 'center'
+                  bottom: 'calc(100% + 14px)',
+                  right: -6,
+                  background: 'rgba(14, 17, 28, 0.85)',
+                  backdropFilter: 'blur(28px) saturate(190%)',
+                  WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: 22,
+                  padding: 10,
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                  zIndex: 350,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 6,
+                  minWidth: 280,
+                  transformOrigin: 'bottom right',
+                  animation: 'appleMenuPop .18s cubic-bezier(.16, 1, 0.3, 1) forwards',
+                  pointerEvents: 'all'
                 }}
               >
-                {totalAlerts > 99 ? '99+' : totalAlerts}
-              </span>
+                {moreItems.map(item => (
+                  <button
+                    key={item.id}
+                    className={`more-item ${page === item.id ? 'active' : ''}`}
+                    onClick={() => go(item.id)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '10px 8px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      background: page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                      color: page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)',
+                      cursor: 'pointer',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      transition: 'all 0.18s ease'
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                      e.currentTarget.style.color = '#ffffff'
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = page === item.id ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)'
+                      e.currentTarget.style.color = page === item.id ? '#38bdf8' : 'rgba(255, 255, 255, 0.8)'
+                    }}
+                  >
+                    <span style={{ fontSize: 20 }}>{item.icon}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 600 }}>{item.label}</span>
+                    {item.badge > 0 && (
+                      <span style={{ fontSize: 8.5, background: '#38bdf8', color: '#090910', borderRadius: 8, padding: '1px 5px', fontWeight: 800 }}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <MoreIcon color={showMore ? '#38bdf8' : 'rgba(255,255,255,0.65)'} />
-            </div>
-            <span
+
+            <button
+              className="bnav-more-btn"
+              onClick={() => { setShowMore(p => !p); setShowProfile(false) }}
               style={{
-                fontSize: 10.5,
-                fontWeight: 600,
-                letterSpacing: 0.2,
-                fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif"
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                padding: '7px 16px',
+                borderRadius: 100,
+                cursor: 'pointer',
+                border: showMore ? '1.5px solid #38bdf8' : '1.5px solid transparent',
+                background: showMore ? 'rgba(14, 165, 233, 0.18)' : 'transparent',
+                color: showMore ? '#38bdf8' : 'rgba(255, 255, 255, 0.65)',
+                boxShadow: showMore ? '0 0 16px rgba(56, 189, 248, 0.35)' : 'none',
+                transition: 'all 0.24s cubic-bezier(0.34, 1.2, 0.64, 1)',
+                position: 'relative'
+              }}
+              onMouseOver={e => {
+                if (!showMore) {
+                  e.currentTarget.style.color = '#ffffff'
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
+                }
+              }}
+              onMouseOut={e => {
+                if (!showMore) {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
+                  e.currentTarget.style.background = 'transparent'
+                }
               }}
             >
-              More
-            </span>
-          </button>
+              {totalAlerts > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 6,
+                    background: '#38bdf8',
+                    color: '#090910',
+                    borderRadius: 10,
+                    fontSize: 8,
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    minWidth: 15,
+                    textAlign: 'center'
+                  }}
+                >
+                  {totalAlerts > 99 ? '99+' : totalAlerts}
+                </span>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MoreIcon color={showMore ? '#38bdf8' : 'rgba(255,255,255,0.65)'} />
+              </div>
+              <span
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  letterSpacing: 0.2,
+                  fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif"
+                }}
+              >
+                More
+              </span>
+            </button>
+          </div>
         </nav>
 
         {/* Detached Floating Circular Glass Profile Button with Anchored Popup */}
@@ -489,7 +489,8 @@ export default function Navbar() {
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
                 zIndex: 350,
                 minWidth: 230,
-                animation: 'fadeUp .2s cubic-bezier(.16, 1, 0.3, 1)',
+                transformOrigin: 'bottom right',
+                animation: 'appleMenuPop .18s cubic-bezier(.16, 1, 0.3, 1) forwards',
                 pointerEvents: 'all'
               }}
             >
