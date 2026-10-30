@@ -565,8 +565,23 @@ export default function MessagesPage() {
                               {f.displayName || f.name}
                             </div>
                             {isFriend ? (
-                              <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4 }}>
-                                {f.tasteMatchScore || f.tasteCompatibility || 75}%
+                              <span
+                                title={`Movie Taste Compatibility: ${f.tasteMatchScore || f.tasteCompatibility || 75}% Match`}
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: '#10b981',
+                                  background: 'rgba(16,185,129,.12)',
+                                  border: '1px solid rgba(16,185,129,.25)',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 3,
+                                  flexShrink: 0
+                                }}
+                              >
+                                ⚡ {f.tasteMatchScore || f.tasteCompatibility || 75}% Match
                               </span>
                             ) : (
                               <span style={{ fontSize: 9, fontWeight: 700, color: '#f87171', background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', padding: '1px 5px', borderRadius: 4 }}>
