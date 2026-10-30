@@ -1,4 +1,4 @@
-// src/pages/ProfilePage.jsx — Full-Page Cinephile Profile & Integrated Dashboard
+// src/pages/ProfilePage.jsx — Full-Page Cinephile Profile & Integrated Dashboard (Self & Friends)
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useApp } from '@/context/AppContext'
@@ -16,7 +16,9 @@ const tooltipStyle = {
 export default function ProfilePage() {
   const {
     user,
-    watchlist,
+    viewingUser,
+    setViewingUser,
+    watchlist: myWatchlist,
     toggleWatchlist,
     navigate,
     setEditProfileModalOpen,
@@ -27,19 +29,31 @@ export default function ProfilePage() {
 
   const myId = user?.id || user?._id
 
-  // Active Profile Tab: 'overview' | 'friends' | 'watchlist' | 'account'
+  // Target User determination
+  const targetId = viewingUser
+    ? (typeof viewingUser === 'object' ? (viewingUser.id || viewingUser._id) : String(viewingUser))
+    : myId
+
+  const isOwnProfile = !targetId || String(targetId) === String(myId)
+
+  // Tab State
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Social Data: Friends & Requests
+  // Own Social Data (when isOwnProfile is true)
   const [friends, setFriends] = useState([])
   const [incomingRequests, setIncomingRequests] = useState([])
-  const [loadingSocial, setLoadingSocial] = useState(true)
+  const [loadingSocial, setLoadingSocial] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
 
-  // Fetch Friends & Social Info from MongoDB
+  // Other User Data (when isOwnProfile is false)
+  const [otherProfile, setOtherProfile] = useState(null)
+  const [loadingOther, setLoadingOther] = useState(!isOwnProfile)
+  const [friendActionStatus, setFriendActionStatus] = useState('') // '' | 'sending' | 'sent'
+
+  // ── 1. Load Data for Own Profile ──────────────────────────────────────────
   useEffect(() => {
-    if (!myId) return
-    const fetchSocialData = async () => {
+    if (!isOwnProfile || !myId) return
+    const fetchMySocial = async () => {
       setLoadingSocial(true)
       try {
         const [fRes, rRes] = await Promise.all([
@@ -49,41 +63,72 @@ export default function ProfilePage() {
         setFriends(fRes.friends || [])
         setIncomingRequests(rRes.requests?.incoming || [])
 
-        // Refresh presence for friends
         const friendIds = (fRes.friends || []).map(f => f.id || f._id).filter(Boolean)
         if (friendIds.length > 0 && realtime?.refreshPresence) {
           realtime.refreshPresence(friendIds)
         }
       } catch (err) {
-        console.warn('Error loading profile social data:', err)
+        console.warn('Error loading own social data:', err)
       } finally {
         setLoadingSocial(false)
       }
     }
-    fetchSocialData()
-  }, [myId])
+    fetchMySocial()
+  }, [isOwnProfile, myId])
+
+  // ── 2. Load Data for Another User / Friend Profile ────────────────────────
+  useEffect(() => {
+    if (isOwnProfile || !targetId) {
+      setOtherProfile(null)
+      setLoadingOther(false)
+      return
+    }
+
+    const fetchOtherProfile = async () => {
+      setLoadingOther(true)
+      try {
+        const res = await fetch(`/api/social/profile/${encodeURIComponent(targetId)}?viewerId=${encodeURIComponent(myId || '')}`).then(r => r.json())
+        if (res.profile) {
+          setOtherProfile(res.profile)
+          if (realtime?.refreshPresence) {
+            realtime.refreshPresence([targetId])
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load friend profile:', err)
+      } finally {
+        setLoadingOther(false)
+      }
+    }
+    fetchOtherProfile()
+  }, [isOwnProfile, targetId, myId])
+
+  // Active Display User Object
+  const displayUser = isOwnProfile ? user : (otherProfile || (typeof viewingUser === 'object' ? viewingUser : {}))
+  const displayWatchlist = isOwnProfile ? myWatchlist : (otherProfile?.watchlist || [])
+  const isOnline = realtime?.presenceMap?.[targetId] === 'online'
 
   // Watchlist Analytics
   const genreData = useMemo(() => {
     const c = {}
-    watchlist.forEach(m => (m.genre_ids || []).forEach(id => { c[id] = (c[id] || 0) + 1 }))
+    displayWatchlist.forEach(m => (m.genre_ids || []).forEach(id => { c[id] = (c[id] || 0) + 1 }))
     return Object.entries(c)
       .map(([id, count]) => ({ name: GN[id] || '?', count }))
       .sort((a, b) => b.count - a.count).slice(0, 6)
-  }, [watchlist])
+  }, [displayWatchlist])
 
   const avgRating = useMemo(() => {
-    if (!watchlist.length) return '—'
-    const total = watchlist.reduce((s, m) => s + (m.vote_average || 0), 0)
-    return (total / watchlist.length).toFixed(1)
-  }, [watchlist])
+    if (!displayWatchlist.length) return '—'
+    const total = displayWatchlist.reduce((s, m) => s + (m.vote_average || 0), 0)
+    return (total / displayWatchlist.length).toFixed(1)
+  }, [displayWatchlist])
 
-  const favoriteGenres = user?.favoriteGenres || [878, 53]
+  const favoriteGenres = displayUser?.favoriteGenres || [878, 53]
 
   // Copy User ID
   const handleCopyId = () => {
-    if (user?.id) {
-      navigator.clipboard.writeText(String(user.id))
+    if (displayUser?.id) {
+      navigator.clipboard.writeText(String(displayUser.id))
       setCopiedId(true)
       setTimeout(() => setCopiedId(false), 2000)
     }
@@ -101,14 +146,66 @@ export default function ProfilePage() {
     navigate('consensus')
   }
 
+  // Send friend request if not friends
+  const handleSendFriendRequest = async () => {
+    if (!myId || !targetId || friendActionStatus) return
+    setFriendActionStatus('sending')
+    try {
+      const res = await fetch('/api/social/friend-request/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromUserId: myId, toUserId: targetId })
+      }).then(r => r.json())
+
+      if (res.success || res.request) {
+        setFriendActionStatus('sent')
+        if (otherProfile) {
+          setOtherProfile(prev => ({ ...prev, friendshipStatus: 'pending_outgoing' }))
+        }
+      }
+    } catch {
+      setFriendActionStatus('')
+    }
+  }
+
+  if (!isOwnProfile && loadingOther) {
+    return (
+      <div style={{ minHeight: '100vh', padding: '120px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <Spinner size={36} />
+        <div style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>Loading Cinephile Profile...</div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+      {/* ── BREADCRUMB / BACK BAR (When viewing a friend's profile) ──────────── */}
+      {!isOwnProfile && (
+        <div className="fu" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button
+            onClick={() => { setViewingUser(null); navigate('profile') }}
+            style={{
+              background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
+              borderRadius: 8, padding: '7px 14px', color: 'white', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+            }}
+          >
+            <span>←</span> Back to My Profile
+          </button>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Public Cinephile Profile
+          </div>
+        </div>
+      )}
+
       {/* ── 1. HERO PROFILE BANNER ───────────────────────────────────────────── */}
       <div
         className="fu glass"
         style={{
           borderRadius: 20,
-          background: 'linear-gradient(135deg, rgba(229,9,20,.12) 0%, rgba(14,14,28,.95) 50%, rgba(139,92,246,.08) 100%)',
+          background: isOwnProfile
+            ? 'linear-gradient(135deg, rgba(229,9,20,.12) 0%, rgba(14,14,28,.95) 50%, rgba(139,92,246,.08) 100%)'
+            : 'linear-gradient(135deg, rgba(14,165,233,.12) 0%, rgba(14,14,28,.95) 50%, rgba(229,9,20,.08) 100%)',
           border: '1px solid rgba(255,255,255,.1)',
           padding: '36px 32px',
           marginBottom: 28,
@@ -124,45 +221,51 @@ export default function ProfilePage() {
                   width: 96,
                   height: 96,
                   borderRadius: 24,
-                  background: 'rgba(229,9,20,.18)',
-                  border: '2px solid rgba(229,9,20,.45)',
+                  background: isOwnProfile ? 'rgba(229,9,20,.18)' : 'rgba(14,165,233,.18)',
+                  border: isOwnProfile ? '2px solid rgba(229,9,20,.45)' : '2px solid rgba(14,165,233,.45)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: 48,
-                  boxShadow: '0 10px 28px rgba(229,9,20,.25)'
+                  boxShadow: '0 10px 28px rgba(0,0,0,.4)'
                 }}
               >
-                {user?.avatar || '🎬'}
+                {displayUser?.avatar || '🎬'}
               </div>
               <span
                 style={{
                   position: 'absolute', bottom: 2, right: 2, width: 14, height: 14,
-                  borderRadius: '50%', background: '#10b981', border: '3px solid #090915'
+                  borderRadius: '50%', background: isOnline ? '#10b981' : '#6b7280',
+                  border: '3px solid #090915'
                 }}
-                title="Active MongoDB Session"
+                title={isOnline ? 'Online' : 'Offline'}
               />
             </div>
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 42, color: 'white', letterSpacing: 1, margin: 0 }}>
-                  {user?.displayName || user?.name || 'Cinephile'}
+                  {displayUser?.displayName || displayUser?.name || 'Cinephile'}
                 </h1>
                 <span style={{ background: 'rgba(229,9,20,.18)', border: '1px solid rgba(229,9,20,.35)', color: '#e50914', borderRadius: 14, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
-                  @{user?.username || 'user'}
+                  @{displayUser?.username || 'user'}
                 </span>
-                <span style={{ background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.35)', color: '#10b981', borderRadius: 14, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>
-                  ● Verified Member
+                <span style={{ background: isOnline ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.06)', border: `1px solid ${isOnline ? '#10b981' : 'rgba(255,255,255,.15)'}`, color: isOnline ? '#10b981' : 'rgba(255,255,255,.5)', borderRadius: 14, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>
+                  {isOnline ? '● Online Now' : '○ Offline'}
                 </span>
+                {!isOwnProfile && otherProfile?.tasteCompatibility && (
+                  <span style={{ background: 'rgba(16,185,129,.2)', border: '1px solid rgba(16,185,129,.4)', color: '#10b981', borderRadius: 14, padding: '2px 10px', fontSize: 11, fontWeight: 800 }}>
+                    ⚡ {otherProfile.tasteCompatibility}% Match With You
+                  </span>
+                )}
               </div>
 
               {/* Bio */}
               <p style={{ color: 'rgba(255,255,255,.75)', fontSize: 13, lineHeight: 1.5, maxWidth: 650, margin: '8px 0 12px' }}>
-                {user?.bio ? `"${user.bio}"` : 'Film critic, cinema explorer, and lover of deep storytelling.'}
+                {displayUser?.bio ? `"${displayUser.bio}"` : 'Film enthusiast, cinematic explorer, and storytelling critic.'}
               </p>
 
-              {/* User ID & Persistence Info */}
+              {/* User ID & Badges */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'rgba(255,255,255,.4)' }}>
                 <span
                   onClick={handleCopyId}
@@ -171,53 +274,110 @@ export default function ProfilePage() {
                     padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,.08)',
                     display: 'inline-flex', alignItems: 'center', gap: 6
                   }}
-                  title="Click to copy Persistent User ID"
+                  title="Click to copy User ID"
                 >
-                  <span>🆔 UID: {user?.id || 'atlas_session'}</span>
+                  <span>🆔 UID: {displayUser?.id || displayUser?._id || 'atlas_session'}</span>
                   <span style={{ color: copiedId ? '#10b981' : 'rgba(255,255,255,.6)' }}>
                     {copiedId ? '✓ Copied' : '📋'}
                   </span>
                 </span>
                 <span>·</span>
-                <span>📧 {user?.email || 'Authenticated User'}</span>
-                <span>·</span>
+                {/* Personal email is ONLY shown if viewing own profile for privacy */}
+                {isOwnProfile && displayUser?.email ? (
+                  <>
+                    <span>📧 {displayUser.email}</span>
+                    <span>·</span>
+                  </>
+                ) : null}
                 <span>🗄️ MongoDB Atlas Permanent Storage</span>
               </div>
             </div>
           </div>
 
-          {/* Right: Quick Action Controls */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setEditProfileModalOpen(true)}
-              style={{
-                background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)',
-                borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
-              }}
-            >
-              <span>✏️</span> Edit Profile
-            </button>
-            <button
-              onClick={() => setAccountSettingsModalOpen(true)}
-              style={{
-                background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)',
-                borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
-              }}
-            >
-              <span>⚙️</span> Settings
-            </button>
-            <button
-              onClick={() => navigate('friends')}
-              style={{
-                background: '#e50914', border: 'none', borderRadius: 8, padding: '9px 18px',
-                color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
-              }}
-            >
-              <span>👥</span> Find Friends
-            </button>
+          {/* Right: Actions */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            {isOwnProfile ? (
+              <>
+                <button
+                  onClick={() => setEditProfileModalOpen(true)}
+                  style={{
+                    background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)',
+                    borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+                  }}
+                >
+                  <span>✏️</span> Edit Profile
+                </button>
+                <button
+                  onClick={() => setAccountSettingsModalOpen(true)}
+                  style={{
+                    background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)',
+                    borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+                  }}
+                >
+                  <span>⚙️</span> Settings
+                </button>
+                <button
+                  onClick={() => navigate('friends')}
+                  style={{
+                    background: '#e50914', border: 'none', borderRadius: 8, padding: '9px 18px',
+                    color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+                  }}
+                >
+                  <span>👥</span> Find Friends
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Friend Actions when viewing other user */}
+                <button
+                  onClick={() => handleMessageFriend(displayUser)}
+                  style={{
+                    background: '#e50914', border: 'none', borderRadius: 8, padding: '10px 18px',
+                    color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s',
+                    boxShadow: '0 4px 16px rgba(229,9,20,.35)'
+                  }}
+                >
+                  <span>💬</span> Send Message
+                </button>
+                <button
+                  onClick={() => handleConsensusFriend(displayUser)}
+                  style={{
+                    background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.35)',
+                    borderRadius: 8, padding: '9px 16px', color: '#ff6b6b', fontSize: 12, fontWeight: 700,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+                  }}
+                >
+                  <span>🛋️</span> Couch Consensus
+                </button>
+
+                {/* Friendship Status Badge or Button */}
+                {otherProfile?.friendshipStatus === 'friends' ? (
+                  <span style={{ background: 'rgba(16,185,129,.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span>✓</span> Cine-Friends
+                  </span>
+                ) : otherProfile?.friendshipStatus === 'pending_outgoing' || friendActionStatus === 'sent' ? (
+                  <span style={{ background: 'rgba(251,191,36,.15)', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span>⏳</span> Request Sent
+                  </span>
+                ) : (
+                  <button
+                    onClick={handleSendFriendRequest}
+                    disabled={friendActionStatus === 'sending'}
+                    style={{
+                      background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.2)',
+                      borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                    }}
+                  >
+                    <span>👥</span> {friendActionStatus === 'sending' ? 'Sending...' : '+ Add Friend'}
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -226,27 +386,28 @@ export default function ProfilePage() {
       <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 14, marginBottom: 28 }}>
         {/* Friends Count */}
         <div
-          onClick={() => setActiveTab('friends')}
+          onClick={() => isOwnProfile && setActiveTab('friends')}
           className="glass ch"
           style={{
-            borderRadius: 14, padding: '20px 22px', cursor: 'pointer',
-            border: activeTab === 'friends' ? '1px solid #10b981' : '1px solid rgba(255,255,255,.08)',
+            borderRadius: 14, padding: '20px 22px',
+            cursor: isOwnProfile ? 'pointer' : 'default',
+            border: activeTab === 'friends' && isOwnProfile ? '1px solid #10b981' : '1px solid rgba(255,255,255,.08)',
             transition: 'all .2s'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 24 }}>👥</span>
-            {incomingRequests.length > 0 && (
+            {isOwnProfile && incomingRequests.length > 0 && (
               <span style={{ fontSize: 10, background: '#e50914', color: 'white', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
                 +{incomingRequests.length} Req
               </span>
             )}
           </div>
           <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 36, color: '#10b981', lineHeight: 1, marginBottom: 4 }}>
-            {loadingSocial ? '...' : friends.length}
+            {isOwnProfile ? (loadingSocial ? '...' : friends.length) : (otherProfile?.friendsCount ?? 0)}
           </div>
           <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Cine-Friends
+            {isOwnProfile ? 'Cine-Friends' : 'Friends in Circle'}
           </div>
         </div>
 
@@ -262,10 +423,10 @@ export default function ProfilePage() {
         >
           <div style={{ fontSize: 24, marginBottom: 6 }}>🎬</div>
           <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 36, color: '#e50914', lineHeight: 1, marginBottom: 4 }}>
-            {watchlist.length}
+            {isOwnProfile ? myWatchlist.length : (otherProfile?.watchlistCount ?? displayWatchlist.length)}
           </div>
           <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Saved Movies
+            {isOwnProfile ? 'Saved Movies' : 'Public Watchlist'}
           </div>
         </div>
 
@@ -305,9 +466,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Real-time Messenger */}
+        {/* Action Link: Chat or Messenger */}
         <div
-          onClick={() => navigate('messages')}
+          onClick={() => isOwnProfile ? navigate('messages') : handleMessageFriend(displayUser)}
           className="glass ch"
           style={{
             borderRadius: 14, padding: '20px 22px', cursor: 'pointer',
@@ -316,12 +477,12 @@ export default function ProfilePage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 24 }}>💬</span>
-            <span style={{ fontSize: 9, background: 'rgba(16,185,129,.15)', color: '#10b981', padding: '1px 7px', borderRadius: 8, fontWeight: 700 }}>
-              Live Redis
+            <span style={{ fontSize: 9, background: isOnline ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.08)', color: isOnline ? '#10b981' : 'rgba(255,255,255,.5)', padding: '1px 7px', borderRadius: 8, fontWeight: 700 }}>
+              {isOnline ? 'Online' : 'Offline'}
             </span>
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 36, color: '#8b5cf6', lineHeight: 1, marginBottom: 4 }}>
-            CineChat
+          <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 32, color: '#8b5cf6', lineHeight: 1, marginBottom: 4 }}>
+            {isOwnProfile ? 'CineChat' : 'Chat with ' + (displayUser.displayName?.split(' ')[0] || 'Friend')}
           </div>
           <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             Direct Messenger ➔
@@ -332,11 +493,11 @@ export default function ProfilePage() {
       {/* ── 3. INTERACTIVE PROFILE TABS ──────────────────────────────────────── */}
       <div className="fu d2" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.09)', marginBottom: 26, gap: 10 }}>
         {[
-          { id: 'overview', label: '📊 Taste & Dashboard Info', icon: '📊' },
-          { id: 'friends', label: `👥 Cine-Friends (${friends.length})`, icon: '👥' },
-          { id: 'watchlist', label: `🎬 Saved Watchlist (${watchlist.length})`, icon: '🎬' },
-          { id: 'account', label: '🛡️ Account & Session', icon: '🛡️' },
-        ].map(tab => {
+          { id: 'overview', label: '📊 Taste & Dashboard Info', icon: '📊', show: true },
+          { id: 'friends', label: `👥 Cine-Friends (${friends.length})`, icon: '👥', show: isOwnProfile },
+          { id: 'watchlist', label: `🎬 ${isOwnProfile ? 'Saved Watchlist' : 'Watchlist'} (${isOwnProfile ? myWatchlist.length : (otherProfile?.watchlistCount ?? displayWatchlist.length)})`, icon: '🎬', show: true },
+          { id: 'account', label: '🛡️ Account & Session', icon: '🛡️', show: isOwnProfile },
+        ].filter(t => t.show).map(tab => {
           const isActive = activeTab === tab.id
           return (
             <button
@@ -370,25 +531,58 @@ export default function ProfilePage() {
       {/* TAB 1: OVERVIEW & DASHBOARD INFO */}
       {activeTab === 'overview' && (
         <div className="fu">
-          {/* Taste Equalizer Console */}
+          {/* Taste Tuning Console (Only editable if own profile; visual representation for friend) */}
           <div style={{ marginBottom: 28 }}>
-            <TasteEqualizer />
+            {isOwnProfile ? (
+              <TasteEqualizer />
+            ) : (
+              <div className="glass" style={{ borderRadius: 16, padding: 24, border: '1px solid rgba(255,255,255,.08)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div>
+                    <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 24, color: 'white', margin: 0, letterSpacing: 0.5 }}>
+                      {displayUser.displayName}'s Cinematic Taste Equalizer
+                    </h3>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
+                      Harmonic slider preferences calibrated in MongoDB Atlas
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, background: 'rgba(16,185,129,.15)', color: '#10b981', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>
+                    ⚡ {otherProfile?.tasteCompatibility || 75}% Taste Match With You
+                  </span>
+                </div>
+
+                {/* Taste Sliders Display */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+                  {Object.entries(otherProfile?.preferences?.tasteSliders || { pacing: 50, darkness: 50, intensity: 50, intellect: 50, nostalgia: 50 }).map(([key, val]) => (
+                    <div key={key} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'white', fontWeight: 600, textTransform: 'capitalize', marginBottom: 6 }}>
+                        <span>{key}</span>
+                        <span style={{ color: '#e50914' }}>{val}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,.1)', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ width: `${val}%`, height: '100%', background: 'linear-gradient(90deg, #e50914, #8b5cf6)', borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Charts Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: watchlist.length > 1 ? '1fr 1fr' : '1fr', gap: 20, marginBottom: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: displayWatchlist.length > 1 ? '1fr 1fr' : '1fr', gap: 20, marginBottom: 28 }}>
             {/* Genre Breakdown */}
             <div className="glass" style={{ borderRadius: 16, padding: 24, border: '1px solid rgba(255,255,255,.08)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
                 <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 22, color: 'white', margin: 0, letterSpacing: 0.5 }}>
-                  Genre Distribution in Watchlist
+                  Genre Distribution
                 </h3>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,.4)' }}>Top Preferences</span>
               </div>
 
               {genreData.length === 0 ? (
                 <div style={{ padding: 36, textAlign: 'center', color: 'rgba(255,255,255,.3)', fontSize: 12 }}>
-                  Add at least 2 films to your Watchlist to visualize your cinematic genre breakdown!
+                  {isOwnProfile ? 'Add at least 2 films to your Watchlist to visualize your cinematic genre breakdown!' : 'No public genre breakdown available yet.'}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
@@ -404,13 +598,13 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Favorite Genres Chips & Philosophy */}
+            {/* Favorite Genres Chips & Algorithm Info */}
             <div className="glass" style={{ borderRadius: 16, padding: 24, border: '1px solid rgba(255,255,255,.08)' }}>
               <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 22, color: 'white', margin: '0 0 14px', letterSpacing: 0.5 }}>
-                Your Declared Favorite Genres
+                {isOwnProfile ? 'Your Declared Favorite Genres' : `${displayUser.displayName}'s Favorite Genres`}
               </h3>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', lineHeight: 1.5, margin: '0 0 16px' }}>
-                These genres drive your AI recommendation engine and calculate harmonic taste compatibility with other cinephiles.
+                These genres drive personal AI recommendations and calculate harmonic taste compatibility across MovieMind.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
@@ -432,21 +626,27 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <div style={{ padding: 14, background: 'rgba(255,255,255,.03)', borderRadius: 12, border: '1px solid rgba(255,255,255,.06)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4 }}>
-                  ⚡ CineMind Taste Matching Algorithm
+              {!isOwnProfile && (
+                <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                  <button
+                    onClick={() => handleConsensusFriend(displayUser)}
+                    style={{
+                      flex: 1, background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.35)',
+                      borderRadius: 8, padding: '10px 0', color: '#ff6b6b', fontSize: 12, fontWeight: 700,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                    }}
+                  >
+                    <span>🛋️</span> Launch Couch Consensus with {displayUser.displayName?.split(' ')[0]}
+                  </button>
                 </div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.4 }}>
-                  Your taste vector combines direct genre picks, watchlist additions, and slider weights to compute instant Pareto-optimal recommendations in Couch Consensus.
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: CINE-FRIENDS & SOCIAL CIRCLE */}
-      {activeTab === 'friends' && (
+      {/* TAB 2: CINE-FRIENDS & SOCIAL CIRCLE (Only on own profile) */}
+      {activeTab === 'friends' && isOwnProfile && (
         <div className="fu">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -454,7 +654,7 @@ export default function ProfilePage() {
                 My Cine-Circle ({friends.length})
               </h2>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
-                Authenticated friends with live taste compatibility & real-time messaging
+                Click on any friend to view their public profile and film collection
               </div>
             </div>
 
@@ -490,7 +690,7 @@ export default function ProfilePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
               {friends.map(friend => {
                 const fId = friend.id || friend._id
-                const isOnline = realtime?.presenceMap?.[fId] === 'online'
+                const isFriendOnline = realtime?.presenceMap?.[fId] === 'online'
                 const matchScore = friend.tasteMatchScore || friend.tasteCompatibility || 75
 
                 return (
@@ -507,16 +707,20 @@ export default function ProfilePage() {
                       gap: 14
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div
+                      onClick={() => { setViewingUser(friend); navigate('profile', friend) }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
+                      title="Click to view friend's profile"
+                    >
                       <div style={{ position: 'relative' }}>
                         <div style={{ fontSize: 34 }}>{friend.avatar || '🍿'}</div>
                         <span
                           style={{
                             position: 'absolute', bottom: -1, right: -1, width: 10, height: 10,
-                            borderRadius: '50%', background: isOnline ? '#10b981' : '#6b7280',
+                            borderRadius: '50%', background: isFriendOnline ? '#10b981' : '#6b7280',
                             border: '2px solid #090915'
                           }}
-                          title={isOnline ? 'Online' : 'Offline'}
+                          title={isFriendOnline ? 'Online' : 'Offline'}
                         />
                       </div>
 
@@ -527,8 +731,8 @@ export default function ProfilePage() {
                         <div style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>
                           @{friend.username}
                         </div>
-                        <div style={{ fontSize: 10, color: isOnline ? '#10b981' : 'rgba(255,255,255,.4)', marginTop: 2 }}>
-                          {isOnline ? '● Active Now' : '○ Offline'}
+                        <div style={{ fontSize: 10, color: isFriendOnline ? '#10b981' : 'rgba(255,255,255,.4)', marginTop: 2 }}>
+                          {isFriendOnline ? '● Active Now' : '○ Offline'}
                         </div>
                       </div>
 
@@ -550,24 +754,34 @@ export default function ProfilePage() {
 
                     <div style={{ display: 'flex', gap: 8, borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 12 }}>
                       <button
+                        onClick={() => { setViewingUser(friend); navigate('profile', friend) }}
+                        style={{
+                          flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
+                          borderRadius: 6, padding: '7px 0', color: 'white', fontSize: 11, fontWeight: 600,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+                        }}
+                      >
+                        <span>👤</span> Profile
+                      </button>
+                      <button
                         onClick={() => handleMessageFriend(friend)}
                         style={{
                           flex: 1, background: 'rgba(229,9,20,.14)', border: '1px solid rgba(229,9,20,.3)',
                           borderRadius: 6, padding: '7px 0', color: '#ff6b6b', fontSize: 11, fontWeight: 700,
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
                         }}
                       >
-                        <span>💬</span> CineChat
+                        <span>💬</span> Chat
                       </button>
                       <button
                         onClick={() => handleConsensusFriend(friend)}
                         style={{
                           flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
                           borderRadius: 6, padding: '7px 0', color: 'white', fontSize: 11, fontWeight: 600,
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
                         }}
                       >
-                        <span>🛋️</span> Consensus
+                        <span>🛋️</span> Match
                       </button>
                     </div>
                   </div>
@@ -578,107 +792,130 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* TAB 3: WATCHLIST SHOWCASE */}
+      {/* TAB 3: WATCHLIST SHOWCASE (Personal or Friend's Public Watchlist) */}
       {activeTab === 'watchlist' && (
         <div className="fu">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 32, color: 'white', margin: 0, letterSpacing: 0.5 }}>
-                Personal Saved Watchlist ({watchlist.length})
+                {isOwnProfile ? 'Personal Saved Watchlist' : `${displayUser.displayName}'s Public Watchlist`} ({displayWatchlist.length})
               </h2>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
-                Stored permanently in MongoDB Atlas under your User ID
+                {isOwnProfile ? 'Stored permanently in MongoDB Atlas under your User ID' : 'Films curated by ' + (displayUser.displayName || 'friend')}
               </div>
             </div>
 
-            <button
-              onClick={() => navigate('watchlist')}
-              style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 8, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-            >
-              Open Full Watchlist Page ➔
-            </button>
+            {isOwnProfile && (
+              <button
+                onClick={() => navigate('watchlist')}
+                style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 8, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Open Full Watchlist Page ➔
+              </button>
+            )}
           </div>
 
-          {watchlist.length === 0 ? (
+          {displayWatchlist.length === 0 ? (
             <div className="glass" style={{ padding: 48, textAlign: 'center', borderRadius: 16 }}>
               <div style={{ fontSize: 44, marginBottom: 12 }}>🎬</div>
-              <h3 style={{ color: 'white', margin: '0 0 6px', fontSize: 18 }}>Your Watchlist is Empty</h3>
+              <h3 style={{ color: 'white', margin: '0 0 6px', fontSize: 18 }}>Watchlist is Empty</h3>
               <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13, maxWidth: 380, margin: '0 auto 18px' }}>
-                Browse our mood recommendations or search movies to add your favorites to your personal watchlist!
+                {isOwnProfile ? 'Browse mood recommendations or search movies to add your favorites!' : 'This cinephile has not added any public films to their watchlist yet.'}
               </p>
-              <button
-                onClick={() => navigate('landing')}
-                style={{ background: '#e50914', border: 'none', borderRadius: 8, padding: '10px 22px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-              >
-                Browse Movies
-              </button>
+              {isOwnProfile && (
+                <button
+                  onClick={() => navigate('landing')}
+                  style={{ background: '#e50914', border: 'none', borderRadius: 8, padding: '10px 22px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Browse Movies
+                </button>
+              )}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 18 }}>
-              {watchlist.map(movie => (
-                <div
-                  key={movie.id}
-                  className="glass ch"
-                  style={{
-                    borderRadius: 12,
-                    overflow: 'hidden',
-                    border: '1px solid rgba(255,255,255,.08)',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <div style={{ position: 'relative' }}>
-                    <img
-                      src={imgUrl(movie.poster_path, 'w342')}
-                      alt={movie.title}
-                      style={{ width: '100%', height: 250, objectFit: 'cover' }}
-                    />
-                    <button
-                      onClick={() => toggleWatchlist(movie)}
-                      style={{
-                        position: 'absolute', top: 8, right: 8, width: 26, height: 26,
-                        borderRadius: '50%', background: 'rgba(0,0,0,.75)', border: '1px solid rgba(255,255,255,.2)',
-                        color: '#ff6b6b', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                      title="Remove from watchlist"
-                    >
-                      ✕
-                    </button>
-                    <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,.75)', padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, color: '#d4a843' }}>
-                      ⭐ {movie.vote_average ? movie.vote_average.toFixed(1) : '—'}
-                    </div>
-                  </div>
-
-                  <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {movie.title}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>
-                        {movie.release_date ? movie.release_date.split('-')[0] : 'Feature Film'}
+              {displayWatchlist.map(movie => {
+                const isInMyWl = myWatchlist.some(m => m.id === movie.id)
+                return (
+                  <div
+                    key={movie.id}
+                    className="glass ch"
+                    style={{
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,.08)',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    <div style={{ position: 'relative' }}>
+                      <img
+                        src={imgUrl(movie.poster_path, 'w342')}
+                        alt={movie.title}
+                        style={{ width: '100%', height: 250, objectFit: 'cover' }}
+                      />
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => toggleWatchlist(movie)}
+                          style={{
+                            position: 'absolute', top: 8, right: 8, width: 26, height: 26,
+                            borderRadius: '50%', background: 'rgba(0,0,0,.75)', border: '1px solid rgba(255,255,255,.2)',
+                            color: '#ff6b6b', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}
+                          title="Remove from watchlist"
+                        >
+                          ✕
+                        </button>
+                      )}
+                      <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,.75)', padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, color: '#d4a843' }}>
+                        ⭐ {movie.vote_average ? movie.vote_average.toFixed(1) : '—'}
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => navigate('movie', movie.id)}
-                      style={{
-                        marginTop: 10, width: '100%', background: 'rgba(255,255,255,.06)',
-                        border: '1px solid rgba(255,255,255,.1)', borderRadius: 6, padding: '6px 0',
-                        color: 'white', fontSize: 10, fontWeight: 600, cursor: 'pointer'
-                      }}
-                    >
-                      View Details ➔
-                    </button>
+                    <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {movie.title}
+                        </div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>
+                          {movie.release_date ? movie.release_date.split('-')[0] : 'Feature Film'}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                        {!isOwnProfile && (
+                          <button
+                            onClick={() => toggleWatchlist(movie)}
+                            style={{
+                              flex: 1, background: isInMyWl ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.08)',
+                              border: isInMyWl ? '1px solid #10b981' : '1px solid rgba(255,255,255,.15)',
+                              borderRadius: 6, padding: '6px 0', color: isInMyWl ? '#10b981' : 'white', fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                            }}
+                          >
+                            {isInMyWl ? '✓ In Mine' : '+ Add'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate('movie', movie.id)}
+                          style={{
+                            flex: isOwnProfile ? 1 : 1, background: '#e50914',
+                            border: 'none', borderRadius: 6, padding: '6px 0',
+                            color: 'white', fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          Details ➔
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       )}
 
-      {/* TAB 4: ACCOUNT & SECURITY */}
-      {activeTab === 'account' && (
+      {/* TAB 4: ACCOUNT & SECURITY (Own Profile Only) */}
+      {activeTab === 'account' && isOwnProfile && (
         <div className="fu">
           <div className="glass" style={{ borderRadius: 16, padding: 28, maxWidth: 700, border: '1px solid rgba(255,255,255,.09)' }}>
             <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 26, color: 'white', margin: '0 0 16px', letterSpacing: 0.5 }}>

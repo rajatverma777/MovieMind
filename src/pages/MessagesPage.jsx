@@ -79,6 +79,17 @@ export default function MessagesPage() {
 
   const myId = user?.id || user?._id
 
+  // Responsive mobile view check (< 768px)
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Friends & Conversation Partners
   const [friends, setFriends] = useState([])
   const [communityUsers, setCommunityUsers] = useState([])
@@ -118,6 +129,8 @@ export default function MessagesPage() {
             const match = friendList.find(f => (f.id || f._id) === (prev.id || prev._id))
             return match || prev
           }
+          // On mobile viewports, keep contacts list visible initially unless friend pre-selected
+          if (window.innerWidth < 768) return null
           if (friendList.length > 0) return friendList[0]
           if (community.length > 0) return community[0]
           return null
@@ -353,138 +366,204 @@ export default function MessagesPage() {
       </div>
 
       {/* ── MESSENGER MAIN GRID ─────────────────────────────────────────────── */}
-      <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', minHeight: 650, height: 'calc(100vh - 200px)', background: '#090915', border: '1px solid rgba(255,255,255,.08)', borderRadius: 16, overflow: 'hidden' }}>
-        {/* Left Sidebar: Conversations List */}
-        <div style={{ borderRight: '1px solid rgba(255,255,255,.07)', display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,.01)' }}>
-          {/* Search box in sidebar */}
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, padding: '6px 12px', gap: 8 }}>
-              <span style={{ fontSize: 13, opacity: 0.5 }}>🔍</span>
-              <input
-                type="text"
-                value={searchFilter}
-                onChange={e => setSearchFilter(e.target.value)}
-                placeholder="Search conversations..."
-                style={{ background: 'none', border: 'none', color: 'white', fontSize: 12, outline: 'none', width: '100%' }}
-              />
-            </div>
-          </div>
-
-          {/* Contacts Stream */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {friends.length > 0 ? `Cine-Friends (${friends.length})` : 'Community Cinephiles'}
-            </div>
-
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
-                <Spinner size={24} />
+      <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', minHeight: 650, height: 'calc(100vh - 200px)', background: '#090915', border: '1px solid rgba(255,255,255,.08)', borderRadius: 16, overflow: 'hidden' }}>
+        {/* Left Sidebar: Conversations List (Hidden on mobile if friend selected) */}
+        {(!isMobile || !selectedFriend) && (
+          <div style={{ borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,.07)', display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,.01)', height: '100%' }}>
+            {/* Search box in sidebar */}
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, padding: '6px 12px', gap: 8 }}>
+                <span style={{ fontSize: 13, opacity: 0.5 }}>🔍</span>
+                <input
+                  type="text"
+                  value={searchFilter}
+                  onChange={e => setSearchFilter(e.target.value)}
+                  placeholder="Search conversations..."
+                  style={{ background: 'none', border: 'none', color: 'white', fontSize: 12, outline: 'none', width: '100%' }}
+                />
               </div>
-            ) : filteredContacts.length === 0 ? (
-              <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,.4)', fontSize: 12 }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
-                No contacts found.
-                <div style={{ marginTop: 10 }}>
-                  <button
-                    onClick={() => navigate('friends')}
-                    style={{ background: '#e50914', border: 'none', borderRadius: 6, padding: '6px 14px', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    Find Friends
-                  </button>
+            </div>
+
+            {/* Contacts Stream */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {friends.length > 0 ? `Cine-Friends (${friends.length})` : 'Community Cinephiles'}
+              </div>
+
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+                  <Spinner size={24} />
                 </div>
-              </div>
-            ) : (
-              filteredContacts.map(f => {
-                const fId = f.id || f._id
-                const isSelected = selectedFriendId === fId
-                const isOnline = realtime?.presenceMap?.[fId] === 'online'
+              ) : filteredContacts.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,.4)', fontSize: 12 }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
+                  No contacts found.
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      onClick={() => navigate('friends')}
+                      style={{ background: '#e50914', border: 'none', borderRadius: 6, padding: '6px 14px', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Find Friends
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                filteredContacts.map(f => {
+                  const fId = f.id || f._id
+                  const isSelected = selectedFriendId === fId
+                  const isOnline = realtime?.presenceMap?.[fId] === 'online'
 
-                return (
-                  <div
-                    key={fId}
-                    onClick={() => setSelectedFriend(f)}
-                    style={{
-                      padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.04)',
-                      background: isSelected ? 'rgba(229,9,20,.12)' : 'transparent',
-                      borderLeft: isSelected ? '3px solid #e50914' : '3px solid transparent',
-                      cursor: 'pointer', transition: 'all .2s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ position: 'relative' }}>
-                        <span style={{ fontSize: 26 }}>{f.avatar || '🍿'}</span>
-                        <span
-                          style={{
-                            position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: '50%',
-                            background: isOnline ? '#10b981' : '#6b7280',
-                            border: '1.5px solid #090915'
-                          }}
-                          title={isOnline ? 'Online' : 'Offline'}
-                        />
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {f.displayName || f.name}
-                          </div>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4 }}>
-                            {f.tasteMatchScore || f.tasteCompatibility || 75}%
-                          </span>
+                  return (
+                    <div
+                      key={fId}
+                      onClick={() => setSelectedFriend(f)}
+                      style={{
+                        padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.04)',
+                        background: isSelected ? 'rgba(229,9,20,.12)' : 'transparent',
+                        borderLeft: isSelected ? '3px solid #e50914' : '3px solid transparent',
+                        cursor: 'pointer', transition: 'all .2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{ fontSize: 26 }}>{f.avatar || '🍿'}</span>
+                          <span
+                            style={{
+                              position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: '50%',
+                              background: isOnline ? '#10b981' : '#6b7280',
+                              border: '1.5px solid #090915'
+                            }}
+                            title={isOnline ? 'Online' : 'Offline'}
+                          />
                         </div>
-                        <div style={{ fontSize: 11, color: '#e50914', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span>@{f.username}</span>
-                          <span style={{ fontSize: 9, color: isOnline ? '#10b981' : 'rgba(255,255,255,.3)' }}>
-                            · {isOnline ? 'Active Now' : 'Offline'}
-                          </span>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {f.displayName || f.name}
+                            </div>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4 }}>
+                              {f.tasteMatchScore || f.tasteCompatibility || 75}%
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 11, color: '#e50914', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <span>@{f.username}</span>
+                              <span style={{ fontSize: 9, color: isOnline ? '#10b981' : 'rgba(255,255,255,.3)' }}>
+                                · {isOnline ? 'Active Now' : 'Offline'}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                navigate('profile', f)
+                              }}
+                              style={{
+                                background: 'rgba(255,255,255,.06)',
+                                border: '1px solid rgba(255,255,255,.1)',
+                                borderRadius: 4,
+                                padding: '2px 6px',
+                                color: 'rgba(255,255,255,.7)',
+                                fontSize: 9,
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                              title={`View @${f.username}'s public profile`}
+                            >
+                              👤 Profile
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })
-            )}
+                  )
+                })
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Main Chat Panel */}
-        {selectedFriend ? (
+        {/* Right Main Chat Panel (Hidden on mobile if no friend selected) */}
+        {(!isMobile || selectedFriend) && (
+          selectedFriend ? (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'rgba(0,0,0,.15)' }}>
             {/* Active Friend Header */}
-            <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,.02)' }}>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,.02)', flexWrap: 'wrap', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ fontSize: 28 }}>{selectedFriend.avatar || '🍿'}</span>
-                  <span
+                {/* Back button on mobile */}
+                {isMobile && (
+                  <button
+                    onClick={() => setSelectedFriend(null)}
                     style={{
-                      position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%',
-                      background: isSelectedFriendOnline ? '#10b981' : '#6b7280',
-                      border: '2px solid #090915'
+                      background: 'rgba(255,255,255,.08)',
+                      border: '1px solid rgba(255,255,255,.15)',
+                      borderRadius: 8,
+                      color: 'white',
+                      padding: '6px 10px',
+                      fontSize: 14,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
                     }}
-                    title={isSelectedFriendOnline ? 'Online' : 'Offline'}
-                  />
-                </div>
+                    title="Back to conversations"
+                  >
+                    ←
+                  </button>
+                )}
 
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{selectedFriend.displayName || selectedFriend.name}</span>
-                    <span style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>@{selectedFriend.username}</span>
-                    <span style={{ fontSize: 10, background: isSelectedFriendOnline ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)', color: isSelectedFriendOnline ? '#10b981' : 'rgba(255,255,255,0.4)', padding: '1px 7px', borderRadius: 6, fontWeight: 600 }}>
-                      {isSelectedFriendOnline ? 'Online' : 'Offline'}
-                    </span>
+                {/* Friend Avatar & Info (Click to view Profile) */}
+                <div
+                  onClick={() => navigate('profile', selectedFriend)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                  title={`View @${selectedFriend.username}'s public profile`}
+                >
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ fontSize: 28 }}>{selectedFriend.avatar || '🍿'}</span>
+                    <span
+                      style={{
+                        position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%',
+                        background: isSelectedFriendOnline ? '#10b981' : '#6b7280',
+                        border: '2px solid #090915'
+                      }}
+                      title={isSelectedFriendOnline ? 'Online' : 'Offline'}
+                    />
                   </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                    <span>⚡ {selectedFriend.tasteMatchScore || selectedFriend.tasteCompatibility || 75}% Taste Match</span>
-                    <span>·</span>
-                    <span style={{ color: realtime?.connectionStatus === 'connected' ? '#10b981' : '#f59e0b' }}>
-                      ● {realtime?.connectionStatus === 'connected' ? 'Upstash Redis Live' : 'Connecting...'}
-                    </span>
+
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{selectedFriend.displayName || selectedFriend.name}</span>
+                      <span style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>@{selectedFriend.username}</span>
+                      <span style={{ fontSize: 10, background: isSelectedFriendOnline ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)', color: isSelectedFriendOnline ? '#10b981' : 'rgba(255,255,255,0.4)', padding: '1px 7px', borderRadius: 6, fontWeight: 600 }}>
+                        {isSelectedFriendOnline ? 'Online' : 'Offline'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
+                      <span>⚡ {selectedFriend.tasteMatchScore || selectedFriend.tasteCompatibility || 75}% Taste Match</span>
+                      <span>·</span>
+                      <span style={{ color: '#38bdf8', textDecoration: 'underline' }}>
+                        👤 View Profile ➔
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Action: Launch Couch Consensus */}
-              <div>
+              {/* Action Buttons: View Profile & Launch Couch Consensus */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => navigate('profile', selectedFriend)}
+                  style={{
+                    background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)',
+                    color: 'white', borderRadius: 8, padding: '8px 12px', fontSize: 11,
+                    fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    transition: 'all .2s'
+                  }}
+                  title="View Cinephile Profile"
+                >
+                  <span>👤</span> Profile
+                </button>
                 <button
                   onClick={() => launchConsensusWithFriend(selectedFriend)}
                   style={{
@@ -494,7 +573,7 @@ export default function MessagesPage() {
                     transition: 'all .2s'
                   }}
                 >
-                  <span>🛋️</span> Launch Couch Consensus
+                  <span>🛋️</span> Consensus
                 </button>
               </div>
             </div>
@@ -669,7 +748,7 @@ export default function MessagesPage() {
               👥 Find Cine-Friends
             </button>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Movie Share Drawer Modal */}

@@ -251,6 +251,77 @@ router.get('/community-users', async (req, res) => {
   }
 })
 
+// ── Get Public User Profile (Safe view for friends & other cinephiles) ───────
+router.get('/profile/:targetId', async (req, res) => {
+  try {
+    const { targetId } = req.params
+    const viewerId = req.query.viewerId || req.query.me
+    if (!targetId) return res.status(400).json({ error: 'targetId is required.' })
+
+    const targetUser = await DB.findUserById(targetId)
+    if (!targetUser) return res.status(404).json({ error: 'User not found.' })
+
+    // Load friend count, watchlist, and preferences
+    const [friends, targetWatchlist, preferences] = await Promise.all([
+      DB.getUserFriends(targetId),
+      DB.getWatchlist(targetId),
+      DB.getUserPreferences(targetId)
+    ])
+
+    const isSelf = viewerId && String(viewerId) === String(targetUser.id)
+
+    // Calculate taste compatibility if viewer is provided and not self
+    let compatibility = 75
+    let friendshipStatus = 'none'
+
+    if (viewerId && !isSelf) {
+      const viewerUser = await DB.findUserById(viewerId)
+      if (viewerUser) {
+        compatibility = calculateTasteCompatibility(viewerUser, targetUser)
+      }
+
+      // Check friendship status
+      const isFriend = friends.some(f => String(f.id) === String(viewerId))
+      if (isFriend) {
+        friendshipStatus = 'friends'
+      } else {
+        const { incoming, outgoing } = await DB.getFriendRequests(viewerId)
+        if (incoming.some(r => String(r.fromUserId) === String(targetId))) {
+          friendshipStatus = 'pending_incoming'
+        } else if (outgoing.some(r => String(r.toUserId) === String(targetId))) {
+          friendshipStatus = 'pending_outgoing'
+        }
+      }
+    }
+
+    // Sanitize profile — NEVER leak email, passwords or sensitive internal details to other users
+    const publicProfile = {
+      id: targetUser.id,
+      _id: targetUser.id,
+      displayName: targetUser.displayName || targetUser.name,
+      name: targetUser.displayName || targetUser.name,
+      username: targetUser.username,
+      avatar: targetUser.avatar || '🎬',
+      bio: targetUser.bio || '',
+      favoriteGenres: targetUser.favoriteGenres || [878, 53],
+      createdAt: targetUser.createdAt,
+      // Personal email only included if viewing own profile
+      ...(isSelf ? { email: targetUser.email } : {}),
+      friendsCount: friends.length,
+      watchlistCount: targetWatchlist.length,
+      watchlist: targetWatchlist,
+      preferences,
+      tasteCompatibility: compatibility,
+      friendshipStatus,
+      isSelf
+    }
+
+    return res.json({ profile: publicProfile })
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Get Recent Chat Partners ────────────────────────────────────────────────
 router.get('/chat-partners', async (req, res) => {
   try {

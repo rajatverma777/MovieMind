@@ -284,7 +284,11 @@ export default function FriendsPage() {
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div
+                          onClick={() => navigate('profile', f)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                          title={`View @${f.username}'s public cinephile profile`}
+                        >
                           <div style={{ position: 'relative' }}>
                             <span style={{ fontSize: 32 }}>{f.avatar || '🍿'}</span>
                             <span
@@ -297,7 +301,10 @@ export default function FriendsPage() {
                             />
                           </div>
                           <div>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{f.displayName || f.name}</div>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span>{f.displayName || f.name}</span>
+                              <span style={{ fontSize: 11, color: '#38bdf8' }}>➔</span>
+                            </div>
                             <div style={{ fontSize: 12, color: '#e50914' }}>@{f.username}</div>
                           </div>
                         </div>
@@ -326,8 +333,15 @@ export default function FriendsPage() {
                         <span>💬</span> Message
                       </button>
                       <button
+                        onClick={() => navigate('profile', f)}
+                        style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 8, padding: '9px 12px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        title="View Profile"
+                      >
+                        <span>👤</span> Profile
+                      </button>
+                      <button
                         onClick={() => launchConsensusWithFriend(f)}
-                        style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '9px 14px', color: 'white', fontSize: 12, cursor: 'pointer' }}
+                        style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '9px 12px', color: 'white', fontSize: 12, cursor: 'pointer' }}
                         title="Start Couch Consensus"
                       >
                         <span>🛋️</span> Consensus
@@ -401,12 +415,17 @@ export default function FriendsPage() {
                     borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    onClick={() => navigate('profile', targetUser)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                    title={`View @${targetUser.username}'s public profile`}
+                  >
                     <span style={{ fontSize: 32 }}>{targetUser.avatar || '🍿'}</span>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{targetUser.displayName || targetUser.name}</span>
                         <span style={{ fontSize: 12, color: '#e50914', fontWeight: 700 }}>@{targetUser.username}</span>
+                        <span style={{ fontSize: 11, color: '#38bdf8' }}>➔</span>
                       </div>
                       {targetUser.bio && (
                         <div style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', marginTop: 2 }}>{targetUser.bio}</div>
@@ -418,6 +437,13 @@ export default function FriendsPage() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button
+                      onClick={() => navigate('profile', targetUser)}
+                      style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: '7px 11px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      title="View Public Profile"
+                    >
+                      <span>👤</span> Profile
+                    </button>
                     {isAlreadyFriend ? (
                       <>
                         <span style={{ fontSize: 11, color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,.15)', padding: '4px 10px', borderRadius: 6 }}>
@@ -521,16 +547,30 @@ export default function FriendsPage() {
                         borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div
+                        onClick={() => navigate('profile', reqUser)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                        title={`View @${reqUser.username}'s public profile`}
+                      >
                         <span style={{ fontSize: 28 }}>{reqUser.avatar || '🍿'}</span>
                         <div>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>{reqUser.displayName || reqUser.name}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>{reqUser.displayName || reqUser.name}</span>
+                            <span style={{ fontSize: 10, color: '#38bdf8' }}>➔</span>
+                          </div>
                           <div style={{ fontSize: 11, color: '#e50914' }}>@{reqUser.username}</div>
                           {reqUser.bio && <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>{reqUser.bio}</div>}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <button
+                          onClick={() => navigate('profile', reqUser)}
+                          style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 7, padding: '8px 12px', color: 'white', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          title="View Profile"
+                        >
+                          👤 Profile
+                        </button>
                         <button
                           onClick={() => handleRespondRequest(req.id, 'accept')}
                           style={{ background: '#10b981', border: 'none', borderRadius: 7, padding: '8px 18px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
@@ -576,16 +616,30 @@ export default function FriendsPage() {
                         borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div
+                        onClick={() => navigate('profile', reqUser)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                        title={`View @${reqUser.username}'s public profile`}
+                      >
                         <span style={{ fontSize: 28 }}>{reqUser.avatar || '🍿'}</span>
                         <div>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>{reqUser.displayName || reqUser.name}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>{reqUser.displayName || reqUser.name}</span>
+                            <span style={{ fontSize: 10, color: '#38bdf8' }}>➔</span>
+                          </div>
                           <div style={{ fontSize: 11, color: '#e50914' }}>@{reqUser.username}</div>
                           <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 3 }}>⏳ Waiting for them to accept</div>
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <button
+                          onClick={() => navigate('profile', reqUser)}
+                          style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 7, padding: '7px 11px', color: 'white', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          title="View Profile"
+                        >
+                          👤 Profile
+                        </button>
                         <button
                           onClick={() => openChatWithFriend(reqUser)}
                           style={{ background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)', color: '#e50914', borderRadius: 7, padding: '7px 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}

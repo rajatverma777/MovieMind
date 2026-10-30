@@ -26,6 +26,7 @@ export function AppProvider({ children }) {
   const [page, setPage] = useState('login')
   const [movieId, setMovieId] = useState(null)
   const [activeChatFriend, setActiveChatFriend] = useState(null)
+  const [viewingUser, setViewingUser] = useState(null)
 
   // ── API config ────────────────────────────────────────────────────────────
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_TMDB_API_KEY || 'DEMO')
@@ -122,7 +123,11 @@ export function AppProvider({ children }) {
     }
 
     setPage(targetPage)
-    if (id !== null) setMovieId(id)
+    if (targetPage === 'movie') {
+      if (id !== null) setMovieId(id)
+    } else if (targetPage === 'profile') {
+      setViewingUser(id) // can be a user object, userId string, or null (self)
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [user])
 
@@ -198,6 +203,7 @@ export function AppProvider({ children }) {
     // navigation
     navigate, page, movieId, setMovieId,
     authChecking, redirectAfterLogin,
+    viewingUser, setViewingUser,
     // tmdb
     tmdb, apiKey, setApiKey, isDemo,
     // data
