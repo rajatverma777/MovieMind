@@ -168,6 +168,87 @@ export default function ProfilePage() {
     }
   }
 
+  // Accept or decline incoming friend request from this user's profile
+  const handleRespondIncomingRequest = async (action) => {
+    if (!myId || !otherProfile) return
+    setFriendActionStatus('responding')
+    try {
+      let reqId = otherProfile.pendingRequestId
+      if (!reqId) {
+        const rRes = await fetch(`/api/social/friend-requests?me=${encodeURIComponent(myId)}`).then(r => r.json())
+        const incoming = rRes.incoming || []
+        const match = incoming.find(r =>
+          String(r.fromUserId) === String(targetId) ||
+          String(r.user?.id) === String(targetId)
+        )
+        reqId = match?.id || match?._id
+      }
+
+      if (reqId) {
+        const res = await fetch('/api/social/friend-request/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestId: reqId, action, userId: myId })
+        }).then(r => r.json())
+
+        if (res.success) {
+          if (action === 'accept') {
+            setOtherProfile(prev => ({
+              ...prev,
+              friendshipStatus: 'friends',
+              friendsCount: (prev.friendsCount || 0) + 1
+            }))
+          } else {
+            setOtherProfile(prev => ({
+              ...prev,
+              friendshipStatus: 'none'
+            }))
+          }
+        } else {
+          alert(res.error || 'Failed to respond to request.')
+        }
+      } else {
+        alert('Could not find friend request ID.')
+      }
+    } catch (err) {
+      console.error('Error responding to friend request from profile:', err)
+    } finally {
+      setFriendActionStatus('')
+    }
+  }
+
+  // Unfriend this friend
+  const handleUnfriend = async () => {
+    if (!myId || !targetId) return
+    const friendName = displayUser?.displayName || displayUser?.name || `@${displayUser?.username || 'user'}`
+    if (!window.confirm(`Are you sure you want to unfriend ${friendName}? You will not be able to chat with them until you become friends again.`)) {
+      return
+    }
+
+    setFriendActionStatus('unfriending')
+    try {
+      const res = await fetch('/api/social/friend/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: myId, friendId: targetId })
+      }).then(r => r.json())
+
+      if (res.success) {
+        setOtherProfile(prev => ({
+          ...prev,
+          friendshipStatus: 'none',
+          friendsCount: Math.max(0, (prev.friendsCount || 1) - 1)
+        }))
+      } else {
+        alert(res.error || 'Could not unfriend.')
+      }
+    } catch (err) {
+      console.error('Error unfriending:', err)
+    } finally {
+      setFriendActionStatus('')
+    }
+  }
+
   if (!isOwnProfile && loadingOther) {
     return (
       <div style={{ minHeight: '100vh', padding: '120px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
@@ -358,6 +439,47 @@ export default function ProfilePage() {
                     <span style={{ background: 'rgba(16,185,129,.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <span>✓</span> Cine-Friends
                     </span>
+                    <button
+                      onClick={handleUnfriend}
+                      disabled={friendActionStatus === 'unfriending'}
+                      style={{
+                        background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.35)',
+                        color: '#f87171', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, transition: 'all .2s'
+                      }}
+                      title="Unfriend this user"
+                    >
+                      <span>✕</span> {friendActionStatus === 'unfriending' ? 'Removing...' : 'Unfriend'}
+                    </button>
+                  </>
+                ) : otherProfile?.friendshipStatus === 'pending_incoming' ? (
+                  <>
+                    <span style={{ background: 'rgba(56,189,248,.12)', border: '1px solid rgba(56,189,248,.3)', color: '#38bdf8', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>📬</span> Sent you a Friend Request!
+                    </span>
+                    <button
+                      onClick={() => handleRespondIncomingRequest('accept')}
+                      disabled={friendActionStatus === 'responding'}
+                      style={{
+                        background: '#10b981', border: 'none',
+                        borderRadius: 8, padding: '9px 18px', color: 'white', fontSize: 12, fontWeight: 700,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                        boxShadow: '0 4px 14px rgba(16,185,129,.35)'
+                      }}
+                    >
+                      <span>✓</span> {friendActionStatus === 'responding' ? 'Accepting...' : 'Accept Friend Request'}
+                    </button>
+                    <button
+                      onClick={() => handleRespondIncomingRequest('decline')}
+                      disabled={friendActionStatus === 'responding'}
+                      style={{
+                        background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)',
+                        borderRadius: 8, padding: '9px 14px', color: 'rgba(255,255,255,.7)', fontSize: 12,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Decline
+                    </button>
                   </>
                 ) : otherProfile?.friendshipStatus === 'pending_outgoing' || friendActionStatus === 'sent' ? (
                   <>

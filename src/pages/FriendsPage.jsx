@@ -184,6 +184,32 @@ export default function FriendsPage() {
     navigate('consensus')
   }
 
+  // ── 6. Unfriend / Remove Cine-Friend ───────────────────────────────────────
+  const handleUnfriendFriend = async (friend) => {
+    const friendId = friend.id || friend._id
+    if (!myId || !friendId) return
+    const friendName = friend.displayName || friend.name || `@${friend.username || 'user'}`
+    if (!window.confirm(`Are you sure you want to unfriend ${friendName}? You will not be able to chat with them until you become friends again.`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/social/friend/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: myId, friendId })
+      }).then(r => r.json())
+
+      if (res.success) {
+        setFriends(prev => prev.filter(f => (f.id || f._id) !== friendId))
+      } else {
+        alert(res.error || 'Failed to unfriend.')
+      }
+    } catch (err) {
+      console.error('Error unfriending:', err)
+    }
+  }
+
   return (
     <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       {/* ── USER PROFILE HERO BAR ───────────────────────────────────────── */}
@@ -346,6 +372,13 @@ export default function FriendsPage() {
                       >
                         <span>🛋️</span> Consensus
                       </button>
+                      <button
+                        onClick={() => handleUnfriendFriend(f)}
+                        style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 8, padding: '9px 10px', color: '#f87171', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                        title="Unfriend this Cinephile"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </div>
                 )
@@ -454,6 +487,13 @@ export default function FriendsPage() {
                           style={{ background: '#e50914', border: 'none', borderRadius: 8, padding: '7px 14px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                         >
                           💬 Chat
+                        </button>
+                        <button
+                          onClick={() => handleUnfriendFriend(targetUser)}
+                          style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 8, padding: '7px 10px', color: '#f87171', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          title="Unfriend"
+                        >
+                          ✕
                         </button>
                       </>
                     ) : outgoingReq || status === 'sent' ? (

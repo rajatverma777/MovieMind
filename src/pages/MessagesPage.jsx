@@ -347,6 +347,32 @@ export default function MessagesPage() {
     }
   }
 
+  // Direct action: Unfriend current chat partner
+  const handleUnfriendCurrent = async () => {
+    if (!myId || !selectedFriendId) return
+    const name = selectedFriend?.displayName || selectedFriend?.name || `@${selectedFriend?.username || 'user'}`
+    if (!window.confirm(`Are you sure you want to unfriend ${name}? Chat will be disabled until you become friends again.`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/social/friend/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: myId, friendId: selectedFriendId })
+      }).then(r => r.json())
+
+      if (res.success) {
+        setFriends(prev => prev.filter(f => (f.id || f._id) !== selectedFriendId))
+        setFriendshipInfo({ areFriends: false, status: 'none', loading: false })
+      } else {
+        alert(res.error || 'Failed to unfriend.')
+      }
+    } catch (err) {
+      console.error('Error unfriending in chat:', err)
+    }
+  }
+
   // ── 4. Send Message (Text) — Strictly disabled without mutual friendship ─────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault()
@@ -667,17 +693,31 @@ export default function MessagesPage() {
                   <span>👤</span> Profile
                 </button>
                 {isChatEnabled && (
-                  <button
-                    onClick={() => launchConsensusWithFriend(selectedFriend)}
-                    style={{
-                      background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)',
-                      color: '#e50914', borderRadius: 8, padding: '8px 14px', fontSize: 11,
-                      fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                      transition: 'all .2s'
-                    }}
-                  >
-                    <span>🛋️</span> Consensus
-                  </button>
+                  <>
+                    <button
+                      onClick={() => launchConsensusWithFriend(selectedFriend)}
+                      style={{
+                        background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)',
+                        color: '#e50914', borderRadius: 8, padding: '8px 14px', fontSize: 11,
+                        fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                        transition: 'all .2s'
+                      }}
+                    >
+                      <span>🛋️</span> Consensus
+                    </button>
+                    <button
+                      onClick={handleUnfriendCurrent}
+                      style={{
+                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                        color: '#f87171', borderRadius: 8, padding: '8px 12px', fontSize: 11,
+                        fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                        transition: 'all .2s'
+                      }}
+                      title="Unfriend this Cinephile"
+                    >
+                      <span>✕</span> Unfriend
+                    </button>
+                  </>
                 )}
               </div>
             </div>

@@ -226,6 +226,30 @@ router.post('/friend-request/cancel', async (req, res) => {
   }
 })
 
+// ── Remove Friend (Unfriend) ────────────────────────────────────────────────
+router.post('/friend/remove', async (req, res) => {
+  try {
+    const { userId, friendId } = req.body || {}
+    if (!userId || !friendId) {
+      return res.status(400).json({ error: 'userId and friendId are required.' })
+    }
+    const success = await DB.removeFriend(userId, friendId)
+    if (!success) {
+      return res.status(404).json({ error: 'Friendship record not found.' })
+    }
+
+    // Publish live notification event
+    await publishEvent(`chat:user:${friendId}`, {
+      type: 'unfriended',
+      byUserId: userId
+    }).catch(() => {})
+
+    return res.json({ success: true, message: 'Unfriended successfully.' })
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Get Community Cinephiles for Initial Networking ──────────────────────────
 router.get('/community-users', async (req, res) => {
   try {
@@ -273,6 +297,7 @@ router.get('/profile/:targetId', async (req, res) => {
     // Calculate taste compatibility if viewer is provided and not self
     let compatibility = 75
     let friendshipStatus = 'none'
+    let pendingRequestId = null
 
     if (viewerId && !isSelf) {
       const viewerUser = await DB.findUserById(viewerId)
@@ -281,15 +306,29 @@ router.get('/profile/:targetId', async (req, res) => {
       }
 
       // Check friendship status
-      const isFriend = friends.some(f => String(f.id) === String(viewerId))
+      const isFriend = friends.some(f => String(f.id) === String(viewerId) || String(f._id) === String(viewerId))
       if (isFriend) {
         friendshipStatus = 'friends'
       } else {
         const { incoming, outgoing } = await DB.getFriendRequests(viewerId)
-        if (incoming.some(r => String(r.fromUserId) === String(targetId))) {
+        const incomingReq = incoming.find(r =>
+          String(r.fromUserId) === String(targetId) ||
+          String(r.fromUserId) === String(targetUser.id) ||
+          String(r.user?.id) === String(targetId) ||
+          String(r.user?.id) === String(targetUser.id)
+        )
+        const outgoingReq = outgoing.find(r =>
+          String(r.toUserId) === String(targetId) ||
+          String(r.toUserId) === String(targetUser.id) ||
+          String(r.user?.id) === String(targetId) ||
+          String(r.user?.id) === String(targetUser.id)
+        )
+        if (incomingReq) {
           friendshipStatus = 'pending_incoming'
-        } else if (outgoing.some(r => String(r.toUserId) === String(targetId))) {
+          pendingRequestId = incomingReq.id || (incomingReq._id ? String(incomingReq._id) : null)
+        } else if (outgoingReq) {
           friendshipStatus = 'pending_outgoing'
+          pendingRequestId = outgoingReq.id || (outgoingReq._id ? String(outgoingReq._id) : null)
         }
       }
     }
@@ -313,6 +352,7 @@ router.get('/profile/:targetId', async (req, res) => {
       preferences,
       tasteCompatibility: compatibility,
       friendshipStatus,
+      pendingRequestId,
       isSelf
     }
 
@@ -393,15 +433,26 @@ router.get('/messages/conversation', async (req, res) => {
     ])
 
     let friendshipStatus = areFriends ? 'friends' : 'none'
+    let pendingRequestId = null
     if (!areFriends && requests) {
-      if (requests.incoming?.some(r => String(r.fromUserId) === String(userB))) {
+      const incomingReq = requests.incoming?.find(r =>
+        String(r.fromUserId) === String(userB) ||
+        String(r.user?.id) === String(userB)
+      )
+      const outgoingReq = requests.outgoing?.find(r =>
+        String(r.toUserId) === String(userB) ||
+        String(r.user?.id) === String(userB)
+      )
+      if (incomingReq) {
         friendshipStatus = 'pending_incoming'
-      } else if (requests.outgoing?.some(r => String(r.toUserId) === String(userB))) {
+        pendingRequestId = incomingReq.id || (incomingReq._id ? String(incomingReq._id) : null)
+      } else if (outgoingReq) {
         friendshipStatus = 'pending_outgoing'
+        pendingRequestId = outgoingReq.id || (outgoingReq._id ? String(outgoingReq._id) : null)
       }
     }
 
-    return res.json({ messages, areFriends, friendshipStatus })
+    return res.json({ messages, areFriends, friendshipStatus, pendingRequestId })
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }

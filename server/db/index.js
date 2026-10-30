@@ -404,6 +404,20 @@ export const DB = {
     return !!friendship
   },
 
+  async removeFriend(userA, userB) {
+    if (!userA || !userB) return false
+    await connectDB()
+    const uA = String(userA)
+    const uB = String(userB)
+    const res = await FriendRequestModel.deleteMany({
+      $or: [
+        { fromUserId: uA, toUserId: uB },
+        { fromUserId: uB, toUserId: uA }
+      ]
+    })
+    return res.deletedCount > 0
+  },
+
   async getRecentChatUsers(userId) {
     await connectDB()
     const uid = String(userId)
