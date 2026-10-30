@@ -294,7 +294,7 @@ export default function FriendsPage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
               {friends.map(f => {
                 const fId = f.id || f._id
                 const isOnline = realtime?.presenceMap?.[fId] === 'online'
@@ -303,81 +303,228 @@ export default function FriendsPage() {
                   <div
                     key={fId}
                     style={{
-                      background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)',
-                      borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                      boxShadow: '0 4px 18px rgba(0,0,0,.4)'
+                      background: 'linear-gradient(145deg, rgba(20,20,35,0.7) 0%, rgba(10,10,20,0.85) 100%)',
+                      border: '1px solid rgba(255,255,255,.08)',
+                      borderRadius: 16,
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 8px 24px rgba(0,0,0,.35)',
+                      backdropFilter: 'blur(12px)',
+                      transition: 'all .25s ease'
                     }}
                   >
                     <div>
+                      {/* Card Header: Avatar, Name, % Fit & Unfriend */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        {/* User Identity */}
                         <div
                           onClick={() => navigate('profile', f)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minWidth: 0 }}
                           title={`View @${f.username}'s public cinephile profile`}
                         >
-                          <div style={{ position: 'relative' }}>
-                            <span style={{ fontSize: 32 }}>{f.avatar || '🍿'}</span>
+                          {/* Styled Avatar with anchored Status Dot */}
+                          <div
+                            style={{
+                              width: 46,
+                              height: 46,
+                              borderRadius: 12,
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '1px solid rgba(255,255,255,0.12)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 24,
+                              position: 'relative',
+                              flexShrink: 0
+                            }}
+                          >
+                            <span>{f.avatar || '🍿'}</span>
                             <span
                               style={{
-                                position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%',
-                                background: isOnline ? '#10b981' : '#6b7280',
-                                border: '2px solid #090915'
+                                position: 'absolute',
+                                bottom: -2,
+                                right: -2,
+                                width: 11,
+                                height: 11,
+                                borderRadius: '50%',
+                                background: isOnline ? '#10b981' : '#64748b',
+                                border: '2px solid #0e0e18',
+                                boxShadow: isOnline ? '0 0 8px rgba(16,185,129,0.7)' : 'none'
                               }}
                               title={isOnline ? 'Online' : 'Offline'}
                             />
                           </div>
-                          <div>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span>{f.displayName || f.name}</span>
-                              <span style={{ fontSize: 11, color: '#38bdf8' }}>➔</span>
+
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {f.displayName || f.name}
                             </div>
-                            <div style={{ fontSize: 12, color: '#e50914' }}>@{f.username}</div>
+                            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+                              @{f.username}
+                            </div>
                           </div>
                         </div>
 
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '3px 8px', borderRadius: 6 }}>
-                          {f.tasteMatchScore || f.tasteCompatibility || 75}% Fit
-                        </span>
+                        {/* Top Right: Taste Match Badge & Sleek Unfriend Button */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: '#10b981',
+                              background: 'rgba(16,185,129,0.12)',
+                              border: '1px solid rgba(16,185,129,0.25)',
+                              padding: '3px 8px',
+                              borderRadius: 8,
+                              whiteSpace: 'nowrap'
+                            }}
+                            title="Taste Compatibility Score"
+                          >
+                            {f.tasteMatchScore || f.tasteCompatibility || 75}% Fit
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleUnfriendFriend(f)
+                            }}
+                            style={{
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                              borderRadius: 8,
+                              width: 26,
+                              height: 26,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'rgba(255,255,255,0.4)',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseOver={e => {
+                              e.currentTarget.style.color = '#f87171'
+                              e.currentTarget.style.background = 'rgba(239,68,68,0.15)'
+                              e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'
+                            }}
+                            onMouseOut={e => {
+                              e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                            }}
+                            title={`Unfriend @${f.username}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
 
-                      {f.bio && (
-                        <p style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', lineHeight: 1.45, margin: '8px 0 12px' }}>
+                      {/* Bio or Genre snippet */}
+                      {f.bio ? (
+                        <p style={{ fontSize: 12, color: 'rgba(255,255,255,.65)', lineHeight: 1.45, margin: '10px 0 12px', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           "{f.bio}"
                         </p>
+                      ) : (
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', margin: '10px 0 12px' }}>
+                          Favorite Genres: {(f.favoriteGenres || [878, 53]).map(id => GN[id]).filter(Boolean).slice(0, 3).join(' · ')}
+                        </div>
                       )}
 
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 4 }}>
-                        Status: <strong style={{ color: isOnline ? '#10b981' : 'rgba(255,255,255,.5)' }}>{isOnline ? '🟢 Active Online' : '⚪ Offline'}</strong>
+                      {/* Status Pill */}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: isOnline ? '#10b981' : 'rgba(255,255,255,.45)', background: isOnline ? 'rgba(16,185,129,.08)' : 'rgba(255,255,255,.03)', padding: '2px 8px', borderRadius: 6, border: `1px solid ${isOnline ? 'rgba(16,185,129,.2)' : 'rgba(255,255,255,.06)'}`, marginBottom: 14 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: isOnline ? '#10b981' : '#64748b' }} />
+                        <span>{isOnline ? 'Active Online' : 'Offline'}</span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+                    {/* Bottom Action Buttons: 3 clean, balanced, non-wrapping buttons */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 8, marginTop: 10 }}>
                       <button
                         onClick={() => openChatWithFriend(f)}
-                        style={{ flex: 1, background: '#e50914', border: 'none', borderRadius: 8, padding: '9px 0', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{
+                          background: '#e50914',
+                          border: 'none',
+                          borderRadius: 9,
+                          padding: '10px 0',
+                          color: 'white',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 5,
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 4px 12px rgba(229,9,20,.3)',
+                          transition: 'all .2s'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = '#f40612'}
+                        onMouseOut={e => e.currentTarget.style.background = '#e50914'}
                       >
                         <span>💬</span> Message
                       </button>
+
+                      <button
+                        onClick={() => launchConsensusWithFriend(f)}
+                        style={{
+                          background: 'rgba(229,9,20,.1)',
+                          border: '1px solid rgba(229,9,20,.25)',
+                          borderRadius: 9,
+                          padding: '10px 0',
+                          color: '#ff6b6b',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 5,
+                          whiteSpace: 'nowrap',
+                          transition: 'all .2s'
+                        }}
+                        onMouseOver={e => {
+                          e.currentTarget.style.background = 'rgba(229,9,20,.18)'
+                          e.currentTarget.style.borderColor = 'rgba(229,9,20,.4)'
+                        }}
+                        onMouseOut={e => {
+                          e.currentTarget.style.background = 'rgba(229,9,20,.1)'
+                          e.currentTarget.style.borderColor = 'rgba(229,9,20,.25)'
+                        }}
+                        title="Start Couch Consensus"
+                      >
+                        <span>🛋️</span> Match
+                      </button>
+
                       <button
                         onClick={() => navigate('profile', f)}
-                        style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 8, padding: '9px 12px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        style={{
+                          background: 'rgba(255,255,255,.06)',
+                          border: '1px solid rgba(255,255,255,.12)',
+                          borderRadius: 9,
+                          padding: '10px 0',
+                          color: 'white',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 5,
+                          whiteSpace: 'nowrap',
+                          transition: 'all .2s'
+                        }}
+                        onMouseOver={e => {
+                          e.currentTarget.style.background = 'rgba(255,255,255,.1)'
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,.2)'
+                        }}
+                        onMouseOut={e => {
+                          e.currentTarget.style.background = 'rgba(255,255,255,.06)'
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,.12)'
+                        }}
                         title="View Profile"
                       >
                         <span>👤</span> Profile
-                      </button>
-                      <button
-                        onClick={() => launchConsensusWithFriend(f)}
-                        style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '9px 12px', color: 'white', fontSize: 12, cursor: 'pointer' }}
-                        title="Start Couch Consensus"
-                      >
-                        <span>🛋️</span> Consensus
-                      </button>
-                      <button
-                        onClick={() => handleUnfriendFriend(f)}
-                        style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 8, padding: '9px 10px', color: '#f87171', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                        title="Unfriend this Cinephile"
-                      >
-                        ✕
                       </button>
                     </div>
                   </div>
