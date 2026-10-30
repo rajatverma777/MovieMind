@@ -1,5 +1,5 @@
 // src/pages/MessagesPage.jsx — Dedicated Real-Time Cine-Chat & Direct Messaging Hub
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useApp } from '@/context/AppContext'
 import { GN, imgUrl } from '@/data/constants'
 import MovieShareModal from '@/components/MovieShareModal'
@@ -92,10 +92,17 @@ export default function MessagesPage() {
 
   // Friends & Conversation Partners
   const [friends, setFriends] = useState([])
-  const [communityUsers, setCommunityUsers] = useState([])
   const [selectedFriend, setSelectedFriend] = useState(null)
   const [searchFilter, setSearchFilter] = useState('')
   const [loading, setLoading] = useState(true)
+
+  // Friendship verification state for active conversation
+  const [friendshipInfo, setFriendshipInfo] = useState({
+    areFriends: true,
+    status: 'friends',
+    loading: false
+  })
+  const [requestLoading, setRequestLoading] = useState(false)
 
   // Messages & Input state
   const [messages, setMessages] = useState([])
@@ -104,22 +111,17 @@ export default function MessagesPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // ── 1. Fetch Cine-Friends & Community Users ────────────────────────────────
+  // ── 1. Fetch Cine-Friends ──────────────────────────────────────────────────
   useEffect(() => {
     if (!myId) return
     const loadFriends = async () => {
       setLoading(true)
       try {
-        const [fRes, cRes] = await Promise.all([
-          fetch(`/api/social/friends?me=${encodeURIComponent(myId)}`).then(r => r.json()).catch(() => ({ friends: [] })),
-          fetch(`/api/social/community-users?me=${encodeURIComponent(myId)}`).then(r => r.json()).catch(() => ({ users: [] }))
-        ])
+        const fRes = await fetch(`/api/social/friends?me=${encodeURIComponent(myId)}`).then(r => r.json()).catch(() => ({ friends: [] }))
         const friendList = fRes.friends || []
-        const community = cRes.users || []
         setFriends(friendList)
-        setCommunityUsers(community)
 
-        // Seed initial selected conversation partner
+        // Seed initial selected conversation partner: only from accepted friends or pre-selected friend
         setSelectedFriend(prev => {
           if (activeChatFriend) {
             const match = friendList.find(f => (f.id || f._id) === (activeChatFriend.id || activeChatFriend._id))
@@ -132,12 +134,11 @@ export default function MessagesPage() {
           // On mobile viewports, keep contacts list visible initially unless friend pre-selected
           if (window.innerWidth < 768) return null
           if (friendList.length > 0) return friendList[0]
-          if (community.length > 0) return community[0]
           return null
         })
 
         // Refresh presence for these users
-        const allIds = [...friendList.map(f => f.id || f._id), ...community.map(c => c.id || c._id)].filter(Boolean)
+        const allIds = friendList.map(f => f.id || f._id).filter(Boolean)
         if (allIds.length > 0 && realtime?.refreshPresence) {
           realtime.refreshPresence(allIds)
         }
@@ -227,18 +228,28 @@ export default function MessagesPage() {
     const fetchMessages = async () => {
       try {
         const res = await fetch(`/api/social/messages/conversation?userA=${encodeURIComponent(myId)}&userB=${encodeURIComponent(selectedId)}`).then(r => r.json())
-        if (isMounted && Array.isArray(res.messages)) {
-          // Authoritative deduplication of messages from permanent MongoDB store
-          const seen = new Set()
-          const clean = []
-          for (const m of res.messages) {
-            const k = m.id || (m._id ? String(m._id) : null)
-            if (k && !seen.has(k)) {
-              seen.add(k)
-              clean.push(m)
+        if (isMounted) {
+          if (Array.isArray(res.messages)) {
+            // Authoritative deduplication of messages from permanent MongoDB store
+            const seen = new Set()
+            const clean = []
+            for (const m of res.messages) {
+              const k = m.id || (m._id ? String(m._id) : null)
+              if (k && !seen.has(k)) {
+                seen.add(k)
+                clean.push(m)
+              }
             }
+            setMessages(clean)
           }
-          setMessages(clean)
+
+          if (typeof res.areFriends === 'boolean') {
+            setFriendshipInfo({
+              areFriends: res.areFriends,
+              status: res.friendshipStatus || (res.areFriends ? 'friends' : 'none'),
+              loading: false
+            })
+          }
         }
       } catch {}
     }
@@ -264,10 +275,82 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── 4. Send Message (Text) ─────────────────────────────────────────────────
+  const selectedFriendId = selectedFriend?.id || selectedFriend?._id
+  const isAcceptedFriend = friends.some(f => (f.id || f._id) === selectedFriendId)
+  const isChatEnabled = isAcceptedFriend || friendshipInfo.areFriends
+  const isSelectedFriendOnline = realtime?.presenceMap?.[selectedFriendId] === 'online'
+
+  // Update friendship verification when selectedFriend or friends list changes
+  useEffect(() => {
+    if (!selectedFriend) return
+    const isFriend = friends.some(f => (f.id || f._id) === selectedFriendId)
+    setFriendshipInfo(prev => ({
+      areFriends: isFriend,
+      status: isFriend ? 'friends' : (prev.status !== 'friends' ? prev.status : 'none'),
+      loading: false
+    }))
+  }, [selectedFriend, selectedFriendId, friends])
+
+  // Direct action: Send Friend Request from within chat to unlock it
+  const handleSendRequestInChat = async () => {
+    if (!myId || !selectedFriendId || requestLoading) return
+    setRequestLoading(true)
+    try {
+      const res = await fetch('/api/social/friend-request/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromUserId: myId, toUserId: selectedFriendId })
+      }).then(r => r.json())
+
+      if (res.success) {
+        setFriendshipInfo({ areFriends: false, status: 'pending_outgoing', loading: false })
+      } else {
+        alert(res.error || 'Could not send friend request.')
+      }
+    } catch (err) {
+      console.error('Error sending friend request from chat:', err)
+    } finally {
+      setRequestLoading(false)
+    }
+  }
+
+  // Direct action: Accept Incoming Friend Request from within chat to unlock it
+  const handleAcceptRequestInChat = async () => {
+    if (!myId || !selectedFriendId || requestLoading) return
+    setRequestLoading(true)
+    try {
+      const rRes = await fetch(`/api/social/friend-requests?me=${encodeURIComponent(myId)}`).then(r => r.json())
+      const incoming = rRes.incoming || []
+      const match = incoming.find(r => String(r.fromUserId) === String(selectedFriendId) || String(r.user?.id) === String(selectedFriendId))
+      if (match) {
+        const res = await fetch('/api/social/friend-request/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestId: match.id || match._id, action: 'accept', userId: myId })
+        }).then(r => r.json())
+
+        if (res.success) {
+          setFriends(prev => [...prev, selectedFriend])
+          setFriendshipInfo({ areFriends: true, status: 'friends', loading: false })
+        } else {
+          alert(res.error || 'Could not accept friend request.')
+        }
+      } else {
+        const fRes = await fetch(`/api/social/friends?me=${encodeURIComponent(myId)}`).then(r => r.json())
+        setFriends(fRes.friends || [])
+        setFriendshipInfo({ areFriends: true, status: 'friends', loading: false })
+      }
+    } catch (err) {
+      console.error('Error accepting friend request from chat:', err)
+    } finally {
+      setRequestLoading(false)
+    }
+  }
+
+  // ── 4. Send Message (Text) — Strictly disabled without mutual friendship ─────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault()
-    if (!chatInput.trim() || !selectedFriend || sendingMsg || !myId) return
+    if (!chatInput.trim() || !selectedFriend || sendingMsg || !myId || !isChatEnabled) return
 
     const selectedId = selectedFriend.id || selectedFriend._id
     const text = chatInput.trim()
@@ -290,6 +373,9 @@ export default function MessagesPage() {
           if (prev.some(m => isSameMessage(m, res.message))) return prev
           return [...prev, res.message]
         })
+      } else if (res.error) {
+        alert(res.error)
+        setFriendshipInfo(prev => ({ ...prev, areFriends: false }))
       }
     } catch (err) {
       console.error('[Chat] Send error:', err)
@@ -298,9 +384,9 @@ export default function MessagesPage() {
     }
   }
 
-  // ── 5. Share Movie Recommendation into Chat ────────────────────────────────
+  // ── 5. Share Movie Recommendation into Chat — Strictly disabled without mutual friendship
   const handleShareMovie = async (movieRec) => {
-    if (!selectedFriend || !myId) return
+    if (!selectedFriend || !myId || !isChatEnabled) return
     const selectedId = selectedFriend.id || selectedFriend._id
     try {
       const res = await fetch('/api/social/messages/send', {
@@ -319,6 +405,8 @@ export default function MessagesPage() {
           if (prev.some(m => isSameMessage(m, res.message))) return prev
           return [...prev, res.message]
         })
+      } else if (res.error) {
+        alert(res.error)
       }
     } catch (err) {
       console.error('[Chat] Movie share error:', err)
@@ -327,15 +415,21 @@ export default function MessagesPage() {
 
   // Launch Couch Consensus directly with this friend
   const launchConsensusWithFriend = (friend) => {
+    if (!isChatEnabled) return
     setActiveChatFriend(friend)
     navigate('consensus')
   }
 
-  const selectedFriendId = selectedFriend?.id || selectedFriend?._id
-  const isSelectedFriendOnline = realtime?.presenceMap?.[selectedFriendId] === 'online'
+  // Contacts list: Only mutual accepted Cine-Friends!
+  // If an active chat friend was navigated to who is not yet in friends, also show them with a locked badge.
+  const contactList = useMemo(() => {
+    const list = [...friends]
+    if (selectedFriend && !friends.some(f => (f.id || f._id) === (selectedFriend.id || selectedFriend._id))) {
+      list.unshift(selectedFriend)
+    }
+    return list
+  }, [friends, selectedFriend])
 
-  // Filtered contacts list
-  const contactList = friends.length > 0 ? friends : communityUsers
   const filteredContacts = contactList.filter(f =>
     !searchFilter.trim() ||
     (f.displayName || f.name || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
@@ -387,7 +481,7 @@ export default function MessagesPage() {
             {/* Contacts Stream */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                {friends.length > 0 ? `Cine-Friends (${friends.length})` : 'Community Cinephiles'}
+                {friends.length > 0 ? `Cine-Friends (${friends.length})` : 'Cine-Friends'}
               </div>
 
               {loading ? (
@@ -397,13 +491,14 @@ export default function MessagesPage() {
               ) : filteredContacts.length === 0 ? (
                 <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,.4)', fontSize: 12 }}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
-                  No contacts found.
-                  <div style={{ marginTop: 10 }}>
+                  <div style={{ fontWeight: 700, color: 'white', marginBottom: 4 }}>No Cine-Friends Added</div>
+                  <div>Chat is disabled until a friend request is accepted.</div>
+                  <div style={{ marginTop: 12 }}>
                     <button
                       onClick={() => navigate('friends')}
-                      style={{ background: '#e50914', border: 'none', borderRadius: 6, padding: '6px 14px', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                      style={{ background: '#e50914', border: 'none', borderRadius: 6, padding: '7px 16px', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
                     >
-                      Find Friends
+                      🔍 Find & Add Friends
                     </button>
                   </div>
                 </div>
@@ -412,6 +507,7 @@ export default function MessagesPage() {
                   const fId = f.id || f._id
                   const isSelected = selectedFriendId === fId
                   const isOnline = realtime?.presenceMap?.[fId] === 'online'
+                  const isFriend = friends.some(friend => (friend.id || friend._id) === fId)
 
                   return (
                     <div
@@ -442,9 +538,15 @@ export default function MessagesPage() {
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {f.displayName || f.name}
                             </div>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4 }}>
-                              {f.tasteMatchScore || f.tasteCompatibility || 75}%
-                            </span>
+                            {isFriend ? (
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4 }}>
+                                {f.tasteMatchScore || f.tasteCompatibility || 75}%
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 9, fontWeight: 700, color: '#f87171', background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', padding: '1px 5px', borderRadius: 4 }}>
+                                🔒 Locked
+                              </span>
+                            )}
                           </div>
                           <div style={{ fontSize: 11, color: '#e50914', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -535,8 +637,8 @@ export default function MessagesPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{selectedFriend.displayName || selectedFriend.name}</span>
                       <span style={{ fontSize: 12, color: '#e50914', fontWeight: 600 }}>@{selectedFriend.username}</span>
-                      <span style={{ fontSize: 10, background: isSelectedFriendOnline ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)', color: isSelectedFriendOnline ? '#10b981' : 'rgba(255,255,255,0.4)', padding: '1px 7px', borderRadius: 6, fontWeight: 600 }}>
-                        {isSelectedFriendOnline ? 'Online' : 'Offline'}
+                      <span style={{ fontSize: 10, background: isChatEnabled ? (isSelectedFriendOnline ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)') : 'rgba(239,68,68,0.15)', color: isChatEnabled ? (isSelectedFriendOnline ? '#10b981' : 'rgba(255,255,255,0.4)') : '#f87171', border: `1px solid ${isChatEnabled ? (isSelectedFriendOnline ? '#10b981' : 'transparent') : 'rgba(239,68,68,0.3)'}`, padding: '1px 7px', borderRadius: 6, fontWeight: 600 }}>
+                        {isChatEnabled ? (isSelectedFriendOnline ? 'Online' : 'Offline') : '🔒 Chat Disabled'}
                       </span>
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
@@ -564,17 +666,19 @@ export default function MessagesPage() {
                 >
                   <span>👤</span> Profile
                 </button>
-                <button
-                  onClick={() => launchConsensusWithFriend(selectedFriend)}
-                  style={{
-                    background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)',
-                    color: '#e50914', borderRadius: 8, padding: '8px 14px', fontSize: 11,
-                    fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                    transition: 'all .2s'
-                  }}
-                >
-                  <span>🛋️</span> Consensus
-                </button>
+                {isChatEnabled && (
+                  <button
+                    onClick={() => launchConsensusWithFriend(selectedFriend)}
+                    style={{
+                      background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)',
+                      color: '#e50914', borderRadius: 8, padding: '8px 14px', fontSize: 11,
+                      fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                      transition: 'all .2s'
+                    }}
+                  >
+                    <span>🛋️</span> Consensus
+                  </button>
+                )}
               </div>
             </div>
 
@@ -688,51 +792,109 @@ export default function MessagesPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Bottom Composer */}
-            <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,.07)', background: 'rgba(255,255,255,.02)', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button
-                type="button"
-                onClick={() => setShareModalOpen(true)}
-                style={{
-                  background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.35)',
-                  color: '#e50914', borderRadius: 8, padding: '10px 14px', fontSize: 12,
-                  fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
-                }}
-                title="Send interactive movie card"
-              >
-                <span>🎬</span> Recommend Movie
-              </button>
-
-              <form onSubmit={handleSendMessage} style={{ flex: 1, display: 'flex', gap: 10 }}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={e => {
-                    setChatInput(e.target.value)
-                    if (selectedFriendId && realtime?.sendTyping) {
-                      realtime.sendTyping(selectedFriendId, e.target.value.trim().length > 0)
-                    }
-                  }}
-                  placeholder={`Message @${selectedFriend.username}...`}
-                  style={{
-                    flex: 1, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)',
-                    borderRadius: 8, padding: '11px 16px', color: 'white', fontSize: 13, outline: 'none'
-                  }}
-                />
+            {/* Bottom Composer: Active if mutual friends, Locked if request not accepted */}
+            {isChatEnabled ? (
+              <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,.07)', background: 'rgba(255,255,255,.02)', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button
-                  type="submit"
-                  disabled={!chatInput.trim() || sendingMsg}
+                  type="button"
+                  onClick={() => setShareModalOpen(true)}
                   style={{
-                    background: (chatInput.trim() && !sendingMsg) ? '#e50914' : 'rgba(255,255,255,.08)',
-                    border: 'none', borderRadius: 8, padding: '11px 22px', color: 'white',
-                    fontWeight: 700, fontSize: 13, cursor: (chatInput.trim() && !sendingMsg) ? 'pointer' : 'default', transition: 'all .2s',
-                    opacity: sendingMsg ? 0.7 : 1
+                    background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.35)',
+                    color: '#e50914', borderRadius: 8, padding: '10px 14px', fontSize: 12,
+                    fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
                   }}
+                  title="Send interactive movie card"
                 >
-                  {sendingMsg ? 'Sending...' : 'Send'}
+                  <span>🎬</span> Recommend Movie
                 </button>
-              </form>
-            </div>
+
+                <form onSubmit={handleSendMessage} style={{ flex: 1, display: 'flex', gap: 10 }}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => {
+                      setChatInput(e.target.value)
+                      if (selectedFriendId && realtime?.sendTyping) {
+                        realtime.sendTyping(selectedFriendId, e.target.value.trim().length > 0)
+                      }
+                    }}
+                    placeholder={`Message @${selectedFriend.username}...`}
+                    style={{
+                      flex: 1, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)',
+                      borderRadius: 8, padding: '11px 16px', color: 'white', fontSize: 13, outline: 'none'
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatInput.trim() || sendingMsg}
+                    style={{
+                      background: (chatInput.trim() && !sendingMsg) ? '#e50914' : 'rgba(255,255,255,.08)',
+                      border: 'none', borderRadius: 8, padding: '11px 22px', color: 'white',
+                      fontWeight: 700, fontSize: 13, cursor: (chatInput.trim() && !sendingMsg) ? 'pointer' : 'default', transition: 'all .2s',
+                      opacity: sendingMsg ? 0.7 : 1
+                    }}
+                  >
+                    {sendingMsg ? 'Sending...' : 'Send'}
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div style={{
+                padding: '20px 24px',
+                background: 'rgba(20,20,35,0.85)',
+                borderTop: '1px solid rgba(239,68,68,0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                textAlign: 'center'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#f87171', fontWeight: 700, fontSize: 13 }}>
+                  <span style={{ fontSize: 16 }}>🔒</span> Chat Disabled — Mutual Cine-Friendship Required
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, maxWidth: 500, lineHeight: 1.5 }}>
+                  {friendshipInfo.status === 'pending_incoming' ? (
+                    <span>@{selectedFriend.displayName || selectedFriend.name} has sent you a friend request. Accept the request to enable chat and sharing.</span>
+                  ) : friendshipInfo.status === 'pending_outgoing' ? (
+                    <span>Friend request sent! Chat will be unlocked automatically once @{selectedFriend.displayName || selectedFriend.name} accepts your request.</span>
+                  ) : (
+                    <span>You cannot message @{selectedFriend.displayName || selectedFriend.name} until they accept your friend request.</span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {friendshipInfo.status === 'pending_incoming' ? (
+                    <button
+                      onClick={handleAcceptRequestInChat}
+                      disabled={requestLoading}
+                      style={{ background: '#10b981', border: 'none', borderRadius: 8, padding: '9px 18px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}
+                    >
+                      <span>✓</span> {requestLoading ? 'Accepting...' : 'Accept Friend Request & Enable Chat'}
+                    </button>
+                  ) : friendshipInfo.status === 'pending_outgoing' ? (
+                    <span style={{ fontSize: 12, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', padding: '7px 16px', borderRadius: 8, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span>⏳</span> Request Pending Acceptance
+                    </span>
+                  ) : (
+                    <button
+                      onClick={handleSendRequestInChat}
+                      disabled={requestLoading}
+                      style={{ background: '#e50914', border: 'none', borderRadius: 8, padding: '9px 18px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 14px rgba(229,9,20,0.3)' }}
+                    >
+                      <span>👥</span> {requestLoading ? 'Sending...' : 'Send Friend Request to Chat'}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => navigate('profile', selectedFriend)}
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    👤 View Profile
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.4)', padding: 48 }}>

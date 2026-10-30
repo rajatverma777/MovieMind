@@ -469,12 +469,6 @@ export default function FriendsPage() {
                             Cancel
                           </button>
                         )}
-                        <button
-                          onClick={() => openChatWithFriend(targetUser)}
-                          style={{ background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.3)', color: '#e50914', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          💬 Message
-                        </button>
                       </>
                     ) : incomingReq ? (
                       <>
@@ -485,10 +479,10 @@ export default function FriendsPage() {
                           ✓ Accept Request
                         </button>
                         <button
-                          onClick={() => openChatWithFriend(targetUser)}
-                          style={{ background: 'rgba(229,9,20,.15)', border: '1px solid rgba(229,9,20,.3)', color: '#e50914', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                          onClick={() => handleRespondRequest(incomingReq.id, 'decline')}
+                          style={{ background: 'rgba(255,255,255,.08)', border: 'none', borderRadius: 8, padding: '7px 12px', color: 'rgba(255,255,255,.6)', fontSize: 12, cursor: 'pointer' }}
                         >
-                          💬 Message
+                          Decline
                         </button>
                       </>
                     ) : (
@@ -502,12 +496,6 @@ export default function FriendsPage() {
                           }}
                         >
                           {status === 'sending' ? 'Sending...' : '+ Add Friend'}
-                        </button>
-                        <button
-                          onClick={() => openChatWithFriend(targetUser)}
-                          style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '7px 14px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-                        >
-                          💬 Direct Message
                         </button>
                       </>
                     )}
@@ -639,12 +627,6 @@ export default function FriendsPage() {
                           title="View Profile"
                         >
                           👤 Profile
-                        </button>
-                        <button
-                          onClick={() => openChatWithFriend(reqUser)}
-                          style={{ background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)', color: '#e50914', borderRadius: 7, padding: '7px 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          💬 Send Message
                         </button>
                         <button
                           onClick={() => handleCancelRequest(req.id, req.toUserId)}

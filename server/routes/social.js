@@ -345,6 +345,14 @@ router.post('/messages/send', async (req, res) => {
       return res.status(400).json({ error: 'Either message text or movie recommendation is required.' })
     }
 
+    // Strict Friendship Check: Chat is disabled unless friend request has been accepted
+    const isFriend = await DB.areFriends(fromUserId, toUserId)
+    if (!isFriend) {
+      return res.status(403).json({
+        error: 'Chat is disabled. You must accept or send a friend request and become mutual Cine-Friends before messaging.'
+      })
+    }
+
     // Check if recipient is online in Redis right now
     const recipientStatus = await getUserPresence(toUserId)
     const isOnline = recipientStatus === 'online'
@@ -370,15 +378,30 @@ router.post('/messages/send', async (req, res) => {
   }
 })
 
-// ── Get Conversation Messages ────────────────────────────────────────────────
+// ── Get Conversation Messages & Friendship Status ────────────────────────────
 router.get('/messages/conversation', async (req, res) => {
   try {
     const { userA, userB } = req.query || {}
     if (!userA || !userB) {
       return res.status(400).json({ error: 'Both userA and userB query parameters required.' })
     }
-    const messages = await DB.getConversation(userA, userB)
-    return res.json({ messages })
+
+    const [messages, areFriends, requests] = await Promise.all([
+      DB.getConversation(userA, userB),
+      DB.areFriends(userA, userB),
+      DB.getFriendRequests(userA)
+    ])
+
+    let friendshipStatus = areFriends ? 'friends' : 'none'
+    if (!areFriends && requests) {
+      if (requests.incoming?.some(r => String(r.fromUserId) === String(userB))) {
+        friendshipStatus = 'pending_incoming'
+      } else if (requests.outgoing?.some(r => String(r.toUserId) === String(userB))) {
+        friendshipStatus = 'pending_outgoing'
+      }
+    }
+
+    return res.json({ messages, areFriends, friendshipStatus })
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }

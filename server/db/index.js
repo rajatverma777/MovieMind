@@ -390,6 +390,20 @@ export const DB = {
     return friends
   },
 
+  async areFriends(userA, userB) {
+    if (!userA || !userB) return false
+    await connectDB()
+    const uA = String(userA)
+    const uB = String(userB)
+    const friendship = await FriendRequestModel.findOne({
+      $or: [
+        { fromUserId: uA, toUserId: uB, status: 'accepted' },
+        { fromUserId: uB, toUserId: uA, status: 'accepted' }
+      ]
+    }).lean()
+    return !!friendship
+  },
+
   async getRecentChatUsers(userId) {
     await connectDB()
     const uid = String(userId)

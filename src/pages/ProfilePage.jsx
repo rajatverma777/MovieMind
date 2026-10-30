@@ -332,49 +332,60 @@ export default function ProfilePage() {
             ) : (
               <>
                 {/* Friend Actions when viewing other user */}
-                <button
-                  onClick={() => handleMessageFriend(displayUser)}
-                  style={{
-                    background: '#e50914', border: 'none', borderRadius: 8, padding: '10px 18px',
-                    color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s',
-                    boxShadow: '0 4px 16px rgba(229,9,20,.35)'
-                  }}
-                >
-                  <span>💬</span> Send Message
-                </button>
-                <button
-                  onClick={() => handleConsensusFriend(displayUser)}
-                  style={{
-                    background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.35)',
-                    borderRadius: 8, padding: '9px 16px', color: '#ff6b6b', fontSize: 12, fontWeight: 700,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
-                  }}
-                >
-                  <span>🛋️</span> Couch Consensus
-                </button>
-
-                {/* Friendship Status Badge or Button */}
                 {otherProfile?.friendshipStatus === 'friends' ? (
-                  <span style={{ background: 'rgba(16,185,129,.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span>✓</span> Cine-Friends
-                  </span>
+                  <>
+                    <button
+                      onClick={() => handleMessageFriend(displayUser)}
+                      style={{
+                        background: '#e50914', border: 'none', borderRadius: 8, padding: '10px 18px',
+                        color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s',
+                        boxShadow: '0 4px 16px rgba(229,9,20,.35)'
+                      }}
+                    >
+                      <span>💬</span> Send Message
+                    </button>
+                    <button
+                      onClick={() => handleConsensusFriend(displayUser)}
+                      style={{
+                        background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.35)',
+                        borderRadius: 8, padding: '9px 16px', color: '#ff6b6b', fontSize: 12, fontWeight: 700,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+                      }}
+                    >
+                      <span>🛋️</span> Couch Consensus
+                    </button>
+                    <span style={{ background: 'rgba(16,185,129,.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span>✓</span> Cine-Friends
+                    </span>
+                  </>
                 ) : otherProfile?.friendshipStatus === 'pending_outgoing' || friendActionStatus === 'sent' ? (
-                  <span style={{ background: 'rgba(251,191,36,.15)', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span>⏳</span> Request Sent
-                  </span>
+                  <>
+                    <span style={{ background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: '#f87171', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span>🔒</span> Chat Disabled
+                    </span>
+                    <span style={{ background: 'rgba(251,191,36,.15)', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span>⏳</span> Request Sent (Waiting for acceptance)
+                    </span>
+                  </>
                 ) : (
-                  <button
-                    onClick={handleSendFriendRequest}
-                    disabled={friendActionStatus === 'sending'}
-                    style={{
-                      background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.2)',
-                      borderRadius: 8, padding: '9px 16px', color: 'white', fontSize: 12, fontWeight: 600,
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
-                    }}
-                  >
-                    <span>👥</span> {friendActionStatus === 'sending' ? 'Sending...' : '+ Add Friend'}
-                  </button>
+                  <>
+                    <span style={{ background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: '#f87171', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span>🔒</span> Chat Disabled
+                    </span>
+                    <button
+                      onClick={handleSendFriendRequest}
+                      disabled={friendActionStatus === 'sending'}
+                      style={{
+                        background: '#e50914', border: 'none',
+                        borderRadius: 8, padding: '9px 18px', color: 'white', fontSize: 12, fontWeight: 700,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                        boxShadow: '0 4px 16px rgba(229,9,20,.35)'
+                      }}
+                    >
+                      <span>👥</span> {friendActionStatus === 'sending' ? 'Sending Request...' : '+ Add Friend to Chat'}
+                    </button>
+                  </>
                 )}
               </>
             )}
@@ -466,12 +477,20 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Action Link: Chat or Messenger */}
+        {/* Action Link: Chat or Messenger (Only enabled for mutual friends or own profile) */}
         <div
-          onClick={() => isOwnProfile ? navigate('messages') : handleMessageFriend(displayUser)}
+          onClick={() => {
+            if (isOwnProfile) {
+              navigate('messages')
+            } else if (otherProfile?.friendshipStatus === 'friends') {
+              handleMessageFriend(displayUser)
+            }
+          }}
           className="glass ch"
           style={{
-            borderRadius: 14, padding: '20px 22px', cursor: 'pointer',
+            borderRadius: 14, padding: '20px 22px',
+            cursor: (isOwnProfile || otherProfile?.friendshipStatus === 'friends') ? 'pointer' : 'default',
+            opacity: (!isOwnProfile && otherProfile?.friendshipStatus !== 'friends') ? 0.6 : 1,
             border: '1px solid rgba(255,255,255,.08)', transition: 'all .2s'
           }}
         >
@@ -482,10 +501,10 @@ export default function ProfilePage() {
             </span>
           </div>
           <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 32, color: '#8b5cf6', lineHeight: 1, marginBottom: 4 }}>
-            {isOwnProfile ? 'CineChat' : 'Chat with ' + (displayUser.displayName?.split(' ')[0] || 'Friend')}
+            {isOwnProfile ? 'CineChat' : (otherProfile?.friendshipStatus === 'friends' ? 'Chat with ' + (displayUser.displayName?.split(' ')[0] || 'Friend') : 'Chat Disabled')}
           </div>
           <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Direct Messenger ➔
+            {isOwnProfile || otherProfile?.friendshipStatus === 'friends' ? 'Direct Messenger ➔' : '🔒 Friend Request Required'}
           </div>
         </div>
       </div>
