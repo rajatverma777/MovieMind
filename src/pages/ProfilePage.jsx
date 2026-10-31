@@ -337,7 +337,7 @@ export default function ProfilePage() {
         {/* Hero Content */}
         <div style={{
           position: 'relative', zIndex: 5,
-          padding: !isOwnProfile ? '72px 28px 36px' : '40px 28px 36px',
+          padding: !isOwnProfile ? '28px 28px 36px' : '16px 28px 36px',
           maxWidth: 1200, margin: '0 auto'
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>

@@ -211,7 +211,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 20px 64px', maxWidth: 1200, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '20px 20px 64px', maxWidth: 1200, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       {/* ── USER PROFILE HERO BAR ───────────────────────────────────────── */}
       <div className="fu" style={{
         background: 'linear-gradient(135deg, rgba(229,9,20,.1) 0%, rgba(9,9,16,.9) 60%, rgba(139,92,246,.06) 100%)',

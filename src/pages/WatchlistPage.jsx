@@ -22,7 +22,7 @@ export default function WatchlistPage() {
   const topGenre = genreStats[0]?.name || 'eclectic'
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
         <div>

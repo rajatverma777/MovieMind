@@ -108,7 +108,7 @@ export default function ChatPage() {
   const S = { fontFamily: "'DM Sans',sans-serif" }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 24px', display: 'flex', flexDirection: 'column', maxWidth: 820, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', maxWidth: 820, margin: '0 auto' }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 20 }}>
         <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 46, letterSpacing: 1, color: 'white', marginBottom: 3 }}>

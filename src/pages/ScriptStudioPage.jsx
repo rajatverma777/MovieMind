@@ -93,7 +93,7 @@ FADE OUT.`,
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="fu" style={{ marginBottom: 28 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(212,168,67,.12)', border: '1px solid rgba(212,168,67,.25)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#d4a843', marginBottom: 8 }}>

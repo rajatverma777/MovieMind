@@ -51,7 +51,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 56px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 34 }}>
         <h1 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', sans-serif", fontSize: 44, fontWeight: 700, letterSpacing: -0.5, color: 'white', marginBottom: 6 }}>

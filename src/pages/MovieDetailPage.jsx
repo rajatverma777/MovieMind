@@ -115,7 +115,7 @@ export default function MovieDetailPage({ movieId }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(6,6,15,1) 0%,rgba(6,6,15,.52) 40%,rgba(6,6,15,.08) 100%)' }} />
 
         {/* Back button */}
-        <button onClick={() => navigate('landing')} style={{ position: 'absolute', top: 74, left: 22, background: 'rgba(0,0,0,.52)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.09)', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', color: 'white', fontFamily: "'DM Sans',sans-serif", fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button onClick={() => navigate('landing')} style={{ position: 'absolute', top: 24, left: 22, background: 'rgba(0,0,0,.52)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.09)', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', color: 'white', fontFamily: "'DM Sans',sans-serif", fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
           ← Back
         </button>
 

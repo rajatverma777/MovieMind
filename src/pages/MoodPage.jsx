@@ -26,7 +26,7 @@ export default function MoodPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 42 }}>
         <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>

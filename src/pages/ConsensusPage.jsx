@@ -282,7 +282,7 @@ export default function ConsensusPage() {
   const isSelectedFriendOnline = realtime?.presenceMap?.[selectedFriendId] === 'online'
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>

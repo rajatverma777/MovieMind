@@ -260,7 +260,7 @@ export default function SearchPage() {
   }, [q, mode, searchCategory, doTitleSearch, doSemanticSearch])
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 20px 56px', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '20px 20px 56px', maxWidth: 1200, margin: '0 auto' }}>
       {/* ── Top Level Category Switcher: Movies (Default) vs Users ─────────── */}
       <div className="fu" style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
         <div style={{

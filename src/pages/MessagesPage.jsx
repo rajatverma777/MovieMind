@@ -510,7 +510,7 @@ export default function MessagesPage() {
     <div
       style={{
         minHeight: '100vh',
-        padding: '72px 18px 96px',
+        padding: '16px 18px 96px',
         maxWidth: 1280,
         margin: '0 auto',
         fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif"
