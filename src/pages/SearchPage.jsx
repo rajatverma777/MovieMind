@@ -260,62 +260,45 @@ export default function SearchPage() {
   }, [q, mode, searchCategory, doTitleSearch, doSemanticSearch])
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '88px 20px 56px', maxWidth: 1200, margin: '0 auto' }}>
       {/* ── Top Level Category Switcher: Movies (Default) vs Users ─────────── */}
-      <div className="fu" style={{ marginBottom: 20, display: 'flex', alignItems: 'center' }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.10)',
-            borderRadius: 14,
-            padding: 4,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
-          }}
-        >
+      <div className="fu" style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          display: 'inline-flex',
+          background: 'rgba(255,255,255,.05)',
+          border: '1px solid rgba(255,255,255,.10)',
+          borderRadius: 100,
+          padding: 4,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}>
           <button
             onClick={() => setSearchCategory('movies')}
             style={{
-              padding: '9px 22px',
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
+              padding: '9px 24px', borderRadius: 100, border: 'none', cursor: 'pointer',
               background: searchCategory === 'movies' ? '#e50914' : 'transparent',
-              color: searchCategory === 'movies' ? 'white' : 'rgba(255, 255, 255, 0.6)',
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
-              fontSize: 13,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+              color: searchCategory === 'movies' ? 'white' : 'rgba(255,255,255,.6)',
+              fontSize: 13, fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: 7,
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: searchCategory === 'movies' ? '0 4px 14px rgba(229,9,20,.35)' : 'none'
             }}
           >
-            <span>🎬</span>
-            <span>Search Movies</span>
+            🎬 Movies
           </button>
           <button
             onClick={() => setSearchCategory('users')}
             style={{
-              padding: '9px 22px',
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
+              padding: '9px 24px', borderRadius: 100, border: 'none', cursor: 'pointer',
               background: searchCategory === 'users' ? '#38bdf8' : 'transparent',
-              color: searchCategory === 'users' ? '#090910' : 'rgba(255, 255, 255, 0.6)',
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
-              fontSize: 13,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+              color: searchCategory === 'users' ? '#090910' : 'rgba(255,255,255,.6)',
+              fontSize: 13, fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: 7,
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: searchCategory === 'users' ? '0 4px 14px rgba(56,189,248,.35)' : 'none'
             }}
           >
-            <span>👤</span>
-            <span>Search Users</span>
+            👤 People
           </button>
         </div>
       </div>
@@ -326,41 +309,40 @@ export default function SearchPage() {
       {searchCategory === 'movies' && (
         <>
           {/* Header */}
-          <div className="fu" style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+          <div className="fu" style={{ marginBottom: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
+              <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
                 Discovery & <span style={{ color: '#e50914' }}>Search</span>
               </h1>
-              <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13 }}>
-                Find films by exact title, or describe that vague scene or plot you vaguely remember.
+              <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
+                Search by title, or describe a scene you vaguely remember.
               </p>
             </div>
 
             {/* Mode Switcher */}
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,.05)', padding: 4, borderRadius: 10, border: '1px solid rgba(255,255,255,.08)' }}>
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,.05)', padding: 4, borderRadius: 100, border: '1px solid rgba(255,255,255,.08)' }}>
               <button
                 onClick={() => { setMode('title'); setDone(false); setQ('') }}
                 style={{
-                  padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  padding: '8px 18px', borderRadius: 100, border: 'none', cursor: 'pointer',
                   background: mode === 'title' ? '#e50914' : 'transparent',
                   color: mode === 'title' ? 'white' : 'rgba(255,255,255,.5)',
-                  fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s'
+                  fontSize: 12, fontWeight: 700, transition: 'all .2s'
                 }}
               >
-                🔍 Title & Genre
+                🔍 Title
               </button>
               <button
                 onClick={() => { setMode('vague'); setDone(false); setQ('') }}
                 style={{
-                  padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  padding: '8px 18px', borderRadius: 100, border: 'none', cursor: 'pointer',
                   background: mode === 'vague' ? 'linear-gradient(135deg,#8b5cf6,#e50914)' : 'transparent',
                   color: mode === 'vague' ? 'white' : 'rgba(255,255,255,.5)',
-                  fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s',
-                  display: 'flex', alignItems: 'center', gap: 6
+                  fontSize: 12, fontWeight: 700, transition: 'all .2s',
+                  display: 'flex', alignItems: 'center', gap: 5
                 }}
               >
-                <span>🧠 Vague Memory AI</span>
-                <span style={{ fontSize: 9, background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: 10 }}>NEW</span>
+                <span>🧠 AI Search</span>
               </button>
             </div>
           </div>
@@ -489,12 +471,12 @@ export default function SearchPage() {
       {searchCategory === 'users' && (
         <div className="fu">
           {/* Header */}
-          <div style={{ marginBottom: 24 }}>
-            <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
-              Cinephile <span style={{ color: '#38bdf8' }}>Network</span>
+          <div style={{ marginBottom: 22 }}>
+            <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
+              Find <span style={{ color: '#38bdf8' }}>Cinephiles</span>
             </h1>
-            <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13 }}>
-              Find fellow movie enthusiasts by @username or display name, check cinematic compatibility, and connect.
+            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
+              Search by @username or name, check compatibility, and connect.
             </p>
           </div>
 
