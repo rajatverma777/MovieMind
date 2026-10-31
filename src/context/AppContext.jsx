@@ -134,33 +134,45 @@ export function AppProvider({ children }) {
   // ── Watchlist Management (Persisted in MongoDB Atlas per User) ─────────────
   const toggleWatchlist = useCallback(async (movie) => {
     if (!movie || !movie.id) return
-    if (!user || !user.id) {
+    const userId = user?.id || user?._id
+    if (!user || !userId) {
       setRedirectAfterLogin('watchlist')
       setPage('login')
       return
     }
 
-    const inWL = watchlist.some(m => m.id === movie.id)
+    const movieId = Number(movie.id)
+    const genre_ids = Array.isArray(movie.genre_ids) && movie.genre_ids.length > 0
+      ? movie.genre_ids.map(Number).filter(Boolean)
+      : (Array.isArray(movie.genres) ? movie.genres.map(g => (typeof g === 'object' ? Number(g.id) : Number(g))).filter(Boolean) : [])
+
+    const normalizedMovie = {
+      ...movie,
+      id: movieId,
+      genre_ids
+    }
+
+    const inWL = watchlist.some(m => Number(m.id) === movieId)
     if (inWL) {
       // Remove
-      setWatchlist(prev => prev.filter(m => m.id !== movie.id))
+      setWatchlist(prev => prev.filter(m => Number(m.id) !== movieId))
       try {
         await fetch('/api/social/watchlist/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, movieId: movie.id })
+          body: JSON.stringify({ userId, movieId })
         })
       } catch (err) {
         console.warn('Watchlist remove error:', err)
       }
     } else {
       // Add
-      setWatchlist(prev => [movie, ...prev.filter(m => m.id !== movie.id)])
+      setWatchlist(prev => [normalizedMovie, ...prev.filter(m => Number(m.id) !== movieId)])
       try {
         await fetch('/api/social/watchlist/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, movie })
+          body: JSON.stringify({ userId, movie: normalizedMovie })
         })
       } catch (err) {
         console.warn('Watchlist add error:', err)

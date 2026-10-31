@@ -10,7 +10,10 @@ export default function WatchlistPage() {
 
   const genreStats = useMemo(() => {
     const c = {}
-    watchlist.forEach(m => (m.genre_ids || []).forEach(id => { c[id] = (c[id] || 0) + 1 }))
+    const getIds = m => Array.isArray(m.genre_ids) && m.genre_ids.length > 0
+      ? m.genre_ids
+      : (Array.isArray(m.genres) ? m.genres.map(g => typeof g === 'object' ? g.id : g) : [])
+    watchlist.forEach(m => getIds(m).forEach(id => { c[id] = (c[id] || 0) + 1 }))
     return Object.entries(c)
       .sort((a, b) => b[1] - a[1]).slice(0, 6)
       .map(([id, count]) => ({ id: +id, name: GN[id] || '?', count }))

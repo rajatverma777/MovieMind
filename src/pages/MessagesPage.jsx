@@ -142,7 +142,7 @@ export default function MessagesPage() {
       }
     }
     loadFriends()
-  }, [myId, activeChatFriend])
+  }, [myId, activeChatFriend, watchlist.length])
 
   // Clear activeChatFriend when unmounting so re-visiting Messages starts clean without auto-selecting
   useEffect(() => {
@@ -1139,10 +1139,12 @@ export default function MessagesPage() {
                             <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
                               <button
                                 onClick={() => toggleWatchlist({
+                                  ...m.movieRecommendation,
                                   id: m.movieRecommendation.id,
                                   title: m.movieRecommendation.title,
                                   poster_path: m.movieRecommendation.poster_path,
-                                  vote_average: m.movieRecommendation.vote_average
+                                  vote_average: m.movieRecommendation.vote_average,
+                                  genre_ids: m.movieRecommendation.genre_ids || []
                                 })}
                                 style={{
                                   flex: 1,

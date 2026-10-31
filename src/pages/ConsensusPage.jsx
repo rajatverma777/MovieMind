@@ -81,7 +81,7 @@ export default function ConsensusPage() {
       }
     }
     fetchFriends()
-  }, [myId, activeChatFriend])
+  }, [myId, activeChatFriend, watchlist.length])
 
   // ── 2. Create or Join Collaborative Room for Selected Friend Pair ──────────
   useEffect(() => {

@@ -74,7 +74,7 @@ export default function ProfilePage() {
       }
     }
     fetchMySocial()
-  }, [isOwnProfile, myId])
+  }, [isOwnProfile, myId, myWatchlist.length])
 
   // ── 2. Load Data for Another User / Friend Profile ────────────────────────
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function ProfilePage() {
       }
     }
     fetchOtherProfile()
-  }, [isOwnProfile, targetId, myId])
+  }, [isOwnProfile, targetId, myId, myWatchlist.length])
 
   // Active Display User Object
   const displayUser = isOwnProfile ? user : (otherProfile || (typeof viewingUser === 'object' ? viewingUser : {}))

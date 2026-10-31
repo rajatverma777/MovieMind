@@ -60,7 +60,7 @@ export default function FriendsPage() {
 
   useEffect(() => {
     loadSocialData()
-  }, [myId])
+  }, [myId, watchlist.length])
 
   // ── 2. User Search ─────────────────────────────────────────────────────────
   useEffect(() => {
