@@ -554,26 +554,6 @@ export default function FriendsPage() {
             </div>
           </div>
 
-          {/* Quick Preload suggestions */}
-          {!searchQuery && communityUsers.length > 0 && (
-            <div style={{ marginBottom: 24, padding: '16px 20px', background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginBottom: 10 }}>
-                💡 Community Cinephiles to Connect with:
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {communityUsers.map(u => (
-                  <button
-                    key={u.id || u._id}
-                    onClick={() => setSearchQuery(u.username)}
-                    style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 20, padding: '5px 12px', color: '#e50914', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    @{u.username}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {searching && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
               <Spinner size={32} />
