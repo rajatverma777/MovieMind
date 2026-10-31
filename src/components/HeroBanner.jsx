@@ -17,7 +17,7 @@ export default function HeroBanner({ movies, loading }) {
     return () => clearInterval(t)
   }, [pool.length])
 
-  if (!m) return (
+  if (!m || (loading && pool.length === 0)) return (
     <div style={{ height: '88vh', background: '#090910', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Spinner size={52} />
     </div>

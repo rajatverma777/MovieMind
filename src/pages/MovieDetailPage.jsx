@@ -35,55 +35,90 @@ export default function MovieDetailPage({ movieId }) {
   }
 
   useEffect(() => {
-    setBusy(true); setTab('overview'); setTk(null); setProviders(null); setAllTrailers([])
+    setBusy(true); setMovie(null); setTab('overview'); setTk(null); setProviders(null); setAllTrailers([])
+    if (!movieId) {
+      setBusy(false)
+      return
+    }
+    let active = true
     ;(async () => {
       try {
         if (isDemo) {
-          const f = MOCK_MOVIES.find(m => m.id === movieId) || MOCK_MOVIES[0]
-          setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 8) } })
-          // Demo: JustWatch search link as fallback
-          setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
+          const f = MOCK_MOVIES.find(m => Number(m.id) === Number(movieId))
+          if (active && f) {
+            setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 8) } })
+            setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
+          }
         } else if (tmdb) {
           const [d, wp] = await Promise.all([
             tmdb.detail(movieId),
             tmdb.watchProviders(movieId).catch(() => null),
           ])
-          setMovie(d)
+          if (!active) return
+          if (d && (d.title || d.name)) {
+            setMovie(d)
 
-          // Extract all trailers + teasers from all languages for the language switcher
-          const videos = d.videos?.results || []
-          const usableVideos = videos.filter(v =>
-            v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser' || v.type === 'Clip')
-          )
-          setAllTrailers(usableVideos)
+            // Extract all trailers + teasers from all languages for the language switcher
+            const videos = d.videos?.results || []
+            const usableVideos = videos.filter(v =>
+              v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser' || v.type === 'Clip')
+            )
+            setAllTrailers(usableVideos)
 
-          // Default trailer key: prefer English trailer first, then any trailer
-          const enTrailer = usableVideos.find(v => v.type === 'Trailer' && v.iso_639_1 === 'en')
-          const anyTrailer = usableVideos.find(v => v.type === 'Trailer')
-          const fallback   = usableVideos[0]
-          const best = enTrailer || anyTrailer || fallback
-          if (best) setTk(best.key)
+            // Default trailer key: prefer English trailer first, then any trailer
+            const enTrailer = usableVideos.find(v => v.type === 'Trailer' && v.iso_639_1 === 'en')
+            const anyTrailer = usableVideos.find(v => v.type === 'Trailer')
+            const fallback   = usableVideos[0]
+            const best = enTrailer || anyTrailer || fallback
+            if (best) setTk(best.key)
 
-          addToRecent(d)
-          // Try IN (India) first, then US as fallback; always set so section always renders
-          const wpResult = wp?.results
-          const region   = wpResult?.IN || wpResult?.US || {}
-          // Ensure JustWatch link is always available even when no provider data exists
-          if (!region.link) {
-            region.link = `https://www.justwatch.com/in/search?q=${encodeURIComponent(d?.title || '')}`
+            addToRecent(d)
+            // Try IN (India) first, then US as fallback; always set so section always renders
+            const wpResult = wp?.results
+            const region   = wpResult?.IN || wpResult?.US || {}
+            // Ensure JustWatch link is always available even when no provider data exists
+            if (!region.link) {
+              region.link = `https://www.justwatch.com/in/search?q=${encodeURIComponent(d?.title || '')}`
+            }
+            setProviders(region)
+          } else {
+            // Check local fallback matching exact ID only
+            const f = MOCK_MOVIES.find(m => Number(m.id) === Number(movieId))
+            if (f) {
+              setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 6) } })
+              setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
+            }
           }
-          setProviders(region)
         }
       } catch {
-        const f = MOCK_MOVIES.find(m => m.id === movieId) || MOCK_MOVIES[0]
-        setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 6) } })
-        setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
-      } finally { setBusy(false) }
+        if (!active) return
+        const f = MOCK_MOVIES.find(m => Number(m.id) === Number(movieId))
+        if (f) {
+          setMovie({ ...f, genres: (f.genre_ids || []).map(id => ({ id, name: GN[id] || '?' })), credits: { cast: [], crew: [] }, videos: { results: [] }, similar: { results: MOCK_MOVIES.filter(m => m.id !== f.id).slice(0, 6) } })
+          setProviders({ link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(f.title)}`, flatrate: [], rent: [], buy: [] })
+        } else {
+          setMovie(null)
+        }
+      } finally {
+        if (active) setBusy(false)
+      }
     })()
+    return () => {
+      active = false
+    }
   }, [movieId, tmdb, isDemo])
 
-  if (busy)  return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={52} /></div>
-  if (!movie) return <div style={{ padding: 80, textAlign: 'center', color: 'rgba(255,255,255,.38)' }}>Movie not found</div>
+  if (busy || !movie) {
+    if (!busy && !movie) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <div style={{ fontSize: 16, color: 'rgba(255,255,255,.5)', fontFamily: "'DM Sans', sans-serif" }}>Movie not found</div>
+          <button onClick={() => navigate('landing')} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.16)', color: 'white', padding: '9px 18px', borderRadius: 8, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>← Back to Home</button>
+        </div>
+      )
+    }
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={52} /></div>
+  }
 
   // ── Derived data ────────────────────────────────────────────────────────
   const inWL      = watchlist.some(m => m.id === movie.id)

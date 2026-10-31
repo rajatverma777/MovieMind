@@ -8,19 +8,21 @@ export function createTMDBService(apiKey) {
     if (clean.includes('/watch/providers')) {
       const match = clean.match(/movie\/(\d+)/)
       const id = match ? Number(match[1]) : 1
-      const movie = MOCK_MOVIES.find(m => m.id === id) || MOCK_MOVIES[0]
+      const movie = MOCK_MOVIES.find(m => m.id === id)
+      const title = movie?.title || 'movie'
       return {
         id,
         results: {
-          IN: { link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(movie.title)}` },
-          US: { link: `https://www.justwatch.com/us/search?q=${encodeURIComponent(movie.title)}` }
+          IN: { link: `https://www.justwatch.com/in/search?q=${encodeURIComponent(title)}` },
+          US: { link: `https://www.justwatch.com/us/search?q=${encodeURIComponent(title)}` }
         }
       }
     }
 
     if (clean.startsWith('/movie/')) {
       const id = Number(clean.split('/')[2])
-      const movie = MOCK_MOVIES.find(m => m.id === id) || MOCK_MOVIES[0]
+      const movie = MOCK_MOVIES.find(m => m.id === id)
+      if (!movie) return null
       return {
         ...movie,
         genres: (movie.genre_ids || []).map(gid => ({ id: gid, name: GN[gid] || 'Cinema' })),

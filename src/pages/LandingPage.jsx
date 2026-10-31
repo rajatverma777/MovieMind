@@ -10,20 +10,28 @@ import Footer     from '@/components/Footer'
 export default function LandingPage() {
   const { tmdb, isDemo } = useApp()
   const [secs, setSecs] = useState({
-    tr: MOCK_MOVIES.slice(0, 10),
-    po: MOCK_MOVIES.slice(5, 15),
-    tp: MOCK_MOVIES.slice(10, 20),
-    nw: MOCK_MOVIES.slice(15, 25)
+    tr: isDemo ? MOCK_MOVIES.slice(0, 10) : [],
+    po: isDemo ? MOCK_MOVIES.slice(5, 15) : [],
+    tp: isDemo ? MOCK_MOVIES.slice(10, 20) : [],
+    nw: isDemo ? MOCK_MOVIES.slice(15, 25) : []
   })
-  const [ld,   setLd]   = useState({ tr: false, po: false, tp: false, nw: false })
+  const [ld, setLd] = useState({ tr: !isDemo, po: !isDemo, tp: !isDemo, nw: !isDemo })
 
   useEffect(() => {
+    let active = true
     const go = async (k, fn) => {
       try {
-        if (isDemo) setSecs(s => ({ ...s, [k]: [...MOCK_MOVIES].sort(() => Math.random() - .5) }))
-        else if (tmdb) { const d = await fn(); setSecs(s => ({ ...s, [k]: d.results || [] })) }
-      } catch { setSecs(s => ({ ...s, [k]: MOCK_MOVIES })) }
-      finally  { setLd(l => ({ ...l, [k]: false })) }
+        if (isDemo) {
+          if (active) setSecs(s => ({ ...s, [k]: [...MOCK_MOVIES].sort(() => Math.random() - .5) }))
+        } else if (tmdb) {
+          const d = await fn()
+          if (active && d?.results?.length) setSecs(s => ({ ...s, [k]: d.results }))
+        }
+      } catch {
+        if (active && isDemo) setSecs(s => ({ ...s, [k]: MOCK_MOVIES }))
+      } finally {
+        if (active) setLd(l => ({ ...l, [k]: false }))
+      }
     }
     if (tmdb || isDemo) {
       go('tr', () => tmdb.trending())
@@ -31,9 +39,10 @@ export default function LandingPage() {
       go('tp', () => tmdb.topRated())
       go('nw', () => tmdb.nowPlay())
     }
+    return () => { active = false }
   }, [tmdb, isDemo])
 
-  const hero = secs.tr.length ? secs.tr : MOCK_MOVIES
+  const hero = secs.tr.length ? secs.tr : (isDemo ? MOCK_MOVIES : [])
 
   return (
     <div>

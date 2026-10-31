@@ -6,7 +6,7 @@ import { MOCK_MOVIES, GN, imgUrl } from '@/data/constants'
 
 export default function MovieShareModal({ isOpen, onClose, onShareMovie, recipientName }) {
   const [query, setQuery] = useState('')
-  const [selectedMovie, setSelectedMovie] = useState(MOCK_MOVIES[0])
+  const [selectedMovie, setSelectedMovie] = useState(null)
   const [personalNote, setPersonalNote] = useState('You have to watch this! The plot and cinematography are unbelievable.')
 
   if (!isOpen) return null

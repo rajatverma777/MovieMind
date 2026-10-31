@@ -52,7 +52,7 @@ function Router() {
 
   const pages = {
     landing:      <LandingPage />,
-    movie:        <MovieDetailPage movieId={movieId} />,
+    movie:        <MovieDetailPage key={movieId || 'movie-detail'} movieId={movieId} />,
     search:       <SearchPage />,
     watchlist:    <WatchlistPage />,
     dashboard:    <DashboardPage />,

@@ -29,7 +29,7 @@ export default function ConsensusPage() {
   // Current user inputs
   const [userName, setUserName] = useState(user?.displayName || user?.name || 'You')
   const [selectedMovies, setSelectedMovies] = useState(() =>
-    watchlist.length > 0 ? watchlist.slice(0, 3) : [MOCK_MOVIES[0], MOCK_MOVIES[1]]
+    watchlist.length > 0 ? watchlist.slice(0, 3) : []
   )
   const [selectedGenres, setSelectedGenres] = useState(
     user?.favoriteGenres && user.favoriteGenres.length > 0 ? user.favoriteGenres : [878, 53]
