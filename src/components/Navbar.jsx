@@ -156,9 +156,7 @@ export default function Navbar() {
   return (
     <>
       {/* ══════════════════════════════════════════════════════════
-          UPPER NAVIGATION BAR — MovieMind Centered Heading (Home Button)
-          Smooth Apple-style hide-on-scroll down, show-on-scroll up
-          Only centered heading (No left back button, no right profile button)
+          UPPER NAVIGATION BAR — Instagram-style: Left action | Center logo | Right alerts
       ══════════════════════════════════════════════════════════ */}
       <header
         style={{
@@ -178,59 +176,118 @@ export default function Navbar() {
         <div
           style={{
             height: '100%',
-            background: 'rgba(12, 14, 24, 0.65)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
+            background: 'rgba(9, 9, 16, 0.82)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            borderBottom: '1px solid rgba(255,255,255,0.07)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
+            justifyContent: 'space-between',
+            padding: '0 18px',
           }}
         >
-          {/* Centered MovieMind Heading (Home button) */}
+          {/* LEFT — Explore / Add button (like Instagram's +) */}
+          <button
+            onClick={() => go('search')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px',
+              borderRadius: 10,
+              transition: 'color 0.2s',
+              userSelect: 'none'
+            }}
+            onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
+            onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
+            title="Search & Explore"
+          >
+            {/* Plus icon — like Instagram */}
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+
+          {/* CENTER — App Logo with dropdown chevron (click to go home) */}
           <button
             onClick={() => go('landing')}
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.16)',
-              borderRadius: 24,
-              padding: '6px 20px',
+              background: 'none',
+              border: 'none',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              backdropFilter: 'blur(16px)',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-              transition: 'all 0.22s cubic-bezier(0.34, 1.2, 0.64, 1)',
-              userSelect: 'none'
+              gap: 5,
+              userSelect: 'none',
+              padding: '4px 8px',
+              borderRadius: 8,
+              transition: 'opacity 0.2s'
             }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.45)'
-              e.currentTarget.style.transform = 'scale(1.02)'
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(56, 189, 248, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35)'
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
-              e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-            }}
+            onMouseOver={e => e.currentTarget.style.opacity = '0.75'}
+            onMouseOut={e => e.currentTarget.style.opacity = '1'}
           >
-            <span style={{ fontSize: 16 }}>🎬</span>
             <span
               style={{
-                fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', cursive",
-                fontSize: 20,
-                letterSpacing: 2,
+                fontFamily: "'Bebas Neue', -apple-system, 'SF Pro Display', cursive",
+                fontSize: 22,
+                letterSpacing: 2.5,
                 color: 'white',
-                fontWeight: 700
+                fontWeight: 700,
+                lineHeight: 1
               }}
             >
-              MOVIE<span style={{ color: '#38bdf8' }}>MIND</span>
+              CINE<span style={{ color: '#e50914' }}>MIND</span>
             </span>
+            {/* Chevron down — like Instagram's dropdown indicator */}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {/* RIGHT — Heart / Alerts (like Instagram's notifications) */}
+          <button
+            onClick={() => go('friends')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px',
+              borderRadius: 10,
+              transition: 'color 0.2s',
+              position: 'relative',
+              userSelect: 'none'
+            }}
+            onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
+            onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
+            title="Notifications & Friends"
+          >
+            {/* Heart icon — like Instagram */}
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            {/* Alert dot */}
+            {totalAlerts > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: 3,
+                right: 3,
+                width: 9,
+                height: 9,
+                borderRadius: '50%',
+                background: '#e50914',
+                border: '2px solid #090910',
+                boxShadow: '0 0 6px rgba(229,9,20,0.8)'
+              }} />
+            )}
           </button>
         </div>
       </header>
