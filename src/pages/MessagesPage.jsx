@@ -116,7 +116,7 @@ export default function MessagesPage() {
         const friendList = fRes.friends || []
         setFriends(friendList)
 
-        // Seed initial selected conversation partner
+        // Seed initial selected conversation partner only if explicitly requested via activeChatFriend
         setSelectedFriend(prev => {
           if (activeChatFriend) {
             const match = friendList.find(f => (f.id || f._id) === (activeChatFriend.id || activeChatFriend._id))
@@ -126,8 +126,7 @@ export default function MessagesPage() {
             const match = friendList.find(f => (f.id || f._id) === (prev.id || prev._id))
             return match || prev
           }
-          if (window.innerWidth < 768) return null
-          if (friendList.length > 0) return friendList[0]
+          // Do NOT open any chat by default until user explicitly clicks a person
           return null
         })
 
@@ -144,6 +143,13 @@ export default function MessagesPage() {
     }
     loadFriends()
   }, [myId, activeChatFriend])
+
+  // Clear activeChatFriend when unmounting so re-visiting Messages starts clean without auto-selecting
+  useEffect(() => {
+    return () => {
+      if (setActiveChatFriend) setActiveChatFriend(null)
+    }
+  }, [setActiveChatFriend])
 
   // Handle activeChatFriend changes
   useEffect(() => {
@@ -1397,26 +1403,65 @@ export default function MessagesPage() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.45)', padding: 48 }}>
-              <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>Select a Conversation</div>
-              <p style={{ fontSize: 12, maxWidth: 300, margin: '8px 0 16px', textAlign: 'center', color: 'rgba(255,255,255,0.45)' }}>
-                Choose a friend from the left sidebar to start chatting or sharing movie recommendations.
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(255, 255, 255, 0.45)',
+                padding: 48,
+                height: '100%',
+                textAlign: 'center'
+              }}
+            >
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 24,
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 34,
+                  marginBottom: 16,
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+                }}
+              >
+                💬
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'white', letterSpacing: -0.2 }}>
+                Select a Conversation
+              </div>
+              <p style={{ fontSize: 13, maxWidth: 320, margin: '8px 0 20px', lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.5)' }}>
+                Choose a Cine-Friend from the sidebar to view chat history and exchange movie recommendations.
               </p>
               <button
                 onClick={() => navigate('friends')}
                 style={{
-                  background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
-                  border: 'none',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
                   borderRadius: 20,
-                  padding: '9px 18px',
+                  padding: '9px 20px',
                   color: 'white',
                   fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer'
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
                 }}
               >
-                👥 Find Cine-Friends
+                <span>👥</span> Find Cine-Friends
               </button>
             </div>
           )
