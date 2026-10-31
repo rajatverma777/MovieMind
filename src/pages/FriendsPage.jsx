@@ -211,60 +211,88 @@ export default function FriendsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '88px 20px 64px', maxWidth: 1200, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       {/* ── USER PROFILE HERO BAR ───────────────────────────────────────── */}
-      <div className="fu" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 16, padding: '18px 24px', marginBottom: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+      <div className="fu" style={{
+        background: 'linear-gradient(135deg, rgba(229,9,20,.1) 0%, rgba(9,9,16,.9) 60%, rgba(139,92,246,.06) 100%)',
+        border: '1px solid rgba(255,255,255,.09)',
+        borderRadius: 18, padding: '16px 22px', marginBottom: 20,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: 14,
+        backdropFilter: 'blur(20px)'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(229,9,20,.15)', border: '2px solid rgba(229,9,20,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 0 16px rgba(229,9,20,.2)' }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: 'rgba(229,9,20,.15)', border: '2px solid rgba(229,9,20,.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24, boxShadow: '0 0 16px rgba(229,9,20,.2)'
+          }}>
             {user?.avatar || '🎬'}
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h2 style={{ fontSize: 19, fontWeight: 700, color: 'white', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 17, fontWeight: 700, color: 'white' }}>
                 {user?.displayName || user?.name}
-              </h2>
+              </span>
               <span style={{ fontSize: 12, color: '#e50914', fontWeight: 700, background: 'rgba(229,9,20,.12)', padding: '2px 8px', borderRadius: 6 }}>
                 @{user?.username}
               </span>
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 3 }}>
-              CineID: <code style={{ color: '#10b981', fontFamily: 'monospace' }}>{myId}</code> · {friends.length} Cine-Friends · {outgoingRequests.length} Pending Outgoing · {watchlist.length} Saved in Watchlist
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>
+              {friends.length} friends · {watchlist.length} saved movies
             </div>
           </div>
         </div>
 
         {/* Quick jump to Messages */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => navigate('messages')}
-            style={{ background: '#e50914', border: 'none', borderRadius: 8, padding: '9px 18px', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 16px rgba(229,9,20,0.3)' }}
-          >
-            <span>💬</span> Open Messages & Chat
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('messages')}
+          style={{
+            background: '#e50914', border: 'none', borderRadius: 10, padding: '9px 18px',
+            color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+            boxShadow: '0 4px 16px rgba(229,9,20,.3)'
+          }}
+        >
+          💬 Messages
+        </button>
       </div>
 
       {/* ── TOP NAV TABS ────────────────────────────────────────────────── */}
-      <div className="fu d1" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.08)', marginBottom: 20, gap: 4 }}>
+      <div className="fu d1" style={{
+        display: 'flex', gap: 6, marginBottom: 20,
+        background: 'rgba(255,255,255,.04)',
+        border: '1px solid rgba(255,255,255,.08)',
+        borderRadius: 14, padding: 6
+      }}>
         {[
-          { id: 'friends', label: '👥 My Cine-Circle', count: friends.length || null },
+          { id: 'friends', label: '👥 My Friends', count: friends.length || null },
           { id: 'search', label: '🔍 Find Cinephiles', count: null },
-          { id: 'requests', label: '📬 Friend Requests', count: incomingRequests.length > 0 ? incomingRequests.length : (outgoingRequests.length > 0 ? `${outgoingRequests.length} sent` : null) },
+          { id: 'requests', label: '📬 Requests', count: incomingRequests.length > 0 ? incomingRequests.length : (outgoingRequests.length > 0 ? outgoingRequests.length : null) },
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             style={{
-              padding: '11px 20px', background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13,
-              color: activeTab === t.id ? 'white' : 'rgba(255,255,255,.45)',
-              borderBottom: activeTab === t.id ? '2px solid #e50914' : '2px solid transparent',
-              transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 6
+              flex: 1,
+              background: activeTab === t.id ? 'rgba(255,255,255,.1)' : 'transparent',
+              border: activeTab === t.id ? '1px solid rgba(255,255,255,.15)' : '1px solid transparent',
+              borderRadius: 10, padding: '10px 14px',
+              color: activeTab === t.id ? 'white' : 'rgba(255,255,255,.5)',
+              fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              transition: 'all .2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
             }}
           >
             <span>{t.label}</span>
             {t.count !== null && (
-              <span style={{ fontSize: 10, background: '#e50914', color: 'white', padding: '1px 7px', borderRadius: 10, fontWeight: 800 }}>
+              <span style={{
+                fontSize: 10,
+                background: activeTab === t.id ? 'rgba(229,9,20,.2)' : 'rgba(255,255,255,.08)',
+                color: activeTab === t.id ? '#ff6b6b' : 'rgba(255,255,255,.4)',
+                padding: '1px 7px', borderRadius: 100, fontWeight: 800
+              }}>
                 {t.count}
               </span>
             )}
@@ -603,7 +631,7 @@ export default function FriendsPage() {
                       )}
                       <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', marginTop: 4 }}>
                         {isAlreadyFriend ? (
-                          <>CineID: <code style={{ color: '#10b981' }}>{targetId}</code> · Favorite Genres: {(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).join(', ') || 'Cinema'}</>
+                          <>Favorite Genres: {(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).join(' · ') || 'Cinema Enthusiast'}</>
                         ) : (
                           <>🔒 Private Cinephile Profile · Add friend to unlock details & chat</>
                         )}
