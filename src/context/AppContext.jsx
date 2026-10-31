@@ -24,6 +24,8 @@ export function AppProvider({ children }) {
 
   // ── Navigation (Login-First Flow) ─────────────────────────────────────────
   const [page, setPage] = useState('login')
+  const [previousPage, setPreviousPage] = useState(null)
+  const [navHistory, setNavHistory] = useState([])
   const [movieId, setMovieId] = useState(null)
   const [activeChatFriend, setActiveChatFriend] = useState(null)
   const [viewingUser, setViewingUser] = useState(null)
@@ -122,14 +124,41 @@ export function AppProvider({ children }) {
       return
     }
 
-    setPage(targetPage)
+    setPage(current => {
+      const isOpeningOtherProfile = targetPage === 'profile' && id !== null
+      const fromLabel = (current === 'profile' && !viewingUser) ? 'own_profile' : current
+      if (targetPage !== current || isOpeningOtherProfile) {
+        setPreviousPage(fromLabel)
+        setNavHistory(prev => [...prev.slice(-15), fromLabel])
+      }
+      return targetPage
+    })
+
     if (targetPage === 'movie') {
       if (id !== null) setMovieId(id)
     } else if (targetPage === 'profile') {
       setViewingUser(id) // can be a user object, userId string, or null (self)
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [user])
+  }, [user, viewingUser])
+
+  // ── Smart Go Back (Remembers source: Search, Friends, Chat, Watchlist, Home) ──
+  const goBack = useCallback((fallback = 'landing') => {
+    setViewingUser(null)
+    setNavHistory(prev => {
+      const copy = [...prev]
+      const last = copy.pop()
+      const target = last || previousPage || fallback
+      if (target === 'own_profile') {
+        setPage('profile')
+      } else {
+        setPage(target)
+      }
+      setPreviousPage(copy[copy.length - 1] || null)
+      return copy
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [previousPage])
 
   // ── Watchlist Management (Persisted in MongoDB Atlas per User) ─────────────
   const toggleWatchlist = useCallback(async (movie) => {
@@ -213,7 +242,7 @@ export function AppProvider({ children }) {
 
   const value = {
     // navigation
-    navigate, page, movieId, setMovieId,
+    navigate, goBack, page, previousPage, movieId, setMovieId,
     authChecking, redirectAfterLogin,
     viewingUser, setViewingUser,
     // tmdb

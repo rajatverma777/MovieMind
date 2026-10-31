@@ -21,7 +21,20 @@ export default function SearchPage() {
   const myId = user?.id || user?._id
 
   // ── Top-level Search Category: 'movies' (Default) | 'users' ───────────────
-  const [searchCategory, setSearchCategory] = useState('movies')
+  const [searchCategory, setSearchCategoryState] = useState(() => {
+    try {
+      return sessionStorage.getItem('cm_search_category') || 'movies'
+    } catch {
+      return 'movies'
+    }
+  })
+
+  const setSearchCategory = (cat) => {
+    setSearchCategoryState(cat)
+    try {
+      sessionStorage.setItem('cm_search_category', cat)
+    } catch {}
+  }
 
   // ── Movies Search State ───────────────────────────────────────────────────
   const [mode, setMode] = useState('title') // 'title' | 'vague'
@@ -33,7 +46,20 @@ export default function SearchPage() {
   const debRef = useRef(null)
 
   // ── User / Cinephiles Search State ────────────────────────────────────────
-  const [userQuery, setUserQuery] = useState('')
+  const [userQuery, setUserQueryState] = useState(() => {
+    try {
+      return sessionStorage.getItem('cm_search_user_query') || ''
+    } catch {
+      return ''
+    }
+  })
+
+  const setUserQuery = (val) => {
+    setUserQueryState(val)
+    try {
+      sessionStorage.setItem('cm_search_user_query', val)
+    } catch {}
+  }
   const [userResults, setUserResults] = useState([])
   const [searchingUsers, setSearchingUsers] = useState(false)
   const [userSearchDone, setUserSearchDone] = useState(false)

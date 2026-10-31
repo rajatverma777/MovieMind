@@ -21,11 +21,37 @@ export default function ProfilePage() {
     watchlist: myWatchlist,
     toggleWatchlist,
     navigate,
+    goBack,
+    previousPage,
     setEditProfileModalOpen,
     setAccountSettingsModalOpen,
     setActiveChatFriend,
     realtime
   } = useApp()
+
+  // Dynamic Back Navigation — returns to wherever the user came from (Search, Friends, Chat, Watchlist, etc.)
+  const getBackLabel = () => {
+    if (previousPage === 'search') return 'Back to Search'
+    if (previousPage === 'friends') return 'Back to Friends'
+    if (previousPage === 'messages') return 'Back to Chat'
+    if (previousPage === 'watchlist') return 'Back to Watchlist'
+    if (previousPage === 'landing') return 'Back to Home'
+    if (previousPage === 'own_profile' || previousPage === 'profile') return 'Back to My Profile'
+    return 'Back'
+  }
+
+  const handleBack = () => {
+    setViewingUser(null)
+    if (goBack) {
+      goBack(previousPage || 'search')
+    } else if (previousPage === 'own_profile') {
+      navigate('profile')
+    } else if (previousPage) {
+      navigate(previousPage)
+    } else {
+      navigate('search')
+    }
+  }
 
   const myId = user?.id || user?._id
 
@@ -324,21 +350,40 @@ export default function ProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', padding: '88px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-      {/* ── BREADCRUMB / BACK BAR (When viewing a friend's profile) ──────────── */}
+      {/* ── BREADCRUMB / BACK BAR (When viewing another cinephile's profile) ──────────── */}
       {!isOwnProfile && (
         <div className="fu" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
-            onClick={() => { setViewingUser(null); navigate('profile') }}
+            onClick={handleBack}
             style={{
-              background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
-              borderRadius: 8, padding: '7px 14px', color: 'white', fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .2s'
+              background: 'rgba(255,255,255,.08)',
+              border: '1px solid rgba(255,255,255,.16)',
+              borderRadius: 10,
+              padding: '8px 16px',
+              color: 'white',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all .2s',
+              boxShadow: '0 4px 16px rgba(0,0,0,.25)'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,.14)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,.3)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,.08)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,.16)'
             }}
           >
-            <span>←</span> Back to My Profile
+            <span style={{ fontSize: 14 }}>←</span>
+            <span>{getBackLabel()}</span>
           </button>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Public Cinephile Profile
+            {isPrivate ? '🔒 Private Cinephile Profile' : '🎬 Cine-Friend Profile'}
           </div>
         </div>
       )}
