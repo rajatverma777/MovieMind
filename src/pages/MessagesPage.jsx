@@ -791,7 +791,7 @@ export default function MessagesPage() {
                                   flexShrink: 0
                                 }}
                               >
-                                ⚡ {f.tasteMatchScore || f.tasteCompatibility || 75}%
+                                ⚡ {f.tasteMatchScore ?? f.tasteCompatibility ?? 0}%
                               </span>
                             ) : (
                               <span
@@ -929,7 +929,7 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>⚡ {selectedFriend.tasteMatchScore || selectedFriend.tasteCompatibility || 75}% Taste Match</span>
+                        <span>⚡ {selectedFriend.tasteMatchScore ?? selectedFriend.tasteCompatibility ?? 0}% Taste Match</span>
                         <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
                         <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>View Profile →</span>
                       </div>

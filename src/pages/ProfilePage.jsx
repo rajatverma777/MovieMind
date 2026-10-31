@@ -688,7 +688,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <span style={{ fontSize: 11, background: 'rgba(16,185,129,.15)', color: '#10b981', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>
-                    ⚡ {otherProfile?.tasteCompatibility || 75}% Taste Match With You
+                    ⚡ {otherProfile?.tasteCompatibility ?? otherProfile?.tasteMatchScore ?? 0}% Taste Match With You
                   </span>
                 </div>
 
@@ -832,7 +832,7 @@ export default function ProfilePage() {
               {friends.map(friend => {
                 const fId = friend.id || friend._id
                 const isFriendOnline = realtime?.presenceMap?.[fId] === 'online'
-                const matchScore = friend.tasteMatchScore || friend.tasteCompatibility || 75
+                const matchScore = friend.tasteMatchScore ?? friend.tasteCompatibility ?? 0
 
                 return (
                   <div

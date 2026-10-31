@@ -132,7 +132,7 @@ router.get('/users/search', async (req, res) => {
     const formatted = results.map(u => {
       const score = currentUser
         ? calculateTasteCompatibility(currentUser, u, myWatchlist, [], myPreferences, null)
-        : 75
+        : 0
       return {
         ...u,
         tasteCompatibility: score,
@@ -314,7 +314,7 @@ router.get('/community-users', async (req, res) => {
         const id = u.id || (u._id ? u._id.toString() : null)
         const score = currentUser
           ? calculateTasteCompatibility(currentUser, u, myWatchlist, [], myPreferences, null)
-          : 75
+          : 0
         return {
           id,
           _id: id,
@@ -355,7 +355,7 @@ router.get('/profile/:targetId', async (req, res) => {
     const isSelf = viewerId && String(viewerId) === String(targetUser.id)
 
     // Calculate taste compatibility if viewer is provided and not self
-    let compatibility = 75
+    let compatibility = 0
     let friendshipStatus = 'none'
     let pendingRequestId = null
 

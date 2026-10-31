@@ -167,7 +167,7 @@ function calculateCosine(vecA, vecB) {
 }
 
 export function calculateTasteCompatibility(userA, userB, watchlistA = [], watchlistB = [], prefA = null, prefB = null) {
-  if (!userA || !userB) return 74
+  if (!userA || !userB) return 0
 
   const idA = userA.id || userA._id || (typeof userA === 'string' ? userA : '')
   const idB = userB.id || userB._id || (typeof userB === 'string' ? userB : '')
@@ -176,62 +176,48 @@ export function calculateTasteCompatibility(userA, userB, watchlistA = [], watch
   const wlA = Array.isArray(watchlistA) ? watchlistA : []
   const wlB = Array.isArray(watchlistB) ? watchlistB : []
 
+  // If either user has 0 movies in their watchlist/wishlist, there is no movie data to match -> 0%
+  if (wlA.length === 0 || wlB.length === 0) {
+    return 0
+  }
+
   const idsA = new Set(wlA.map(m => String((m.movie || m).id || (m.movie || m)._id)).filter(Boolean))
   const idsB = new Set(wlB.map(m => String((m.movie || m).id || (m.movie || m)._id)).filter(Boolean))
 
-  // 1. Check exact watchlist match (e.g. same movies added in both IDs)
-  if (idsA.size > 0 && idsB.size > 0) {
-    let mutualCount = 0
-    idsB.forEach(id => {
-      if (idsA.has(id)) mutualCount++
-    })
-    const unionCount = new Set([...idsA, ...idsB]).size
-    const movieJaccard = unionCount > 0 ? (mutualCount / unionCount) : 0
+  let mutualCount = 0
+  idsB.forEach(id => {
+    if (idsA.has(id)) mutualCount++
+  })
+  const unionCount = new Set([...idsA, ...idsB]).size
+  const movieJaccard = unionCount > 0 ? (mutualCount / unionCount) : 0
 
-    const sA = prefA?.tasteSliders
-    const sB = prefB?.tasteSliders
-    let sliderDiff = 0
-    if (sA && sB) {
-      const keys = ['pacing', 'darkness', 'intensity', 'intellect', 'nostalgia']
-      let sum = 0, count = 0
-      keys.forEach(k => {
-        if (typeof sA[k] === 'number' && typeof sB[k] === 'number') {
-          sum += Math.abs(sA[k] - sB[k])
-          count++
-        }
-      })
-      if (count > 0) sliderDiff = sum / (count * 100)
-    }
-
-    const gA = extractGenres(userA, prefA)
-    const gB = extractGenres(userB, prefB)
-    const setGB = new Set(gB)
-    const genreMatch = gA.length > 0 && gB.length > 0 && gA.every(x => setGB.has(x)) && gB.every(x => setGB.has(x))
-
-    // When both users have the exact same movies in their watchlist, match is 100%
-    if (movieJaccard === 1.0 && (genreMatch || sliderDiff < 0.20)) {
-      return 100
-    }
+  // Exact same movies saved in both accounts -> 100% Perfect Match
+  if (movieJaccard === 1.0) {
+    return 100
   }
 
-  const baseAffinity = getPairwiseAffinity(idA, idB)
-  const vecA = buildUserTasteVector(userA, watchlistA, prefA)
-  const vecB = buildUserTasteVector(userB, watchlistB, prefB)
+  // Genre vector from saved watchlist movies
+  const freqA = {}
+  const freqB = {}
+  wlA.forEach(m => getMovieGenreIds(m.movie || m).forEach(gid => { freqA[gid] = (freqA[gid] || 0) + 1 }))
+  wlB.forEach(m => getMovieGenreIds(m.movie || m).forEach(gid => { freqB[gid] = (freqB[gid] || 0) + 1 }))
 
-  const rawCosine = calculateCosine(vecA, vecB)
+  const allGids = Array.from(new Set([...Object.keys(freqA), ...Object.keys(freqB)]))
+  let dot = 0, magA = 0, magB = 0
+  allGids.forEach(gid => {
+    const vA = freqA[gid] || 0
+    const vB = freqB[gid] || 0
+    dot += vA * vB
+    magA += vA * vA
+    magB += vB * vB
+  })
+  const denom = Math.sqrt(magA) * Math.sqrt(magB)
+  const genreCosine = denom > 0 ? (dot / denom) : 0
 
-  let mutualRatio = 0
-  if (idsA.size > 0 && idsB.size > 0) {
-    let mutual = 0
-    idsB.forEach(id => { if (idsA.has(id)) mutual++ })
-    const union = new Set([...idsA, ...idsB]).size
-    mutualRatio = union > 0 ? (mutual / union) : 0
-  }
-
-  // Sliders
-  let sliderSim = 1.0
+  // Taste Sliders modifier (Equalizer)
   const sA = prefA?.tasteSliders
   const sB = prefB?.tasteSliders
+  let sliderFactor = 1.0
   if (sA && sB) {
     const keys = ['pacing', 'darkness', 'intensity', 'intellect', 'nostalgia']
     let sum = 0, count = 0
@@ -242,32 +228,15 @@ export function calculateTasteCompatibility(userA, userB, watchlistA = [], watch
       }
     })
     if (count > 0) {
-      sliderSim = 1 - (sum / (count * 100) * 0.65)
+      const avgDiff = sum / (count * 100)
+      sliderFactor = 1 - (avgDiff * 0.15)
     }
   }
 
-  let finalScore
-  const hasMovies = idsA.size > 0 || idsB.size > 0
-
-  if (mutualRatio > 0) {
-    // Both users share mutual movies
-    const base = 0.50 + (rawCosine * 0.35) + (mutualRatio * 0.20)
-    finalScore = (base * 0.85) + (baseAffinity * 0.15)
-    if (mutualRatio >= 0.99) finalScore = 1.0
-  } else if (hasMovies) {
-    const tasteSim = 0.42 + (rawCosine * 0.54)
-    finalScore = (tasteSim * 0.68) + (baseAffinity * 0.32)
-  } else {
-    const tasteSim = 0.42 + (rawCosine * 0.54)
-    finalScore = (tasteSim * 0.50) + (baseAffinity * 0.50)
-  }
-
-  if (sA && sB && sliderSim < 0.95) {
-    finalScore = (finalScore * 0.85) + (sliderSim * 0.15)
-  }
-
-  const percentage = Math.round(finalScore * 100)
-  return Math.min(100, Math.max(50, percentage))
+  // Blending: Genre cosine (0..72%) + Mutual movie overlap (0..28%) scaled by slider alignment
+  const matchScore = ((genreCosine * 0.72) + (movieJaccard * 0.28)) * sliderFactor
+  const percentage = Math.round(matchScore * 100)
+  return Math.min(100, Math.max(0, percentage))
 }
 
 // Helper to sanitize user object for client

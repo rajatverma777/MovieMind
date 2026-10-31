@@ -382,7 +382,7 @@ export default function FriendsPage() {
                             }}
                             title="Taste Compatibility Score"
                           >
-                            {f.tasteMatchScore || f.tasteCompatibility || 75}% Fit
+                            {f.tasteMatchScore ?? f.tasteCompatibility ?? 0}% Fit
                           </span>
                           <button
                             onClick={(e) => {

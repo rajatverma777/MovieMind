@@ -388,7 +388,7 @@ export default function ConsensusPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                         <span style={{ fontSize: 11, color: '#e50914', fontWeight: 600 }}>@{f.username}</span>
                         <span style={{ fontSize: 10, color: '#10b981', background: 'rgba(16,185,129,.12)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
-                          {f.tasteMatchScore || f.tasteCompatibility || 75}% Fit
+                          {f.tasteMatchScore ?? f.tasteCompatibility ?? 0}% Fit
                         </span>
                       </div>
                     </div>
