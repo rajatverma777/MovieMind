@@ -688,7 +688,9 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <span style={{ fontSize: 11, background: 'rgba(16,185,129,.15)', color: '#10b981', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>
-                    ⚡ {otherProfile?.tasteCompatibility ?? otherProfile?.tasteMatchScore ?? 0}% Taste Match With You
+                    {(otherProfile?.tasteCompatibility ?? otherProfile?.tasteMatchScore ?? 0) > 0
+                      ? `⚡ ${otherProfile.tasteCompatibility ?? otherProfile.tasteMatchScore}% Taste Match With You`
+                      : '⚡ 0% Taste Match (Save movies to compare)'}
                   </span>
                 </div>
 

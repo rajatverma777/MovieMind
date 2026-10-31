@@ -86,28 +86,17 @@ export const MessageModel = mongoose.models.Message || mongoose.model('Message',
 export const PreferenceModel = mongoose.models.Preference || mongoose.model('Preference', PreferenceSchema)
 export const ConsensusVoteModel = mongoose.models.ConsensusVote || mongoose.model('ConsensusVote', ConsensusVoteSchema)
 
-// ── Taste Compatibility Metric Helper ────────────────────────────────────────
-function hashString(str) {
-  let h = 2166136261
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  h += h << 13
-  h ^= h >>> 7
-  h += h << 3
-  h ^= h >>> 17
-  h += h << 5
-  return Math.abs(h >>> 0)
-}
-
-function getPairwiseAffinity(idA, idB) {
-  if (!idA || !idB) return 0.76
-  const sorted = [String(idA).trim(), String(idB).trim()].sort().join('::moviemind-cinema-dna::')
-  const h = hashString(sorted)
-  const val = 60 + (h % 34) // 60 to 93
-  return val / 100
-}
+// ── Pure Mathematical Taste Similarity Engine ───────────────────────────────
+// Evaluates authentic cinematic affinity between two cinephiles via:
+// 1. Direct Movie Overlap (Jaccard Index & Overlap Coefficient): |A ∩ B|
+// 2. Movie Genre Distribution Profile (Cosine Similarity): (G_A · G_B) / (|G_A| * |G_B|)
+// 3. Atmosphere / Equalizer Vibe Modifier: based on customized pacing/darkness/etc.
+//
+// Smart Edge Cases:
+// - 0 movies in either watchlist -> 0% (honest, no artificial scores)
+// - Exact same movies in both watchlists -> 100%
+// - Same user comparing with self -> 100%
+// - Orthogonal / opposite genres -> 0%
 
 function getMovieGenreIds(m) {
   if (!m) return []
@@ -116,71 +105,23 @@ function getMovieGenreIds(m) {
   return []
 }
 
-function extractGenres(u, p) {
-  let g = []
-  if (p && Array.isArray(p.favoriteGenres) && p.favoriteGenres.length > 0) {
-    g = p.favoriteGenres
-  } else if (u) {
-    try {
-      g = Array.isArray(u.favoriteGenres) ? u.favoriteGenres : JSON.parse(u.favoriteGenres || '[]')
-    } catch {
-      g = []
-    }
-  }
-  return g.map(Number).filter(Boolean)
-}
-
-function buildUserTasteVector(user, watchlist, pref) {
-  const weights = {}
-  // 1. Explicit genres (weight 3.0 each)
-  const explicit = extractGenres(user, pref)
-  explicit.forEach(gid => {
-    weights[gid] = (weights[gid] || 0) + 3.0
-  })
-
-  // 2. Watchlist movies genres (weight 2.0 per genre occurrence)
-  const wl = Array.isArray(watchlist) ? watchlist : []
-  wl.forEach(item => {
-    const movie = item.movie || item
-    const gids = getMovieGenreIds(movie)
-    gids.forEach(gid => {
-      weights[gid] = (weights[gid] || 0) + 2.0
-    })
-  })
-
-  return { weights, watchlistCount: wl.length }
-}
-
-function calculateCosine(vecA, vecB) {
-  const allKeys = Array.from(new Set([...Object.keys(vecA.weights), ...Object.keys(vecB.weights)]))
-  if (allKeys.length === 0) return 0.7
-  let dot = 0, magA = 0, magB = 0
-  allKeys.forEach(k => {
-    const wA = vecA.weights[k] || 0
-    const wB = vecB.weights[k] || 0
-    dot += wA * wB
-    magA += wA * wA
-    magB += wB * wB
-  })
-  const denom = Math.sqrt(magA) * Math.sqrt(magB)
-  return denom > 0 ? (dot / denom) : 0.7
-}
-
 export function calculateTasteCompatibility(userA, userB, watchlistA = [], watchlistB = [], prefA = null, prefB = null) {
   if (!userA || !userB) return 0
 
   const idA = userA.id || userA._id || (typeof userA === 'string' ? userA : '')
   const idB = userB.id || userB._id || (typeof userB === 'string' ? userB : '')
+  // Self comparison is 100%
   if (idA && idB && String(idA) === String(idB)) return 100
 
   const wlA = Array.isArray(watchlistA) ? watchlistA : []
   const wlB = Array.isArray(watchlistB) ? watchlistB : []
 
-  // If either user has 0 movies in their watchlist/wishlist, there is no movie data to match -> 0%
+  // Edge Case: If either user has 0 movies in their watchlist/wishlist, there is no comparable data -> 0%
   if (wlA.length === 0 || wlB.length === 0) {
     return 0
   }
 
+  // 1. Direct Movie Overlap
   const idsA = new Set(wlA.map(m => String((m.movie || m).id || (m.movie || m)._id)).filter(Boolean))
   const idsB = new Set(wlB.map(m => String((m.movie || m).id || (m.movie || m)._id)).filter(Boolean))
 
@@ -188,15 +129,19 @@ export function calculateTasteCompatibility(userA, userB, watchlistA = [], watch
   idsB.forEach(id => {
     if (idsA.has(id)) mutualCount++
   })
-  const unionCount = new Set([...idsA, ...idsB]).size
-  const movieJaccard = unionCount > 0 ? (mutualCount / unionCount) : 0
+
+  const totalUnique = new Set([...idsA, ...idsB]).size
+  const minSize = Math.min(idsA.size, idsB.size)
+
+  const movieJaccard = totalUnique > 0 ? (mutualCount / totalUnique) : 0
+  const movieOverlap = minSize > 0 ? (mutualCount / minSize) : 0
 
   // Exact same movies saved in both accounts -> 100% Perfect Match
   if (movieJaccard === 1.0) {
     return 100
   }
 
-  // Genre vector from saved watchlist movies
+  // 2. Genre Profile Cosine Similarity from saved watchlist movies
   const freqA = {}
   const freqB = {}
   wlA.forEach(m => getMovieGenreIds(m.movie || m).forEach(gid => { freqA[gid] = (freqA[gid] || 0) + 1 }))
@@ -214,28 +159,41 @@ export function calculateTasteCompatibility(userA, userB, watchlistA = [], watch
   const denom = Math.sqrt(magA) * Math.sqrt(magB)
   const genreCosine = denom > 0 ? (dot / denom) : 0
 
-  // Taste Sliders modifier (Equalizer)
+  // 3. Taste Sliders (Equalizer) Modifier — only active if users customized from default 50
   const sA = prefA?.tasteSliders
   const sB = prefB?.tasteSliders
-  let sliderFactor = 1.0
+  let sliderModifier = 1.0
   if (sA && sB) {
     const keys = ['pacing', 'darkness', 'intensity', 'intellect', 'nostalgia']
-    let sum = 0, count = 0
-    keys.forEach(k => {
-      if (typeof sA[k] === 'number' && typeof sB[k] === 'number') {
-        sum += Math.abs(sA[k] - sB[k])
-        count++
+    const isCustom = keys.some(k => (sA[k] !== undefined && sA[k] !== 50) || (sB[k] !== undefined && sB[k] !== 50))
+    if (isCustom) {
+      let sum = 0, count = 0
+      keys.forEach(k => {
+        if (typeof sA[k] === 'number' && typeof sB[k] === 'number') {
+          sum += Math.abs(sA[k] - sB[k])
+          count++
+        }
+      })
+      if (count > 0) {
+        const avgDiff = sum / (count * 100)
+        sliderModifier = 1 - (avgDiff * 0.15)
       }
-    })
-    if (count > 0) {
-      const avgDiff = sum / (count * 100)
-      sliderFactor = 1 - (avgDiff * 0.15)
     }
   }
 
-  // Blending: Genre cosine (0..72%) + Mutual movie overlap (0..28%) scaled by slider alignment
-  const matchScore = ((genreCosine * 0.72) + (movieJaccard * 0.28)) * sliderFactor
-  const percentage = Math.round(matchScore * 100)
+  // Pure Mathematical Similarity:
+  // - If mutual movies exist: combines genre cosine (60%) and movie overlap ratio (40%)
+  // - If no mutual titles: pure genre alignment (scaled to 75% max when identical genres)
+  let baseScore
+  if (mutualCount > 0) {
+    const sharedRatio = (movieJaccard + movieOverlap) / 2
+    baseScore = (genreCosine * 0.60) + (sharedRatio * 0.40)
+  } else {
+    baseScore = genreCosine * 0.75
+  }
+
+  const finalScore = baseScore * sliderModifier
+  const percentage = Math.round(finalScore * 100)
   return Math.min(100, Math.max(0, percentage))
 }
 

@@ -783,15 +783,17 @@ export default function MessagesPage() {
                                 style={{
                                   fontSize: 9.5,
                                   fontWeight: 700,
-                                  color: '#34d399',
-                                  background: 'rgba(16, 185, 129, 0.12)',
-                                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                                  color: (f.tasteMatchScore ?? f.tasteCompatibility ?? 0) > 0 ? '#34d399' : 'rgba(255,255,255,0.4)',
+                                  background: (f.tasteMatchScore ?? f.tasteCompatibility ?? 0) > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.06)',
+                                  border: `1px solid ${(f.tasteMatchScore ?? f.tasteCompatibility ?? 0) > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.1)'}`,
                                   padding: '1px 6px',
                                   borderRadius: 10,
                                   flexShrink: 0
                                 }}
                               >
-                                ⚡ {f.tasteMatchScore ?? f.tasteCompatibility ?? 0}%
+                                {(f.tasteMatchScore ?? f.tasteCompatibility ?? 0) > 0
+                                  ? `⚡ ${f.tasteMatchScore ?? f.tasteCompatibility}%`
+                                  : '0% Match'}
                               </span>
                             ) : (
                               <span
@@ -929,7 +931,11 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>⚡ {selectedFriend.tasteMatchScore ?? selectedFriend.tasteCompatibility ?? 0}% Taste Match</span>
+                        <span>
+                          {(selectedFriend.tasteMatchScore ?? selectedFriend.tasteCompatibility ?? 0) > 0
+                            ? `⚡ ${selectedFriend.tasteMatchScore ?? selectedFriend.tasteCompatibility}% Taste Match`
+                            : '⚡ 0% Taste Match (Save movies to compare)'}
+                        </span>
                         <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
                         <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>View Profile →</span>
                       </div>
