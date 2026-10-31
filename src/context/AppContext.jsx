@@ -14,7 +14,7 @@ export function AppProvider({ children }) {
   // ── Authentication State ──────────────────────────────────────────────────
   const [user, setUser] = useState(null)
   const [authChecking, setAuthChecking] = useState(true)
-  const [redirectAfterLogin, setRedirectAfterLogin] = useState('dashboard')
+  const [redirectAfterLogin, setRedirectAfterLogin] = useState('landing')
 
   // Modals
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -46,7 +46,7 @@ export function AppProvider({ children }) {
         const data = await res.json()
         if (data.authenticated && data.user) {
           setUser(data.user)
-          setPage(prev => (prev === 'login' ? 'dashboard' : prev))
+          setPage(prev => (prev === 'login' ? 'landing' : prev))
           return data.user
         }
       }
@@ -91,8 +91,8 @@ export function AppProvider({ children }) {
   // ── Login Handler ─────────────────────────────────────────────────────────
   const login = useCallback((userData, rememberMe = true) => {
     setUser(userData)
-    setPage(prev => (prev === 'login' ? (redirectAfterLogin || 'dashboard') : prev))
-    setRedirectAfterLogin('dashboard')
+    setPage(prev => (prev === 'login' ? (redirectAfterLogin || 'landing') : prev))
+    setRedirectAfterLogin('landing')
   }, [redirectAfterLogin])
 
   // ── Logout Handler ────────────────────────────────────────────────────────
@@ -115,9 +115,9 @@ export function AppProvider({ children }) {
       return
     }
 
-    // If authenticated and visiting login, go to dashboard
+    // If authenticated and visiting login, go to home
     if (user && targetPage === 'login') {
-      setPage('dashboard')
+      setPage('landing')
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }

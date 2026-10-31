@@ -367,11 +367,11 @@ export default function LoginPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
-                onClick={() => navigate('dashboard')}
+                onClick={() => navigate('landing')}
                 className="lg-btn-primary"
                 style={{ border: 'none', padding: '13px 0', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer', justifyContent: 'center' }}
               >
-                📊 Go to Dashboard
+                🎬 Go to Home Page
               </button>
               <button
                 onClick={() => navigate('friends')}
