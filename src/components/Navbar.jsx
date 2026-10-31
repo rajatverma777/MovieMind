@@ -10,6 +10,14 @@ import { useApp } from '@/context/AppContext'
 import { useHideOnScroll } from '@/hooks'
 
 // Minimalist vector SVG icons matching Apple visionOS style
+function HomeIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-4.5a1 1 0 0 1-1-1v-4.5h-4v4.5a1 1 0 0 1-1 1H4.5A1.5 1.5 0 0 1 3 20V9.5z" />
+    </svg>
+  )
+}
+
 function GridIcon({ size = 20, color = 'currentColor' }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -120,7 +128,7 @@ export default function Navbar() {
 
   // Primary 5 Navigation items with clean vector icons
   const primaryItems = [
-    { id: 'landing',   label: 'Dashboard', icon: (c) => <GridIcon color={c} /> },
+    { id: 'landing',   label: 'Home',      icon: (c) => <HomeIcon color={c} /> },
     { id: 'search',    label: 'Search',    icon: (c) => <SearchIcon color={c} /> },
     { id: 'dashboard', label: 'Stats',     icon: (c) => <StatsIcon color={c} /> },
     { id: 'watchlist', label: 'Saved',     icon: (c) => <BookmarkIcon color={c} />, badge: watchlist.length > 0 ? watchlist.length : null },
@@ -518,7 +526,7 @@ export default function Navbar() {
               {[
                 { label: '✏️  Edit Profile', action: () => { setEditProfileModalOpen(true); setShowProfile(false) } },
                 { label: '⚙️  Settings',     action: () => { setAccountSettingsModalOpen(true); setShowProfile(false) } },
-                { label: '📊  My Dashboard', action: () => go('dashboard') },
+                { label: '📊  My Stats',     action: () => go('dashboard') },
               ].map(({ label, action }) => (
                 <button
                   key={label}

@@ -6,7 +6,7 @@ import { getRecommendations } from '@/utils/recommend'
 import MovieCard from '@/components/MovieCard'
 import TasteEqualizer from '@/components/TasteEqualizer'
 
-const CHART_COLORS = ['#e50914', '#d4a843', '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
+const CHART_COLORS = ['#38bdf8', '#0ea5e9', '#a78bfa', '#10b981', '#f59e0b', '#d4a843']
 
 const tooltipStyle = {
   contentStyle: { background: '#0e0e1c', border: '1px solid rgba(255,255,255,.09)', borderRadius: 8, color: 'white', fontSize: 11 },
@@ -44,20 +44,20 @@ export default function DashboardPage() {
   const aiRecs = useMemo(() => getRecommendations(watchlist, MOCK_MOVIES, 8), [watchlist])
 
   const stats = [
-    { label: 'Watchlist',    value: watchlist.length,         icon: '🎬', color: '#e50914' },
+    { label: 'Watchlist',    value: watchlist.length,         icon: '🎬', color: '#38bdf8' },
     { label: 'Avg Rating',   value: avgRating,                icon: '⭐', color: '#d4a843' },
     { label: 'Top Genre',    value: genreData[0]?.name || '—', icon: '🎭', color: '#0ea5e9' },
     { label: 'Recently Seen',value: recentlyViewed.length,    icon: '👁️', color: '#8b5cf6' },
   ]
 
   return (
-    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '88px 24px 56px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 34 }}>
-        <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
-          Your <span style={{ color: '#e50914' }}>Dashboard</span>
+        <h1 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', sans-serif", fontSize: 44, fontWeight: 700, letterSpacing: -0.5, color: 'white', marginBottom: 6 }}>
+          Your <span style={{ color: '#38bdf8' }}>Stats</span> & Analytics
         </h1>
-        <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 13 }}>
+        <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
           Personal Taste & Watchlist Analytics · AI-Powered Insights
         </p>
       </div>
