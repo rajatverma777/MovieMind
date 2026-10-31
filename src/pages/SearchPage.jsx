@@ -608,19 +608,38 @@ export default function SearchPage() {
                                 <span style={{ fontSize: 12, color: '#38bdf8', fontWeight: 600 }}>
                                   @{targetUser.username}
                                 </span>
-                                <span
-                                  style={{
-                                    fontSize: 10,
-                                    fontWeight: 700,
-                                    color: matchScore > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.4)',
-                                    background: matchScore > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-                                    border: `1px solid ${matchScore > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.1)'}`,
-                                    padding: '1px 8px',
-                                    borderRadius: 10
-                                  }}
-                                >
-                                  {matchScore > 0 ? `⚡ ${matchScore}% Fit` : '0% Fit'}
-                                </span>
+                                {isAlreadyFriend ? (
+                                  <span
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      color: matchScore > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.4)',
+                                      background: matchScore > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                                      border: `1px solid ${matchScore > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                      padding: '1px 8px',
+                                      borderRadius: 10
+                                    }}
+                                  >
+                                    {matchScore > 0 ? `⚡ ${matchScore}% Fit` : '0% Fit'}
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      color: '#f87171',
+                                      background: 'rgba(239, 68, 68, 0.12)',
+                                      border: '1px solid rgba(239, 68, 68, 0.28)',
+                                      padding: '1px 8px',
+                                      borderRadius: 10,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 4
+                                    }}
+                                  >
+                                    <span>🔒</span> Private
+                                  </span>
+                                )}
                               </div>
                               {targetUser.bio && (
                                 <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)', marginTop: 2 }}>
@@ -628,7 +647,9 @@ export default function SearchPage() {
                                 </div>
                               )}
                               <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.4)', marginTop: 4 }}>
-                                Favorite Genres: {(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).slice(0, 3).join(' · ') || 'Cinema Enthusiast'}
+                                {isAlreadyFriend
+                                  ? `Favorite Genres: ${(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).slice(0, 3).join(' · ') || 'Cinema Enthusiast'}`
+                                  : '🔒 Details & chat private until friend request accepted'}
                               </div>
                             </div>
                           </div>

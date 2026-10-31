@@ -108,6 +108,9 @@ export default function ProfilePage() {
   const displayWatchlist = isOwnProfile ? myWatchlist : (otherProfile?.watchlist || [])
   const isOnline = realtime?.presenceMap?.[targetId] === 'online'
 
+  const isFriends = isOwnProfile || otherProfile?.friendshipStatus === 'friends'
+  const isPrivate = !isOwnProfile && !isFriends
+
   // Watchlist Analytics
   const genreData = useMemo(() => {
     const c = {}
@@ -159,11 +162,56 @@ export default function ProfilePage() {
 
       if (res.success || res.request) {
         setFriendActionStatus('sent')
-        if (otherProfile) {
-          setOtherProfile(prev => ({ ...prev, friendshipStatus: 'pending_outgoing' }))
-        }
+        const newReqId = res.request?.id || res.request?._id || null
+        setOtherProfile(prev => ({
+          ...prev,
+          friendshipStatus: 'pending_outgoing',
+          pendingRequestId: newReqId
+        }))
+      } else {
+        alert(res.error || 'Failed to send friend request.')
       }
     } catch {
+      setFriendActionStatus('')
+    }
+  }
+
+  // Cancel outgoing friend request from profile
+  const handleCancelRequest = async () => {
+    if (!myId || !targetId || friendActionStatus) return
+    setFriendActionStatus('cancelling')
+    try {
+      let reqId = otherProfile?.pendingRequestId
+      if (!reqId) {
+        const rRes = await fetch(`/api/social/friend-requests?me=${encodeURIComponent(myId)}`).then(r => r.json())
+        const outgoing = rRes.outgoing || []
+        const match = outgoing.find(r =>
+          String(r.toUserId) === String(targetId) ||
+          String(r.user?.id) === String(targetId)
+        )
+        reqId = match?.id || match?._id
+      }
+
+      if (reqId) {
+        const res = await fetch('/api/social/friend-request/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestId: reqId, userId: myId })
+        }).then(r => r.json())
+
+        if (res.success) {
+          setOtherProfile(prev => ({
+            ...prev,
+            friendshipStatus: 'none',
+            pendingRequestId: null
+          }))
+        } else {
+          alert(res.error || 'Failed to cancel friend request.')
+        }
+      }
+    } catch (err) {
+      console.error('Error cancelling friend request from profile:', err)
+    } finally {
       setFriendActionStatus('')
     }
   }
@@ -193,15 +241,31 @@ export default function ProfilePage() {
 
         if (res.success) {
           if (action === 'accept') {
-            setOtherProfile(prev => ({
-              ...prev,
-              friendshipStatus: 'friends',
-              friendsCount: (prev.friendsCount || 0) + 1
-            }))
+            try {
+              const pRes = await fetch(`/api/social/profile/${encodeURIComponent(targetId)}?viewerId=${encodeURIComponent(myId)}`).then(r => r.json())
+              if (pRes.profile) {
+                setOtherProfile(pRes.profile)
+              } else {
+                setOtherProfile(prev => ({
+                  ...prev,
+                  friendshipStatus: 'friends',
+                  isPrivate: false,
+                  friendsCount: (prev.friendsCount || 0) + 1
+                }))
+              }
+            } catch {
+              setOtherProfile(prev => ({
+                ...prev,
+                friendshipStatus: 'friends',
+                isPrivate: false,
+                friendsCount: (prev.friendsCount || 0) + 1
+              }))
+            }
           } else {
             setOtherProfile(prev => ({
               ...prev,
-              friendshipStatus: 'none'
+              friendshipStatus: 'none',
+              pendingRequestId: null
             }))
           }
         } else {
@@ -334,11 +398,15 @@ export default function ProfilePage() {
                 <span style={{ background: isOnline ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.06)', border: `1px solid ${isOnline ? '#10b981' : 'rgba(255,255,255,.15)'}`, color: isOnline ? '#10b981' : 'rgba(255,255,255,.5)', borderRadius: 14, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>
                   {isOnline ? '● Online Now' : '○ Offline'}
                 </span>
-                {!isOwnProfile && otherProfile?.tasteCompatibility && (
-                  <span style={{ background: 'rgba(16,185,129,.2)', border: '1px solid rgba(16,185,129,.4)', color: '#10b981', borderRadius: 14, padding: '2px 10px', fontSize: 11, fontWeight: 800 }}>
-                    ⚡ {otherProfile.tasteCompatibility}% Match With You
+                {isPrivate ? (
+                  <span style={{ background: 'rgba(239,68,68,.14)', border: '1px solid rgba(239,68,68,.35)', color: '#f87171', borderRadius: 14, padding: '2px 10px', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span>🔒</span> Private Account
                   </span>
-                )}
+                ) : !isOwnProfile && (otherProfile?.tasteCompatibility ?? otherProfile?.tasteMatchScore) > 0 ? (
+                  <span style={{ background: 'rgba(16,185,129,.2)', border: '1px solid rgba(16,185,129,.4)', color: '#10b981', borderRadius: 14, padding: '2px 10px', fontSize: 11, fontWeight: 800 }}>
+                    ⚡ {otherProfile?.tasteCompatibility ?? otherProfile?.tasteMatchScore}% Match With You
+                  </span>
+                ) : null}
               </div>
 
               {/* Bio */}
@@ -487,8 +555,19 @@ export default function ProfilePage() {
                       <span>🔒</span> Chat Disabled
                     </span>
                     <span style={{ background: 'rgba(251,191,36,.15)', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span>⏳</span> Request Sent (Waiting for acceptance)
+                      <span>⏳</span> Request Sent (Pending)
                     </span>
+                    <button
+                      onClick={handleCancelRequest}
+                      disabled={friendActionStatus === 'cancelling'}
+                      style={{
+                        background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)',
+                        borderRadius: 8, padding: '9px 14px', color: 'rgba(255,255,255,.7)', fontSize: 12,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {friendActionStatus === 'cancelling' ? 'Cancelling...' : 'Cancel'}
+                    </button>
                   </>
                 ) : (
                   <>
@@ -505,7 +584,7 @@ export default function ProfilePage() {
                         boxShadow: '0 4px 16px rgba(229,9,20,.35)'
                       }}
                     >
-                      <span>👥</span> {friendActionStatus === 'sending' ? 'Sending Request...' : '+ Add Friend to Chat'}
+                      <span>👥</span> {friendActionStatus === 'sending' ? 'Sending Request...' : '+ Add Friend to Unlock'}
                     </button>
                   </>
                 )}
@@ -515,7 +594,198 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── 2. QUICK GLANCE STATS METRICS ────────────────────────────────────── */}
+      {/* ── 2. PRIVATE PROFILE GATE (When NOT friends yet) ──────────── */}
+      {isPrivate ? (
+        <div
+          className="fu d1 glass"
+          style={{
+            borderRadius: 24,
+            padding: '56px 36px',
+            textAlign: 'center',
+            background: 'radial-gradient(circle at 50% 0%, rgba(229,9,20,.12) 0%, rgba(14,14,28,.88) 60%)',
+            border: '1px solid rgba(255,255,255,.1)',
+            boxShadow: '0 24px 64px rgba(0,0,0,.6)',
+            maxWidth: 880,
+            margin: '0 auto 48px'
+          }}
+        >
+          {/* Glowing Lock Icon */}
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'rgba(229,9,20,.12)',
+              border: '1px solid rgba(229,9,20,.35)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 38,
+              margin: '0 auto 20px',
+              boxShadow: '0 0 32px rgba(229,9,20,.25)'
+            }}
+          >
+            🔒
+          </div>
+
+          <h2 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 38, color: 'white', letterSpacing: 1, margin: '0 0 10px' }}>
+            This Cinephile's Profile is Private
+          </h2>
+
+          <p style={{ color: 'rgba(255,255,255,.68)', fontSize: 14, maxWidth: 540, margin: '0 auto 28px', lineHeight: 1.6 }}>
+            {displayUser?.displayName || displayUser?.name}'s curated watchlist, cinematic taste equalizer, genre statistics, and direct messaging are private.
+            Send a friend request, and once accepted, their entire profile and chat will unlock automatically!
+          </p>
+
+          {/* Central Call-to-Action */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginBottom: 38, flexWrap: 'wrap' }}>
+            {otherProfile?.friendshipStatus === 'pending_incoming' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <button
+                  onClick={() => handleRespondIncomingRequest('accept')}
+                  disabled={friendActionStatus === 'responding'}
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '12px 28px',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: '0 6px 20px rgba(16,185,129,.4)'
+                  }}
+                >
+                  <span>✓</span>
+                  <span>{friendActionStatus === 'responding' ? 'Accepting...' : 'Accept Friend Request & Unlock All Details'}</span>
+                </button>
+                <button
+                  onClick={() => handleRespondIncomingRequest('decline')}
+                  disabled={friendActionStatus === 'responding'}
+                  style={{
+                    background: 'rgba(255,255,255,.08)',
+                    border: '1px solid rgba(255,255,255,.15)',
+                    borderRadius: 12,
+                    padding: '12px 20px',
+                    color: 'rgba(255,255,255,.7)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Decline
+                </button>
+              </div>
+            ) : (otherProfile?.friendshipStatus === 'pending_outgoing' || friendActionStatus === 'sent') ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span
+                  style={{
+                    background: 'rgba(251,191,36,.14)',
+                    border: '1px solid rgba(251,191,36,.35)',
+                    color: '#fbbf24',
+                    borderRadius: 12,
+                    padding: '12px 24px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}
+                >
+                  <span>⏳</span>
+                  <span>Friend Request Sent (Waiting for @{displayUser?.username} to accept)</span>
+                </span>
+                <button
+                  onClick={handleCancelRequest}
+                  disabled={friendActionStatus === 'cancelling'}
+                  style={{
+                    background: 'rgba(255,255,255,.08)',
+                    border: '1px solid rgba(255,255,255,.16)',
+                    color: 'rgba(255,255,255,.75)',
+                    borderRadius: 12,
+                    padding: '12px 18px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all .2s'
+                  }}
+                >
+                  {friendActionStatus === 'cancelling' ? 'Cancelling...' : 'Cancel Request'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSendFriendRequest}
+                disabled={friendActionStatus === 'sending'}
+                style={{
+                  background: 'linear-gradient(135deg, #e50914, #b20710)',
+                  border: 'none',
+                  borderRadius: 12,
+                  padding: '14px 32px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 8px 28px rgba(229,9,20,.45)',
+                  transition: 'all .2s'
+                }}
+              >
+                <span>👥</span>
+                <span>{friendActionStatus === 'sending' ? 'Sending Request...' : 'Send Friend Request to Unlock Profile & Chat'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Feature Preview Grid */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 32 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>
+              What Unlocks Once You Become Friends:
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14, textAlign: 'left' }}>
+              <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: '18px 16px' }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>🎬</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 4 }}>Curated Watchlist</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.45 }}>
+                  Explore their saved movies, ratings, and public cinematic collection.
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: '18px 16px' }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>🎚️</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 4 }}>Taste Equalizer & Match %</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.45 }}>
+                  Compare pacing, darkness, intensity, and view your real taste compatibility.
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: '18px 16px' }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>📊</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 4 }}>Genre Distribution</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.45 }}>
+                  Discover their top genres, affinities, and personal storytelling preferences.
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: '18px 16px' }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>💬</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 4 }}>1-on-1 Chat & Consensus</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.45 }}>
+                  Direct realtime messenger, interactive movie cards, and Couch Consensus sessions.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ── 2. QUICK GLANCE STATS METRICS ────────────────────────────────────── */}
       <div className="fu d1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 14, marginBottom: 28 }}>
         {/* Friends Count */}
         <div
@@ -1108,6 +1378,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

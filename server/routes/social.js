@@ -354,32 +354,33 @@ router.get('/profile/:targetId', async (req, res) => {
 
     const isSelf = viewerId && String(viewerId) === String(targetUser.id)
 
-    // Calculate taste compatibility if viewer is provided and not self
     let compatibility = 0
     let friendshipStatus = 'none'
     let pendingRequestId = null
 
-    if (viewerId && !isSelf) {
-      const [viewerUser, viewerWatchlist, viewerPrefs] = await Promise.all([
-        DB.findUserById(viewerId).catch(() => null),
-        DB.getWatchlist(viewerId).catch(() => []),
-        DB.getUserPreferences(viewerId).catch(() => null)
-      ])
-      if (viewerUser) {
-        compatibility = calculateTasteCompatibility(
-          viewerUser,
-          targetUser,
-          viewerWatchlist,
-          targetWatchlist,
-          viewerPrefs,
-          preferences
-        )
-      }
+    // Check friendship status
+    const isFriend = viewerId && !isSelf
+      ? friends.some(f => String(f.id) === String(viewerId) || String(f._id) === String(viewerId))
+      : false
 
-      // Check friendship status
-      const isFriend = friends.some(f => String(f.id) === String(viewerId) || String(f._id) === String(viewerId))
+    if (viewerId && !isSelf) {
       if (isFriend) {
         friendshipStatus = 'friends'
+        const [viewerUser, viewerWatchlist, viewerPrefs] = await Promise.all([
+          DB.findUserById(viewerId).catch(() => null),
+          DB.getWatchlist(viewerId).catch(() => []),
+          DB.getUserPreferences(viewerId).catch(() => null)
+        ])
+        if (viewerUser) {
+          compatibility = calculateTasteCompatibility(
+            viewerUser,
+            targetUser,
+            viewerWatchlist,
+            targetWatchlist,
+            viewerPrefs,
+            preferences
+          )
+        }
       } else {
         const { incoming, outgoing } = await DB.getFriendRequests(viewerId)
         const incomingReq = incoming.find(r =>
@@ -404,7 +405,13 @@ router.get('/profile/:targetId', async (req, res) => {
       }
     }
 
-    // Sanitize profile — NEVER leak email, passwords or sensitive internal details to other users
+    const isFriends = isSelf || friendshipStatus === 'friends'
+    const isPrivate = !isFriends
+
+    // Sanitize profile — Privacy protection:
+    // If NOT friends and NOT self: Profile is PRIVATE.
+    // Watchlist, detailed preferences, equalizer sliders, and compatibility are HIDDEN.
+    // When friend request is accepted (friendshipStatus === 'friends'): ALL details unlock!
     const publicProfile = {
       id: targetUser.id,
       _id: targetUser.id,
@@ -413,19 +420,28 @@ router.get('/profile/:targetId', async (req, res) => {
       username: targetUser.username,
       avatar: targetUser.avatar || '🎬',
       bio: targetUser.bio || '',
-      favoriteGenres: targetUser.favoriteGenres || [878, 53],
       createdAt: targetUser.createdAt,
-      // Personal email only included if viewing own profile
-      ...(isSelf ? { email: targetUser.email } : {}),
       friendsCount: friends.length,
-      watchlistCount: targetWatchlist.length,
-      watchlist: targetWatchlist,
-      preferences,
-      tasteCompatibility: compatibility,
-      tasteMatchScore: compatibility,
       friendshipStatus,
       pendingRequestId,
-      isSelf
+      isSelf,
+      isPrivate,
+      ...(isPrivate ? {
+        watchlistCount: targetWatchlist.length,
+        watchlist: [],
+        preferences: null,
+        favoriteGenres: [],
+        tasteCompatibility: 0,
+        tasteMatchScore: 0
+      } : {
+        email: isSelf ? targetUser.email : undefined,
+        favoriteGenres: targetUser.favoriteGenres || [878, 53],
+        watchlistCount: targetWatchlist.length,
+        watchlist: targetWatchlist,
+        preferences,
+        tasteCompatibility: compatibility,
+        tasteMatchScore: compatibility
+      })
     }
 
     return res.json({ profile: publicProfile })

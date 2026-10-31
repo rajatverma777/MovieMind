@@ -587,13 +587,26 @@ export default function FriendsPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{targetUser.displayName || targetUser.name}</span>
                         <span style={{ fontSize: 12, color: '#e50914', fontWeight: 700 }}>@{targetUser.username}</span>
+                        {isAlreadyFriend ? (
+                          <span style={{ fontSize: 10, color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,.15)', padding: '2px 8px', borderRadius: 8 }}>
+                            ✓ Friend
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 10, color: '#f87171', fontWeight: 700, background: 'rgba(239,68,68,.12)', padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <span>🔒</span> Private
+                          </span>
+                        )}
                         <span style={{ fontSize: 11, color: '#38bdf8' }}>➔</span>
                       </div>
                       {targetUser.bio && (
                         <div style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', marginTop: 2 }}>{targetUser.bio}</div>
                       )}
                       <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', marginTop: 4 }}>
-                        CineID: <code style={{ color: '#10b981' }}>{targetId}</code> · Favorite Genres: {(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).join(', ') || 'Sci-Fi, Thriller'}
+                        {isAlreadyFriend ? (
+                          <>CineID: <code style={{ color: '#10b981' }}>{targetId}</code> · Favorite Genres: {(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).join(', ') || 'Cinema'}</>
+                        ) : (
+                          <>🔒 Private Cinephile Profile · Add friend to unlock details & chat</>
+                        )}
                       </div>
                     </div>
                   </div>
