@@ -280,6 +280,11 @@ router.put('/profile', async (req, res) => {
       bio,
       favoriteGenres
     })
+    if (favoriteGenres) {
+      await DB.updateUserPreferences(session.user.id, {
+        favoriteGenres: Array.isArray(favoriteGenres) ? favoriteGenres : JSON.parse(favoriteGenres || '[]')
+      }).catch(() => {})
+    }
     return res.json({ success: true, user: updated })
   } catch (err) {
     return res.status(500).json({ error: err.message })

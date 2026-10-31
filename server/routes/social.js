@@ -121,7 +121,25 @@ router.get('/users/search', async (req, res) => {
       return res.json({ users: [] })
     }
     const results = await DB.searchUsers(q, me)
-    return res.json({ users: results })
+    let currentUser = null
+    let myWatchlist = []
+    let myPreferences = null
+    if (me) {
+      currentUser = await DB.findUserById(me).catch(() => null)
+      myWatchlist = await DB.getWatchlist(me).catch(() => [])
+      myPreferences = await DB.getUserPreferences(me).catch(() => null)
+    }
+    const formatted = results.map(u => {
+      const score = currentUser
+        ? calculateTasteCompatibility(currentUser, u, myWatchlist, [], myPreferences, null)
+        : 75
+      return {
+        ...u,
+        tasteCompatibility: score,
+        tasteMatchScore: score
+      }
+    })
+    return res.json({ users: formatted })
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }
@@ -136,13 +154,37 @@ router.get('/friends', async (req, res) => {
     const currentUser = await DB.findUserById(me)
     const rawFriends = await DB.getUserFriends(me)
 
-    const friendsWithScores = rawFriends.map(f => {
-      const compatibility = currentUser ? calculateTasteCompatibility(currentUser, f) : 75
-      return {
-        ...f,
-        tasteCompatibility: compatibility
-      }
-    })
+    if (!currentUser || rawFriends.length === 0) {
+      return res.json({ friends: [] })
+    }
+
+    const [myWatchlist, myPreferences] = await Promise.all([
+      DB.getWatchlist(me).catch(() => []),
+      DB.getUserPreferences(me).catch(() => null)
+    ])
+
+    const friendsWithScores = await Promise.all(
+      rawFriends.map(async f => {
+        const friendId = f.id || f._id
+        const [friendWatchlist, friendPreferences] = await Promise.all([
+          DB.getWatchlist(friendId).catch(() => []),
+          DB.getUserPreferences(friendId).catch(() => null)
+        ])
+        const score = calculateTasteCompatibility(
+          currentUser,
+          f,
+          myWatchlist,
+          friendWatchlist,
+          myPreferences,
+          friendPreferences
+        )
+        return {
+          ...f,
+          tasteCompatibility: score,
+          tasteMatchScore: score
+        }
+      })
+    )
 
     return res.json({ friends: friendsWithScores })
   } catch (err) {
@@ -257,17 +299,35 @@ router.get('/community-users', async (req, res) => {
     const { getMongoDb } = await import('../auth.js')
     const db = await getMongoDb()
     const users = await db.collection('user').find().limit(25).toArray()
+
+    let currentUser = null
+    let myWatchlist = []
+    let myPreferences = null
+    if (me) {
+      currentUser = await DB.findUserById(me).catch(() => null)
+      myWatchlist = await DB.getWatchlist(me).catch(() => [])
+      myPreferences = await DB.getUserPreferences(me).catch(() => null)
+    }
+
     const formatted = users
-      .map(u => ({
-        id: u.id || (u._id ? u._id.toString() : null),
-        _id: u.id || (u._id ? u._id.toString() : null),
-        displayName: u.displayName || u.name || u.username,
-        name: u.displayName || u.name || u.username,
-        username: u.username || 'cinephile',
-        avatar: u.avatar || '🎬',
-        bio: u.bio || '',
-        favoriteGenres: u.favoriteGenres ? (Array.isArray(u.favoriteGenres) ? u.favoriteGenres : JSON.parse(u.favoriteGenres || '[]')) : [878, 53]
-      }))
+      .map(u => {
+        const id = u.id || (u._id ? u._id.toString() : null)
+        const score = currentUser
+          ? calculateTasteCompatibility(currentUser, u, myWatchlist, [], myPreferences, null)
+          : 75
+        return {
+          id,
+          _id: id,
+          displayName: u.displayName || u.name || u.username,
+          name: u.displayName || u.name || u.username,
+          username: u.username || 'cinephile',
+          avatar: u.avatar || '🎬',
+          bio: u.bio || '',
+          favoriteGenres: u.favoriteGenres ? (Array.isArray(u.favoriteGenres) ? u.favoriteGenres : JSON.parse(u.favoriteGenres || '[]')) : [878, 53],
+          tasteCompatibility: score,
+          tasteMatchScore: score
+        }
+      })
       .filter(u => u.id && u.id !== String(me))
     return res.json({ users: formatted })
   } catch (err) {
@@ -300,9 +360,20 @@ router.get('/profile/:targetId', async (req, res) => {
     let pendingRequestId = null
 
     if (viewerId && !isSelf) {
-      const viewerUser = await DB.findUserById(viewerId)
+      const [viewerUser, viewerWatchlist, viewerPrefs] = await Promise.all([
+        DB.findUserById(viewerId).catch(() => null),
+        DB.getWatchlist(viewerId).catch(() => []),
+        DB.getUserPreferences(viewerId).catch(() => null)
+      ])
       if (viewerUser) {
-        compatibility = calculateTasteCompatibility(viewerUser, targetUser)
+        compatibility = calculateTasteCompatibility(
+          viewerUser,
+          targetUser,
+          viewerWatchlist,
+          targetWatchlist,
+          viewerPrefs,
+          preferences
+        )
       }
 
       // Check friendship status
@@ -351,6 +422,7 @@ router.get('/profile/:targetId', async (req, res) => {
       watchlist: targetWatchlist,
       preferences,
       tasteCompatibility: compatibility,
+      tasteMatchScore: compatibility,
       friendshipStatus,
       pendingRequestId,
       isSelf
@@ -589,22 +661,24 @@ router.get('/taste-compare', async (req, res) => {
     if (!userA || !userB) {
       return res.status(400).json({ error: 'Both userA and userB required.' })
     }
-    const [uA, uB] = await Promise.all([
+    const [uA, uB, wlA, wlB, prefA, prefB] = await Promise.all([
       DB.findUserById(userA),
-      DB.findUserById(userB)
+      DB.findUserById(userB),
+      DB.getWatchlist(userA).catch(() => []),
+      DB.getWatchlist(userB).catch(() => []),
+      DB.getUserPreferences(userA).catch(() => null),
+      DB.getUserPreferences(userB).catch(() => null)
     ])
     if (!uA || !uB) return res.status(404).json({ error: 'User not found.' })
 
-    const score = calculateTasteCompatibility(uA, uB)
-    const [wlA, wlB] = await Promise.all([
-      DB.getWatchlist(userA),
-      DB.getWatchlist(userB)
-    ])
+    const score = calculateTasteCompatibility(uA, uB, wlA, wlB, prefA, prefB)
     const idsA = new Set(wlA.map(m => m.id))
     const mutualMovies = wlB.filter(m => idsA.has(m.id))
 
     return res.json({
       score,
+      tasteCompatibility: score,
+      tasteMatchScore: score,
       mutualCount: mutualMovies.length,
       mutualMovies,
       userA: { id: uA.id, name: uA.displayName, username: uA.username },

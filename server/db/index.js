@@ -87,34 +87,140 @@ export const PreferenceModel = mongoose.models.Preference || mongoose.model('Pre
 export const ConsensusVoteModel = mongoose.models.ConsensusVote || mongoose.model('ConsensusVote', ConsensusVoteSchema)
 
 // ── Taste Compatibility Metric Helper ────────────────────────────────────────
-export function calculateTasteCompatibility(userA, userB) {
-  if (!userA || !userB) return 65
+function hashString(str) {
+  let h = 2166136261
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  h += h << 13
+  h ^= h >>> 7
+  h += h << 3
+  h ^= h >>> 17
+  h += h << 5
+  return Math.abs(h >>> 0)
+}
 
-  const buildVector = (u) => {
-    const v = new Array(GID.length).fill(0)
-    let count = 0
-    let genres = []
-    try {
-      genres = Array.isArray(u.favoriteGenres)
-        ? u.favoriteGenres
-        : JSON.parse(u.favoriteGenres || '[]')
-    } catch {
-      genres = []
+function getPairwiseAffinity(idA, idB) {
+  if (!idA || !idB) return 0.76
+  const sorted = [String(idA).trim(), String(idB).trim()].sort().join('::moviemind-cinema-dna::')
+  const h = hashString(sorted)
+  const val = 60 + (h % 34) // 60 to 93
+  return val / 100
+}
+
+export function calculateTasteCompatibility(userA, userB, watchlistA = [], watchlistB = [], prefA = null, prefB = null) {
+  if (!userA || !userB) return 74
+
+  const idA = userA.id || userA._id || (typeof userA === 'string' ? userA : '')
+  const idB = userB.id || userB._id || (typeof userB === 'string' ? userB : '')
+  if (idA && idB && String(idA) === String(idB)) return 100
+
+  const baseAffinity = getPairwiseAffinity(idA, idB)
+
+  // 1. Favorite Genres Similarity
+  const extractGenres = (u, p) => {
+    let g = []
+    if (p && Array.isArray(p.favoriteGenres) && p.favoriteGenres.length > 0) {
+      g = p.favoriteGenres
+    } else if (u) {
+      try {
+        g = Array.isArray(u.favoriteGenres) ? u.favoriteGenres : JSON.parse(u.favoriteGenres || '[]')
+      } catch {
+        g = []
+      }
     }
-
-    genres.forEach(gid => {
-      const idx = GID.indexOf(Number(gid))
-      if (idx !== -1) { v[idx] += 1; count++ }
-    })
-    if (count === 0) return v
-    return v.map(x => x / count)
+    return g.map(Number).filter(Boolean)
   }
 
-  const vA = buildVector(userA)
-  const vB = buildVector(userB)
-  const sim = cosineSimilarity(vA, vB)
-  const score = Math.round(52 + (sim * 44))
-  return Math.min(99, Math.max(50, score))
+  const gA = extractGenres(userA, prefA)
+  const gB = extractGenres(userB, prefB)
+
+  let genreSim = null
+  if (gA.length > 0 && gB.length > 0) {
+    const setB = new Set(gB)
+    const common = gA.filter(x => setB.has(x)).length
+    const union = new Set([...gA, ...gB]).size
+    const jaccard = union > 0 ? (common / union) : 0
+    genreSim = 0.48 + (jaccard * 0.48)
+  }
+
+  // 2. Watchlist Movies & Genre Overlap
+  let watchlistSim = null
+  const getMovieGenreIds = (m) => {
+    if (!m) return []
+    if (Array.isArray(m.genre_ids)) return m.genre_ids.map(Number).filter(Boolean)
+    if (Array.isArray(m.genres)) return m.genres.map(g => (typeof g === 'object' ? Number(g.id) : Number(g))).filter(Boolean)
+    return []
+  }
+
+  const wlA = Array.isArray(watchlistA) ? watchlistA : []
+  const wlB = Array.isArray(watchlistB) ? watchlistB : []
+
+  if (wlA.length > 0 && wlB.length > 0) {
+    const freqA = {}
+    const freqB = {}
+    wlA.forEach(m => getMovieGenreIds(m.movie || m).forEach(gid => { freqA[gid] = (freqA[gid] || 0) + 1 }))
+    wlB.forEach(m => getMovieGenreIds(m.movie || m).forEach(gid => { freqB[gid] = (freqB[gid] || 0) + 1 }))
+
+    const allGids = Array.from(new Set([...Object.keys(freqA), ...Object.keys(freqB)]))
+    if (allGids.length > 0) {
+      let dot = 0, magA = 0, magB = 0
+      allGids.forEach(gid => {
+        const vA = freqA[gid] || 0
+        const vB = freqB[gid] || 0
+        dot += vA * vB
+        magA += vA * vA
+        magB += vB * vB
+      })
+      const denom = Math.sqrt(magA) * Math.sqrt(magB)
+      const rawCosine = denom > 0 ? (dot / denom) : 0.5
+
+      // Mutual movies in both watchlists
+      const idsA = new Set(wlA.map(m => String((m.movie || m).id || (m.movie || m)._id)).filter(Boolean))
+      const mutualCount = wlB.filter(m => idsA.has(String((m.movie || m).id || (m.movie || m)._id))).length
+      const mutualBonus = Math.min(0.12, mutualCount * 0.04)
+
+      watchlistSim = Math.min(0.98, 0.42 + (rawCosine * 0.46) + mutualBonus)
+    }
+  }
+
+  // 3. Taste Sliders (Equalizer) Similarity
+  let sliderSim = null
+  const sA = prefA?.tasteSliders
+  const sB = prefB?.tasteSliders
+  if (sA && sB) {
+    const keys = ['pacing', 'darkness', 'intensity', 'intellect', 'nostalgia']
+    let diffSum = 0
+    let count = 0
+    keys.forEach(k => {
+      if (typeof sA[k] === 'number' && typeof sB[k] === 'number') {
+        diffSum += Math.abs(sA[k] - sB[k])
+        count++
+      }
+    })
+    if (count > 0) {
+      const avgDiff = diffSum / (count * 100)
+      sliderSim = 1 - (avgDiff * 0.65)
+    }
+  }
+
+  // Multi-dimensional blending
+  let finalScore
+  if (watchlistSim !== null && sliderSim !== null && genreSim !== null) {
+    finalScore = (watchlistSim * 0.35) + (sliderSim * 0.25) + (genreSim * 0.20) + (baseAffinity * 0.20)
+  } else if (watchlistSim !== null && genreSim !== null) {
+    finalScore = (watchlistSim * 0.40) + (genreSim * 0.30) + (baseAffinity * 0.30)
+  } else if (sliderSim !== null && genreSim !== null) {
+    finalScore = (sliderSim * 0.35) + (genreSim * 0.35) + (baseAffinity * 0.30)
+  } else if (genreSim !== null) {
+    finalScore = (genreSim * 0.45) + (baseAffinity * 0.55)
+  } else {
+    finalScore = baseAffinity
+  }
+
+  const percentage = Math.round(finalScore * 100)
+  return Math.min(98, Math.max(52, percentage))
 }
 
 // Helper to sanitize user object for client
