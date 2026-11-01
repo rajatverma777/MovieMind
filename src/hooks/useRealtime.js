@@ -9,6 +9,8 @@ export function useRealtime(user) {
   const [socialAlerts, setSocialAlerts] = useState({ unread: 0, requests: 0 })
   const [readReceipt, setReadReceipt] = useState(null) // { byUserId, fromUserId, timestamp }
   const [deliveryReceipt, setDeliveryReceipt] = useState(null) // { byUserId, messageId, timestamp }
+  const [consensusRoomUpdate, setConsensusRoomUpdate] = useState(null) // { roomId, room, timestamp }
+  const [consensusInvite, setConsensusInvite] = useState(null) // { roomId, fromUser, timestamp }
   const esRef = useRef(null)
   const reconnectAttempts = useRef(0)
   const reconnectTimeout = useRef(null)
@@ -59,6 +61,10 @@ export function useRealtime(user) {
           setReadReceipt({ byUserId: data.byUserId, fromUserId: data.fromUserId, timestamp: data.timestamp || Date.now() })
         } else if (data.type === 'messages_delivered') {
           setDeliveryReceipt({ byUserId: data.byUserId, messageId: data.messageId, timestamp: data.timestamp || Date.now() })
+        } else if (data.type === 'consensus_room_update') {
+          setConsensusRoomUpdate({ roomId: data.roomId, room: data.room, timestamp: Date.now() })
+        } else if (data.type === 'consensus_invite') {
+          setConsensusInvite({ roomId: data.roomId, fromUser: data.fromUser, timestamp: data.timestamp || Date.now() })
         }
       } catch (err) {
         console.warn('[Realtime Parse Error]', err)
@@ -164,6 +170,9 @@ export function useRealtime(user) {
     setSocialAlerts,
     readReceipt,
     deliveryReceipt,
+    consensusRoomUpdate,
+    consensusInvite,
+    setConsensusInvite,
     sendTyping,
     refreshPresence
   }

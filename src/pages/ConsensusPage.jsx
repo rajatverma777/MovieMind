@@ -91,7 +91,7 @@ export default function ConsensusPage() {
     if (!friendId) return
 
     // Deterministic room ID for this pair so both users automatically join the same session
-    const pairRoomId = `PAIR_${[myId, friendId].sort().join('_').slice(-16)}`.toUpperCase()
+    const pairRoomId = `PAIR_${[String(myId), String(friendId)].sort().join('_')}`.toUpperCase()
     setRoomId(pairRoomId)
 
     const initRoom = async () => {
@@ -101,15 +101,19 @@ export default function ConsensusPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             roomId: pairRoomId,
-            userId: myId,
+            userId: String(myId),
             name: userName,
             likedMovies: selectedMovies,
-            preferredGenreIds: selectedGenres
+            preferredGenreIds: selectedGenres,
+            ready: isReady
           })
         })
         if (res.ok) {
           const data = await res.json()
           setRoom(data)
+          if (data.results) {
+            setResults(data.results)
+          }
         }
       } catch (err) {
         console.warn('Error initializing live consensus room:', err)
@@ -119,7 +123,21 @@ export default function ConsensusPage() {
     initRoom()
   }, [myId, selectedFriend, mode])
 
-  // ── 3. Real-Time Room Polling (Every 1.5 seconds) ───────────────────────────
+  // ── 3. Real-Time Instant Live Sync via SSE (Upstash Redis Pub/Sub) ─────────
+  useEffect(() => {
+    if (!realtime?.consensusRoomUpdate || mode !== 'live') return
+    const update = realtime.consensusRoomUpdate
+    if (update.roomId && roomId && update.roomId.toUpperCase() === roomId.toUpperCase()) {
+      if (update.room) {
+        setRoom(update.room)
+        if (update.room.results) {
+          setResults(update.room.results)
+        }
+      }
+    }
+  }, [realtime?.consensusRoomUpdate, roomId, mode])
+
+  // ── 3b. Resilient Real-Time Room Polling (Every 1.5 seconds) ───────────────
   useEffect(() => {
     if (!roomId || mode !== 'live') return
 
@@ -143,17 +161,21 @@ export default function ConsensusPage() {
   const syncUpdate = async (readyVal = isReady, moviesVal = selectedMovies, genresVal = selectedGenres) => {
     if (!roomId || mode !== 'live') return
     try {
-      await fetch(`/api/consensus/room/${roomId}/update`, {
+      const res = await fetch(`/api/consensus/room/${roomId}/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: myId,
+          userId: String(myId),
           name: userName,
           likedMovies: moviesVal,
           preferredGenreIds: genresVal,
           ready: readyVal
         })
       })
+      if (res.ok) {
+        const data = await res.json()
+        setRoom(data)
+      }
     } catch {}
   }
 
@@ -195,8 +217,8 @@ export default function ConsensusPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fromUserId: myId,
-          toUserId: friendId,
+          fromUserId: String(myId),
+          toUserId: String(friendId),
           roomId
         })
       })
@@ -217,8 +239,32 @@ export default function ConsensusPage() {
     try {
       const friendId = selectedFriend?.id || selectedFriend?._id
       const friendName = selectedFriend?.displayName || selectedFriend?.name || 'Partner'
-      const partnerData = room?.participants?.[friendId]
+      const partnerData = room?.participants?.[friendId] ||
+        room?.participants?.[String(friendId)] ||
+        Object.values(room?.participants || {}).find(p => String(p.userId) === String(friendId))
 
+      if (mode === 'live' && roomId) {
+        // Compute on server and broadcast live results simultaneously to both users
+        const res = await fetch(`/api/consensus/room/${roomId}/compute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userAId: String(myId),
+            userBId: String(friendId)
+          })
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setRoom(data)
+          if (data.results) {
+            setResults(data.results)
+            return
+          }
+        }
+      }
+
+      // Local mode or fallback
       const friendGenres = (partnerData?.preferredGenreIds?.length > 0
         ? partnerData.preferredGenreIds
         : (selectedFriend?.favoriteGenres || [878, 53]))
@@ -280,9 +326,13 @@ export default function ConsensusPage() {
 
   const selectedFriendId = selectedFriend?.id || selectedFriend?._id
   const isSelectedFriendOnline = realtime?.presenceMap?.[selectedFriendId] === 'online'
+  const partnerData = room?.participants?.[selectedFriendId] ||
+    room?.participants?.[String(selectedFriendId)] ||
+    Object.values(room?.participants || {}).find(p => String(p.userId) === String(selectedFriendId))
+  const isPartnerReady = !!partnerData?.ready
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 130px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
@@ -566,12 +616,11 @@ export default function ConsensusPage() {
 
         {/* Selected Friend Live Profile Card (Live Mode) */}
         {mode === 'live' && (() => {
-          const partnerData = room?.participants?.[selectedFriendId]
-          const partnerGenres = (partnerData?.preferredGenreIds?.length > 0
-            ? partnerData.preferredGenreIds
+          const activePartner = partnerData
+          const partnerGenres = (activePartner?.preferredGenreIds?.length > 0
+            ? activePartner.preferredGenreIds
             : (selectedFriend?.favoriteGenres || [878, 53]))
-          const partnerMovies = partnerData?.likedMovies || []
-          const isPartnerReady = partnerData?.ready
+          const partnerMovies = activePartner?.likedMovies || []
 
           return (
             <div style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: 22 }}>
@@ -806,20 +855,37 @@ export default function ConsensusPage() {
       </div>
 
       {/* ── ACTION TRIGGER ──────────────────────────────────────────────── */}
-      <div style={{ textAlign: 'center', marginBottom: 36 }}>
+      <div style={{ textAlign: 'center', marginBottom: 44 }}>
         <button
           onClick={handleCompute}
           disabled={busy}
           style={{
-            background: 'linear-gradient(135deg,#e50914,#8b5cf6)',
-            border: 'none', borderRadius: 12, padding: '16px 48px', color: 'white',
-            fontFamily: "'DM Sans',sans-serif", fontSize: 16, fontWeight: 700, cursor: 'pointer',
-            boxShadow: '0 8px 32px rgba(229,9,20,.35)', transition: 'all .25s'
+            background: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
+              ? 'linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)'
+              : 'linear-gradient(135deg, #e50914 0%, #8b5cf6 100%)',
+            border: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
+              ? '1.5px solid rgba(16, 185, 129, 0.5)'
+              : 'none',
+            borderRadius: 14,
+            padding: '16px 48px',
+            color: 'white',
+            fontFamily: "'DM Sans',sans-serif",
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
+              ? '0 12px 36px rgba(16, 185, 129, 0.45)'
+              : '0 8px 32px rgba(229, 9, 20, 0.35)',
+            transition: 'all .25s ease'
           }}
           onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'}
           onMouseOut={e => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
         >
-          {busy ? 'Solving Pareto Consensus...' : '⚡ Find Our Perfect Compromise'}
+          {busy
+            ? 'Solving Pareto Consensus...'
+            : (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
+              ? '✨ Both Cinephiles Ready! Find Our Perfect Compromise'
+              : '⚡ Find Our Perfect Compromise'}
         </button>
       </div>
 

@@ -4,19 +4,118 @@
 import { Router } from 'express'
 import { GID, GN, MOCK_MOVIES } from '../../src/data/constants.js'
 import { buildGenreVector, cosineSimilarity } from '../../src/utils/recommend.js'
+import { getRedisPub, publishEvent } from '../redis.js'
+import { DB } from '../db/index.js'
 
 const router = Router()
 
-// In-Memory Real-Time Live Rooms Store
+// In-Memory Fast Cache (complemented by Upstash Redis and MongoDB Atlas)
 const ROOMS = new Map()
 
-// Clean up rooms older than 6 hours
+// Clean up local cache rooms older than 6 hours
 setInterval(() => {
   const cutoff = Date.now() - (6 * 60 * 60 * 1000)
   for (const [id, room] of ROOMS.entries()) {
     if (room.createdAt < cutoff) ROOMS.delete(id)
   }
 }, 30 * 60 * 1000)
+
+/**
+ * Retrieve room from Upstash Redis, MongoDB Atlas, or local cache
+ */
+async function getRoom(roomId) {
+  if (!roomId) return null
+  const rid = String(roomId).toUpperCase()
+
+  // 1. Check Redis (primary real-time shared state across all Vercel serverless instances)
+  try {
+    const pub = getRedisPub()
+    if (pub) {
+      const cached = await pub.get(`consensus:room:${rid}`)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        ROOMS.set(rid, parsed)
+        return parsed
+      }
+    }
+  } catch (err) {
+    console.warn('[Consensus] Redis get error:', err.message)
+  }
+
+  // 2. Check MongoDB Atlas (durable persistent fallback)
+  try {
+    const doc = await DB.getConsensusRoom(rid)
+    if (doc) {
+      ROOMS.set(rid, doc)
+      // Re-seed Redis cache
+      try {
+        const pub = getRedisPub()
+        if (pub) await pub.set(`consensus:room:${rid}`, JSON.stringify(doc), 'EX', 86400)
+      } catch {}
+      return doc
+    }
+  } catch (err) {
+    console.warn('[Consensus] DB get error:', err.message)
+  }
+
+  // 3. Fallback to local memory cache
+  return ROOMS.get(rid) || null
+}
+
+/**
+ * Save room to local memory, Upstash Redis (with TTL), and MongoDB Atlas,
+ * then broadcast real-time update event via Redis Pub/Sub to both participants
+ */
+async function saveRoom(roomId, room) {
+  if (!roomId || !room) return
+  const rid = String(roomId).toUpperCase()
+  room.roomId = rid
+  room.updatedAt = Date.now()
+
+  // 1. Local memory cache
+  ROOMS.set(rid, room)
+
+  // 2. Upstash Redis (shared state across Vercel serverless functions, 24h TTL)
+  try {
+    const pub = getRedisPub()
+    if (pub) {
+      await pub.set(`consensus:room:${rid}`, JSON.stringify(room), 'EX', 86400)
+    }
+  } catch (err) {
+    console.warn('[Consensus] Redis save error:', err.message)
+  }
+
+  // 3. MongoDB Atlas (durable persistence)
+  try {
+    await DB.saveConsensusRoom(rid, room)
+  } catch (err) {
+    console.warn('[Consensus] DB save error:', err.message)
+  }
+
+  // 4. Real-time Pub/Sub broadcast via Redis SSE
+  try {
+    // Broadcast on room channel
+    await publishEvent(`consensus:room:${rid}`, {
+      type: 'consensus_room_update',
+      roomId: rid,
+      room
+    })
+
+    // Broadcast directly to each participant's active SSE user channel
+    const participantIds = Object.keys(room.participants || {})
+    await Promise.all(
+      participantIds.map(uid =>
+        publishEvent(`chat:user:${uid}`, {
+          type: 'consensus_room_update',
+          roomId: rid,
+          room
+        })
+      )
+    )
+  } catch (err) {
+    console.warn('[Consensus] Broadcast error:', err.message)
+  }
+}
 
 /**
  * Builds user composite vector from liked movies and direct genre picks
@@ -142,14 +241,14 @@ router.post('/match', (req, res) => {
 // ── Real-Time Live Room Management ───────────────────────────────────────────
 
 // Create or retrieve a collaborative room
-router.post('/room/create', (req, res) => {
+router.post('/room/create', async (req, res) => {
   try {
-    const { hostName = 'Host', likedMovies = [], preferredGenreIds = [], roomId: customRoomId, hostId, userId, name } = req.body || {}
+    const { hostName = 'Host', likedMovies = [], preferredGenreIds = [], roomId: customRoomId, hostId, userId, name, ready } = req.body || {}
     const roomId = (customRoomId || `MIND-${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase()
     const activeUserId = String(userId || hostId || 'host')
     const activeName = name || hostName
 
-    let room = ROOMS.get(roomId)
+    let room = await getRoom(roomId)
     if (!room) {
       room = {
         roomId,
@@ -158,27 +257,23 @@ router.post('/room/create', (req, res) => {
         participants: {},
         results: null
       }
-      ROOMS.set(roomId, room)
     }
 
     if (!room.participants) room.participants = {}
-    if (!room.participants[activeUserId]) {
-      room.participants[activeUserId] = {
-        userId: activeUserId,
-        name: activeName,
-        likedMovies: Array.isArray(likedMovies) ? likedMovies : [],
-        preferredGenreIds: Array.isArray(preferredGenreIds) ? preferredGenreIds : [],
-        ready: false,
-        lastUpdated: Date.now()
-      }
-    } else {
-      if (activeName) room.participants[activeUserId].name = activeName
-      if (likedMovies.length > 0) room.participants[activeUserId].likedMovies = likedMovies
-      if (preferredGenreIds.length > 0) room.participants[activeUserId].preferredGenreIds = preferredGenreIds
+    const existingP = room.participants[activeUserId] || {}
+    room.participants[activeUserId] = {
+      userId: activeUserId,
+      name: activeName || existingP.name || 'Participant',
+      likedMovies: Array.isArray(likedMovies) ? likedMovies : (existingP.likedMovies || []),
+      preferredGenreIds: Array.isArray(preferredGenreIds) ? preferredGenreIds : (existingP.preferredGenreIds || []),
+      ready: typeof ready === 'boolean' ? ready : !!existingP.ready,
+      lastUpdated: Date.now()
     }
 
+    await saveRoom(roomId, room)
     return res.json(room)
   } catch (err) {
+    console.error('[Consensus create error]:', err)
     return res.status(500).json({ error: err.message })
   }
 })
@@ -190,14 +285,12 @@ router.post('/invite', async (req, res) => {
     if (!fromUserId || !toUserId || !roomId) {
       return res.status(400).json({ error: 'fromUserId, toUserId, and roomId required' })
     }
-    const { publishEvent } = await import('../redis.js')
-    const { DB } = await import('../db/index.js')
     const sender = await DB.findUserById(fromUserId)
 
-    // 1. Broadcast real-time Redis notification
+    // 1. Broadcast real-time Redis notification directly to friend's personal SSE channel
     await publishEvent(`chat:user:${toUserId}`, {
       type: 'consensus_invite',
-      roomId,
+      roomId: String(roomId).toUpperCase(),
       fromUser: sender,
       timestamp: Date.now()
     })
@@ -211,73 +304,98 @@ router.post('/invite', async (req, res) => {
 
     return res.json({ success: true, message: 'Invite sent to friend!' })
   } catch (err) {
+    console.error('[Consensus invite error]:', err)
     return res.status(500).json({ error: err.message })
   }
 })
 
-// Get live room status (polled by clients)
-router.get('/room/:roomId', (req, res) => {
-  const { roomId } = req.params
-  const room = ROOMS.get(roomId.toUpperCase())
-  if (!room) {
-    return res.status(404).json({ error: 'Room not found or expired.' })
+// Get live room status (polled by clients, backed by Upstash Redis and MongoDB Atlas)
+router.get('/room/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params
+    const room = await getRoom(roomId)
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found or expired.' })
+    }
+    return res.json(room)
+  } catch (err) {
+    console.error('[Consensus get room error]:', err)
+    return res.status(500).json({ error: err.message })
   }
-  return res.json(room)
 })
 
-// Update selections by userId
-router.post('/room/:roomId/update', (req, res) => {
-  const { roomId } = req.params
-  const { userId, name, likedMovies, preferredGenreIds, ready } = req.body || {}
-  const room = ROOMS.get(roomId.toUpperCase())
+// Update selections by userId — auto-upserts room and broadcasts instantly to both users
+router.post('/room/:roomId/update', async (req, res) => {
+  try {
+    const { roomId } = req.params
+    const { userId, name, likedMovies, preferredGenreIds, ready } = req.body || {}
+    let room = await getRoom(roomId)
 
-  if (!room) {
-    return res.status(404).json({ error: 'Room not found.' })
+    if (!room) {
+      room = {
+        roomId: String(roomId).toUpperCase(),
+        createdAt: Date.now(),
+        status: 'waiting',
+        participants: {},
+        results: null
+      }
+    }
+
+    if (!room.participants) room.participants = {}
+    const uid = String(userId || 'host')
+    const existingP = room.participants[uid] || {}
+
+    room.participants[uid] = {
+      userId: uid,
+      name: name || existingP.name || 'Participant',
+      likedMovies: Array.isArray(likedMovies) ? likedMovies : (existingP.likedMovies || []),
+      preferredGenreIds: Array.isArray(preferredGenreIds) ? preferredGenreIds : (existingP.preferredGenreIds || []),
+      ready: typeof ready === 'boolean' ? ready : !!existingP.ready,
+      lastUpdated: Date.now()
+    }
+
+    await saveRoom(roomId, room)
+    return res.json(room)
+  } catch (err) {
+    console.error('[Consensus update error]:', err)
+    return res.status(500).json({ error: err.message })
   }
-
-  if (!room.participants) room.participants = {}
-  const uid = String(userId || 'host')
-
-  room.participants[uid] = {
-    userId: uid,
-    name: name || room.participants[uid]?.name || 'Participant',
-    likedMovies: Array.isArray(likedMovies) ? likedMovies : (room.participants[uid]?.likedMovies || []),
-    preferredGenreIds: Array.isArray(preferredGenreIds) ? preferredGenreIds : (room.participants[uid]?.preferredGenreIds || []),
-    ready: typeof ready === 'boolean' ? ready : !!room.participants[uid]?.ready,
-    lastUpdated: Date.now()
-  }
-
-  return res.json(room)
 })
 
-// Compute final consensus for room
-router.post('/room/:roomId/compute', (req, res) => {
-  const { roomId } = req.params
-  const { userAId, userBId } = req.body || {}
-  const room = ROOMS.get(roomId.toUpperCase())
+// Compute final consensus for room and broadcast results to both participants
+router.post('/room/:roomId/compute', async (req, res) => {
+  try {
+    const { roomId } = req.params
+    const { userAId, userBId } = req.body || {}
+    const room = await getRoom(roomId)
 
-  if (!room) {
-    return res.status(404).json({ error: 'Room not found.' })
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found.' })
+    }
+
+    const keys = Object.keys(room.participants || {})
+    const pA = room.participants?.[userAId] || room.participants?.[String(userAId)] || room.participants?.[keys[0]]
+    const pB = room.participants?.[userBId] || room.participants?.[String(userBId)] || room.participants?.[keys[1]]
+
+    if (!pA || !pB) {
+      return res.status(400).json({ error: 'Both participants must join the room before computing.' })
+    }
+
+    const results = computeConsensus({
+      userA: pA,
+      userB: pB,
+      pool: MOCK_MOVIES
+    })
+
+    room.results = results
+    room.status = 'computed'
+
+    await saveRoom(roomId, room)
+    return res.json(room)
+  } catch (err) {
+    console.error('[Consensus compute error]:', err)
+    return res.status(500).json({ error: err.message })
   }
-
-  const keys = Object.keys(room.participants || {})
-  const pA = room.participants?.[userAId] || room.participants?.[keys[0]]
-  const pB = room.participants?.[userBId] || room.participants?.[keys[1]]
-
-  if (!pA || !pB) {
-    return res.status(400).json({ error: 'Both participants must join the room before computing.' })
-  }
-
-  const results = computeConsensus({
-    userA: pA,
-    userB: pB,
-    pool: MOCK_MOVIES
-  })
-
-  room.results = results
-  room.status = 'computed'
-
-  return res.json(room)
 })
 
 export default router

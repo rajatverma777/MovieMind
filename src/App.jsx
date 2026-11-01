@@ -23,7 +23,7 @@ import MyProfileModal  from '@/components/MyProfileModal'
 import Spinner         from '@/components/Spinner'
 
 function Router() {
-  const { page, apiKey, movieId, user, authChecking, authModalOpen, setAuthModalOpen } = useApp()
+  const { page, apiKey, movieId, user, authChecking, authModalOpen, setAuthModalOpen, realtime, setActiveChatFriend, navigate } = useApp()
 
   if (authChecking) {
     return (
@@ -70,6 +70,73 @@ function Router() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Navbar />
+
+      {/* Real-time Couch Consensus Live Invitation Banner */}
+      {realtime?.consensusInvite && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.94)',
+            backdropFilter: 'blur(28px) saturate(190%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+            border: '1.2px solid rgba(56, 189, 248, 0.45)',
+            borderRadius: 100,
+            padding: '8px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.65), 0 0 24px rgba(56, 189, 248, 0.3)',
+            animation: 'appleMenuPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          }}
+        >
+          <span style={{ fontSize: 20 }}>🛋️</span>
+          <span style={{ fontSize: 13, color: 'white', fontWeight: 600 }}>
+            <strong style={{ color: '#38bdf8' }}>@{realtime.consensusInvite.fromUser?.username || 'Friend'}</strong> invited you to Couch Consensus!
+          </span>
+          <button
+            onClick={() => {
+              if (realtime.consensusInvite.fromUser) {
+                setActiveChatFriend(realtime.consensusInvite.fromUser)
+              }
+              navigate('consensus')
+              realtime.setConsensusInvite(null)
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
+              border: 'none',
+              borderRadius: 20,
+              padding: '6px 16px',
+              color: 'white',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(14, 165, 233, 0.4)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Join Watch Party ➔
+          </button>
+          <button
+            onClick={() => realtime.setConsensusInvite(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255, 255, 255, 0.5)',
+              fontSize: 16,
+              cursor: 'pointer',
+              padding: '2px 4px',
+              lineHeight: 1
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <main>{pages[page] ?? <LandingPage />}</main>
 
       {/* Global Modals */}

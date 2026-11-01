@@ -79,12 +79,22 @@ const ConsensusVoteSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 })
 
+const ConsensusRoomSchema = new mongoose.Schema({
+  roomId: { type: String, unique: true, required: true, index: true },
+  createdAt: { type: Number, default: Date.now },
+  status: { type: String, default: 'waiting' },
+  participants: { type: Object, default: {} },
+  results: { type: Object, default: null },
+  updatedAt: { type: Number, default: Date.now }
+})
+
 // Safe model retrieval avoiding Mongoose recompilation errors in serverless
 export const WatchlistModel = mongoose.models.Watchlist || mongoose.model('Watchlist', WatchlistSchema)
 export const FriendRequestModel = mongoose.models.FriendRequest || mongoose.model('FriendRequest', FriendRequestSchema)
 export const MessageModel = mongoose.models.Message || mongoose.model('Message', MessageSchema)
 export const PreferenceModel = mongoose.models.Preference || mongoose.model('Preference', PreferenceSchema)
 export const ConsensusVoteModel = mongoose.models.ConsensusVote || mongoose.model('ConsensusVote', ConsensusVoteSchema)
+export const ConsensusRoomModel = mongoose.models.ConsensusRoom || mongoose.model('ConsensusRoom', ConsensusRoomSchema)
 
 // ── Pure Mathematical Taste Similarity Engine ───────────────────────────────
 // Evaluates authentic cinematic affinity between two cinephiles via:
@@ -629,5 +639,24 @@ export const DB = {
     await connectDB()
     const votes = await ConsensusVoteModel.find({ roomId: String(roomId) }).lean()
     return votes
+  },
+
+  async getConsensusRoom(roomId) {
+    if (!roomId) return null
+    await connectDB()
+    const room = await ConsensusRoomModel.findOne({ roomId: String(roomId).toUpperCase() }).lean()
+    return room
+  },
+
+  async saveConsensusRoom(roomId, roomData) {
+    if (!roomId || !roomData) return null
+    await connectDB()
+    const rid = String(roomId).toUpperCase()
+    const updated = await ConsensusRoomModel.findOneAndUpdate(
+      { roomId: rid },
+      { $set: { ...roomData, roomId: rid, updatedAt: Date.now() } },
+      { upsert: true, new: true }
+    ).lean()
+    return updated
   }
 }
