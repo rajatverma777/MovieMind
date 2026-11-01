@@ -1,5 +1,5 @@
 // src/pages/MessagesPage.jsx — Apple visionOS Minimalist Liquid Glass Messenger
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, Fragment } from 'react'
 import { useApp } from '@/context/AppContext'
 import { imgUrl } from '@/data/constants'
 import MovieShareModal from '@/components/MovieShareModal'
@@ -68,6 +68,20 @@ function SendArrowIcon({ size = 16, color = 'white' }) {
   )
 }
 
+// Friendly date formatter for grouping chat bubbles by day
+function formatMessageDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return ''
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (d.toDateString() === today.toDateString()) return 'Today'
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday'
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
+}
+
 export default function MessagesPage() {
   const { user, watchlist, toggleWatchlist, navigate, activeChatFriend, setActiveChatFriend, realtime } = useApp()
 
@@ -103,6 +117,7 @@ export default function MessagesPage() {
   const [chatInput, setChatInput] = useState('')
   const [sendingMsg, setSendingMsg] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false)
   const chatScrollContainerRef = useRef(null)
   const prevMsgCountRef = useRef(0)
 
@@ -289,6 +304,15 @@ export default function MessagesPage() {
     } else {
       el.scrollTop = el.scrollHeight
     }
+    setShowScrollBottomBtn(false)
+  }
+
+  // Handle scroll inside chat container to detect when user scrolls up to read old history
+  const handleChatScroll = (e) => {
+    const el = e.currentTarget
+    if (!el) return
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    setShowScrollBottomBtn(distanceFromBottom > 160)
   }
 
   // Auto-scroll chat only when new messages are added or when near bottom
@@ -503,16 +527,31 @@ export default function MessagesPage() {
   )
 
   useEffect(() => {
+    // Lock body scrolling while inside Messages page so gestures never scroll the webpage
+    const prevOverflow = document.body.style.overflow
+    const prevPaddingBottom = document.body.style.paddingBottom
+    document.body.style.overflow = 'hidden'
+    document.body.style.paddingBottom = '0px'
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.body.style.paddingBottom = prevPaddingBottom
+    }
   }, [])
 
   return (
     <div
       style={{
-        minHeight: '100vh',
-        padding: '16px 18px 96px',
-        maxWidth: 1280,
+        height: 'calc(100vh - 84px)',
+        maxHeight: 'calc(100vh - 84px)',
+        maxWidth: 1340,
         margin: '0 auto',
+        padding: '8px 16px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
         fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif"
       }}
     >
@@ -522,8 +561,8 @@ export default function MessagesPage() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 16,
-          flexWrap: 'wrap',
+          marginBottom: 8,
+          flexShrink: 0,
           gap: 12
         }}
       >
@@ -532,11 +571,11 @@ export default function MessagesPage() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
+              gap: 5,
               background: 'rgba(56, 189, 248, 0.12)',
               border: '1px solid rgba(56, 189, 248, 0.28)',
               borderRadius: 20,
-              padding: '4px 12px',
+              padding: '3px 10px',
               fontSize: 11,
               fontWeight: 700,
               color: '#38bdf8'
@@ -547,7 +586,7 @@ export default function MessagesPage() {
           <h1
             style={{
               fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif",
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: 700,
               color: 'white',
               letterSpacing: -0.3,
@@ -564,9 +603,9 @@ export default function MessagesPage() {
             background: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.14)',
             borderRadius: 20,
-            padding: '7px 16px',
+            padding: '5px 14px',
             color: 'rgba(255, 255, 255, 0.9)',
-            fontSize: 12,
+            fontSize: 11.5,
             fontWeight: 600,
             cursor: 'pointer',
             display: 'flex',
@@ -591,15 +630,15 @@ export default function MessagesPage() {
       {/* ── LIQUID GLASS MESSENGER CONTAINER ─────────────────────────────── */}
       <div
         style={{
+          flex: 1,
+          minHeight: 0,
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '310px 1fr',
-          minHeight: 520,
-          height: 'calc(100vh - 180px)',
-          background: 'rgba(14, 17, 28, 0.65)',
+          gridTemplateColumns: isMobile ? '1fr' : '300px 1fr',
+          background: 'rgba(14, 17, 28, 0.72)',
           backdropFilter: 'blur(32px) saturate(190%)',
           WebkitBackdropFilter: 'blur(32px) saturate(190%)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: 24,
+          borderRadius: 22,
           overflow: 'hidden',
           boxShadow: '0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18)'
         }}
@@ -612,11 +651,12 @@ export default function MessagesPage() {
               display: 'flex',
               flexDirection: 'column',
               background: 'rgba(255, 255, 255, 0.015)',
-              height: '100%'
+              height: '100%',
+              minHeight: 0
             }}
           >
             {/* Search Pill */}
-            <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', flexShrink: 0 }}>
               <div
                 style={{
                   display: 'flex',
@@ -657,7 +697,16 @@ export default function MessagesPage() {
             </div>
 
             {/* Conversation Items Stream */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '6px 4px' }}>
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+                overscrollBehavior: 'contain',
+                WebkitOverflowScrolling: 'touch',
+                padding: '6px 4px'
+              }}
+            >
               <div
                 style={{
                   padding: '8px 12px 4px',
@@ -836,7 +885,17 @@ export default function MessagesPage() {
         {/* ── RIGHT MAIN CHAT PANEL ────────────────────────────────────────── */}
         {(!isMobile || selectedFriend) && (
           selectedFriend ? (
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'rgba(0, 0, 0, 0.12)' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                minHeight: 0,
+                overflow: 'hidden',
+                position: 'relative',
+                background: 'rgba(0, 0, 0, 0.12)'
+              }}
+            >
               {/* Active Conversation Top Bar */}
               <div
                 style={{
@@ -847,7 +906,8 @@ export default function MessagesPage() {
                   alignItems: 'center',
                   background: 'rgba(255, 255, 255, 0.02)',
                   flexWrap: 'wrap',
-                  gap: 10
+                  gap: 10,
+                  flexShrink: 0
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1028,7 +1088,8 @@ export default function MessagesPage() {
                     color: '#7dd3fc',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6
+                    gap: 6,
+                    flexShrink: 0
                   }}
                 >
                   <span className="dot-pulse">✍️</span> @{selectedFriend.username} is typing...
@@ -1038,13 +1099,18 @@ export default function MessagesPage() {
               {/* Messages Stream */}
               <div
                 ref={chatScrollContainerRef}
+                onScroll={handleChatScroll}
                 style={{
                   flex: 1,
-                  padding: 20,
+                  minHeight: 0,
+                  padding: '16px 20px',
                   overflowY: 'auto',
+                  overscrollBehavior: 'contain',
+                  WebkitOverflowScrolling: 'touch',
+                  touchAction: 'pan-y',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 12
+                  gap: 10
                 }}
               >
                 {messages.length === 0 ? (
@@ -1059,162 +1125,302 @@ export default function MessagesPage() {
                   messages.map((m, idx) => {
                     const isMe = m.fromUserId === myId
                     const msgKey = m.id || (m._id ? String(m._id) : `msg_${idx}`)
+                    const dateLabel = formatMessageDate(m.createdAt)
+                    const prevDateLabel = idx > 0 ? formatMessageDate(messages[idx - 1].createdAt) : null
+                    const showDateDivider = Boolean(dateLabel && dateLabel !== prevDateLabel)
+
+                    // Check if message is a Couch Consensus party invite
+                    const isConsensusInvite = m.text && (
+                      m.text.includes('Couch Consensus') ||
+                      m.text.includes('movie-matching session')
+                    )
 
                     return (
-                      <div
-                        key={msgKey}
-                        style={{
-                          alignSelf: isMe ? 'flex-end' : 'flex-start',
-                          maxWidth: '75%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: isMe ? 'flex-end' : 'flex-start'
-                        }}
-                      >
-                        {/* Text Message Bubble */}
-                        {m.text && (
+                      <Fragment key={msgKey}>
+                        {showDateDivider && (
                           <div
                             style={{
-                              background: isMe
-                                ? 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)'
-                                : 'rgba(255, 255, 255, 0.08)',
-                              border: isMe ? 'none' : '1px solid rgba(255, 255, 255, 0.12)',
-                              color: 'white',
-                              padding: '9px 15px',
-                              borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                              fontSize: 13,
-                              lineHeight: 1.45,
-                              boxShadow: isMe ? '0 4px 14px rgba(14, 165, 233, 0.3)' : 'none'
+                              alignSelf: 'center',
+                              margin: '10px 0 6px',
+                              background: 'rgba(255, 255, 255, 0.06)',
+                              border: '1px solid rgba(255, 255, 255, 0.10)',
+                              borderRadius: 14,
+                              padding: '3px 12px',
+                              fontSize: 10.5,
+                              fontWeight: 600,
+                              color: 'rgba(255, 255, 255, 0.65)',
+                              letterSpacing: 0.3,
+                              userSelect: 'none'
                             }}
                           >
-                            {m.text}
+                            {dateLabel}
                           </div>
                         )}
 
-                        {/* Interactive In-Chat Movie Card */}
-                        {m.movieRecommendation && (
-                          <div
-                            style={{
-                              marginTop: 6,
-                              background: 'rgba(16, 20, 32, 0.85)',
-                              border: '1px solid rgba(255, 255, 255, 0.14)',
-                              borderRadius: 16,
-                              padding: 12,
-                              width: 300,
-                              boxShadow: '0 12px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
-                              backdropFilter: 'blur(20px)'
-                            }}
-                          >
-                            <div style={{ display: 'flex', gap: 10 }}>
-                              <img
-                                src={imgUrl(m.movieRecommendation.poster_path, 'w92')}
-                                alt={m.movieRecommendation.title}
-                                style={{ width: 54, height: 78, borderRadius: 8, objectFit: 'cover' }}
-                              />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {m.movieRecommendation.title}
-                                </div>
-                                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
-                                  ⭐ {m.movieRecommendation.vote_average} · {m.movieRecommendation.release_date?.split('-')[0]}
-                                </div>
-                                <div style={{ fontSize: 9.5, color: '#38bdf8', marginTop: 3 }}>
-                                  {(m.movieRecommendation.genres || []).slice(0, 2).join(' · ')}
-                                </div>
-                              </div>
-                            </div>
-
-                            {m.movieRecommendation.personalNote && (
-                              <div
-                                style={{
-                                  marginTop: 8,
-                                  padding: '6px 10px',
-                                  background: 'rgba(255, 255, 255, 0.05)',
-                                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                                  borderRadius: 8,
-                                  fontSize: 11,
-                                  color: 'rgba(255, 255, 255, 0.85)',
-                                  fontStyle: 'italic',
-                                  lineHeight: 1.35
-                                }}
-                              >
-                                "{m.movieRecommendation.personalNote}"
-                              </div>
-                            )}
-
-                            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                              <button
-                                onClick={() => toggleWatchlist({
-                                  ...m.movieRecommendation,
-                                  id: m.movieRecommendation.id,
-                                  title: m.movieRecommendation.title,
-                                  poster_path: m.movieRecommendation.poster_path,
-                                  vote_average: m.movieRecommendation.vote_average,
-                                  genre_ids: m.movieRecommendation.genre_ids || []
-                                })}
-                                style={{
-                                  flex: 1,
-                                  background: 'rgba(255, 255, 255, 0.08)',
-                                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                                  borderRadius: 8,
-                                  padding: '5px 0',
-                                  color: 'white',
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                {watchlist.some(w => w.id === m.movieRecommendation.id) ? '✓ Saved' : '+ Watchlist'}
-                              </button>
-                              <button
-                                onClick={() => navigate('movie', m.movieRecommendation.id)}
-                                style={{
-                                  background: 'rgba(255, 255, 255, 0.92)',
-                                  border: 'none',
-                                  borderRadius: 8,
-                                  padding: '5px 10px',
-                                  color: '#090910',
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Details ➔
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Timestamp & Delivery Tick */}
-                        <span
+                        <div
                           style={{
-                            fontSize: 9,
-                            color: 'rgba(255, 255, 255, 0.35)',
-                            marginTop: 3,
-                            padding: '0 4px',
+                            alignSelf: isMe ? 'flex-end' : 'flex-start',
+                            maxWidth: isConsensusInvite ? '85%' : '75%',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: 3
+                            flexDirection: 'column',
+                            alignItems: isMe ? 'flex-end' : 'flex-start'
                           }}
                         >
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {isMe && (
-                            <WhatsAppTick status={m.read ? 'read' : (m.delivered ? 'delivered' : 'sent')} />
+                          {/* Couch Consensus Invite Card */}
+                          {isConsensusInvite ? (
+                            <div
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.88) 0%, rgba(15, 23, 42, 0.95) 100%)',
+                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                borderRadius: 18,
+                                padding: '14px 16px',
+                                maxWidth: 360,
+                                boxShadow: '0 10px 32px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.15)',
+                                backdropFilter: 'blur(20px)'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                                <div
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 12,
+                                    background: 'rgba(56, 189, 248, 0.15)',
+                                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 18,
+                                    flexShrink: 0
+                                  }}
+                                >
+                                  🛋️
+                                </div>
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: -0.2 }}>
+                                    Couch Consensus
+                                  </div>
+                                  <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 500 }}>
+                                    Watch Party Invitation
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.45, marginBottom: 12 }}>
+                                {isMe
+                                  ? `You invited @${selectedFriend.username} to a movie-matching session to pick tonight's film!`
+                                  : `@${selectedFriend.username} invited you to a movie-matching session! Swipe and match films together.`}
+                              </div>
+
+                              <button
+                                onClick={() => launchConsensusWithFriend(selectedFriend)}
+                                style={{
+                                  width: '100%',
+                                  background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  borderRadius: 12,
+                                  padding: '8px 14px',
+                                  color: 'white',
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 6,
+                                  boxShadow: '0 4px 16px rgba(14, 165, 233, 0.35)',
+                                  transition: 'all 0.18s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.filter = 'brightness(1.1)'}
+                                onMouseOut={e => e.currentTarget.style.filter = 'none'}
+                              >
+                                <span>🍿</span> Join Watch Party →
+                              </button>
+                            </div>
+                          ) : (
+                            /* Text Message Bubble */
+                            m.text && (
+                              <div
+                                style={{
+                                  background: isMe
+                                    ? 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)'
+                                    : 'rgba(255, 255, 255, 0.08)',
+                                  border: isMe ? 'none' : '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: 'white',
+                                  padding: '9px 15px',
+                                  borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  fontSize: 13,
+                                  lineHeight: 1.45,
+                                  boxShadow: isMe ? '0 4px 14px rgba(14, 165, 233, 0.25)' : 'none',
+                                  wordBreak: 'break-word'
+                                }}
+                              >
+                                {m.text}
+                              </div>
+                            )
                           )}
-                        </span>
-                      </div>
+
+                          {/* Interactive In-Chat Movie Card */}
+                          {m.movieRecommendation && (
+                            <div
+                              style={{
+                                marginTop: 6,
+                                background: 'rgba(16, 20, 32, 0.85)',
+                                border: '1px solid rgba(255, 255, 255, 0.14)',
+                                borderRadius: 16,
+                                padding: 12,
+                                width: 300,
+                                boxShadow: '0 12px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+                                backdropFilter: 'blur(20px)'
+                              }}
+                            >
+                              <div style={{ display: 'flex', gap: 10 }}>
+                                <img
+                                  src={imgUrl(m.movieRecommendation.poster_path, 'w92')}
+                                  alt={m.movieRecommendation.title}
+                                  style={{ width: 54, height: 78, borderRadius: 8, objectFit: 'cover' }}
+                                />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {m.movieRecommendation.title}
+                                  </div>
+                                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+                                    ⭐ {m.movieRecommendation.vote_average} · {m.movieRecommendation.release_date?.split('-')[0]}
+                                  </div>
+                                  <div style={{ fontSize: 9.5, color: '#38bdf8', marginTop: 3 }}>
+                                    {(m.movieRecommendation.genres || []).slice(0, 2).join(' · ')}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {m.movieRecommendation.personalNote && (
+                                <div
+                                  style={{
+                                    marginTop: 8,
+                                    padding: '6px 10px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    borderRadius: 8,
+                                    fontSize: 11,
+                                    color: 'rgba(255, 255, 255, 0.85)',
+                                    fontStyle: 'italic',
+                                    lineHeight: 1.35
+                                  }}
+                                >
+                                  "{m.movieRecommendation.personalNote}"
+                                </div>
+                              )}
+
+                              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                                <button
+                                  onClick={() => toggleWatchlist({
+                                    ...m.movieRecommendation,
+                                    id: m.movieRecommendation.id,
+                                    title: m.movieRecommendation.title,
+                                    poster_path: m.movieRecommendation.poster_path,
+                                    vote_average: m.movieRecommendation.vote_average,
+                                    genre_ids: m.movieRecommendation.genre_ids || []
+                                  })}
+                                  style={{
+                                    flex: 1,
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    borderRadius: 8,
+                                    padding: '5px 0',
+                                    color: 'white',
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  {watchlist.some(w => w.id === m.movieRecommendation.id) ? '✓ Saved' : '+ Watchlist'}
+                                </button>
+                                <button
+                                  onClick={() => navigate('movie', m.movieRecommendation.id)}
+                                  style={{
+                                    background: 'rgba(255, 255, 255, 0.92)',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    padding: '5px 10px',
+                                    color: '#090910',
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Details ➔
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Timestamp & Delivery Tick */}
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              color: 'rgba(255, 255, 255, 0.35)',
+                              marginTop: 3,
+                              padding: '0 4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                          >
+                            {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {isMe && (
+                              <WhatsAppTick status={m.read ? 'read' : (m.delivered ? 'delivered' : 'sent')} />
+                            )}
+                          </span>
+                        </div>
+                      </Fragment>
                     )
                   })
                 )}
               </div>
 
+              {/* Floating "Jump to Latest" Button */}
+              {showScrollBottomBtn && (
+                <button
+                  type="button"
+                  onClick={() => scrollChatToBottom(true)}
+                  style={{
+                    position: 'absolute',
+                    bottom: isChatEnabled ? 74 : 110,
+                    right: 22,
+                    background: 'rgba(14, 165, 233, 0.92)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: 20,
+                    padding: '7px 14px',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    boxShadow: '0 8px 24px rgba(14, 165, 233, 0.4), 0 2px 6px rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 20,
+                    transition: 'all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1)'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 800 }}>↓</span>
+                  <span>Latest Messages</span>
+                </button>
+              )}
+
               {/* ── BOTTOM COMPOSER: LIQUID GLASS PILL ─────────────────────── */}
               {isChatEnabled ? (
                 <div
                   style={{
+                    flexShrink: 0,
                     padding: '12px 18px',
                     borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: 'rgba(11, 14, 24, 0.88)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10
@@ -1305,8 +1511,9 @@ export default function MessagesPage() {
                 /* Locked State: Apple VisionOS Frosted Glass Banner */
                 <div
                   style={{
-                    padding: '22px 24px',
-                    background: 'rgba(16, 18, 28, 0.88)',
+                    flexShrink: 0,
+                    padding: '20px 24px',
+                    background: 'rgba(14, 18, 28, 0.92)',
                     borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     flexDirection: 'column',
