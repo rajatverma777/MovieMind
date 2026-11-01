@@ -1,11 +1,22 @@
 // server/routes/auth.js — Authentication Endpoints via Better Auth & MongoDB
 import express from 'express'
-import { toNodeHandler } from 'better-auth/node'
+import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
 import { auth, getMongoDb, getLatestResetToken } from '../auth.js'
 import { DB } from '../db/index.js'
 import crypto from 'crypto'
 
 const router = express.Router()
+
+// Helper to reliably forward Set-Cookie headers as separate array elements in Express
+function forwardCookies(betterAuthRes, expressRes) {
+  if (!betterAuthRes?.headers || !expressRes) return
+  const rawCookies = betterAuthRes.headers.getSetCookie
+    ? betterAuthRes.headers.getSetCookie()
+    : [betterAuthRes.headers.get('set-cookie')].filter(Boolean)
+  if (rawCookies && rawCookies.length > 0) {
+    expressRes.setHeader('set-cookie', rawCookies)
+  }
+}
 
 // ── Check Username Availability ──────────────────────────────────────────────
 router.get('/check-username', async (req, res) => {
@@ -37,20 +48,56 @@ router.get('/check-email', async (req, res) => {
   }
 })
 
-// ── Get Current Session / Me ────────────────────────────────────────────────
+// ── Get Current Session / Me (Dual: Better Auth Session + Bearer/Cookie Fallback) ──
 router.get('/me', async (req, res) => {
   try {
-    const session = await auth.api.getSession({ headers: req.headers })
-    if (!session || !session.user) {
-      return res.status(401).json({ user: null, authenticated: false })
+    // 1. Try resolving session via Better Auth native session parser
+    let session = null
+    try {
+      const fetchHeaders = fromNodeHeaders(req.headers)
+      session = await auth.api.getSession({ headers: fetchHeaders })
+    } catch {}
+
+    if (session && session.user) {
+      const userDoc = await DB.findUserById(session.user.id)
+      return res.json({
+        authenticated: true,
+        user: userDoc || session.user,
+        session: session.session,
+        token: session.session?.token
+      })
     }
-    const userDoc = await DB.findUserById(session.user.id)
-    return res.json({
-      authenticated: true,
-      user: userDoc || session.user,
-      session: session.session
-    })
+
+    // 2. Resilient Fallback: Validate via Bearer Token or Cookie Token directly against MongoDB session collection
+    const authHeader = req.headers.authorization || ''
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null
+    const cookieHeader = req.headers.cookie || ''
+    const cookieTokenMatch = cookieHeader.match(/better-auth\.session_token=([^;]+)/)
+    const rawCookieToken = cookieTokenMatch ? decodeURIComponent(cookieTokenMatch[1]).split('.')[0] : null
+    const token = bearerToken || rawCookieToken
+
+    if (token) {
+      const db = await getMongoDb()
+      const dbSession = await db.collection('session').findOne({
+        token,
+        expiresAt: { $gt: new Date() }
+      })
+      if (dbSession) {
+        const userDoc = await DB.findUserById(dbSession.userId)
+        if (userDoc) {
+          return res.json({
+            authenticated: true,
+            user: userDoc,
+            session: dbSession,
+            token: dbSession.token
+          })
+        }
+      }
+    }
+
+    return res.status(401).json({ user: null, authenticated: false })
   } catch (err) {
+    console.error('[Auth me error]:', err)
     return res.status(500).json({ error: err.message })
   }
 })
@@ -87,27 +134,25 @@ router.post('/login', async (req, res) => {
         password,
         rememberMe: !!rememberMe
       },
-      headers: req.headers,
+      headers: fromNodeHeaders(req.headers),
       asResponse: true
     })
 
-    // Forward cookies set by Better Auth
-    const setCookie = result.headers.get('set-cookie')
-    if (setCookie) {
-      res.setHeader('set-cookie', setCookie)
-    }
+    // Forward cookies safely as array
+    forwardCookies(result, res)
 
     const data = await result.json()
     if (!result.ok) {
       return res.status(result.status || 400).json(data)
     }
 
+    const token = data.token || data.session?.token
     const userProfile = await DB.findUserById(data.user?.id)
     return res.json({
       success: true,
       message: 'Logged in successfully!',
       user: userProfile || data.user,
-      token: data.token
+      token
     })
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Login failed' })
@@ -163,14 +208,12 @@ router.post('/register', async (req, res) => {
         bio: bio.trim(),
         favoriteGenres: JSON.stringify(favoriteGenres)
       },
-      headers: req.headers,
+      headers: fromNodeHeaders(req.headers),
       asResponse: true
     })
 
-    const setCookie = result.headers.get('set-cookie')
-    if (setCookie) {
-      res.setHeader('set-cookie', setCookie)
-    }
+    // Forward cookies safely as array
+    forwardCookies(result, res)
 
     const data = await result.json()
     if (!result.ok) {
@@ -182,12 +225,13 @@ router.post('/register', async (req, res) => {
       favoriteGenres: Array.isArray(favoriteGenres) ? favoriteGenres : [878, 53]
     })
 
+    const token = data.token || data.session?.token
     const userProfile = await DB.findUserById(data.user?.id)
     return res.json({
       success: true,
       message: 'Account created successfully!',
       user: userProfile || data.user,
-      token: data.token
+      token
     })
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Registration failed' })
@@ -197,14 +241,18 @@ router.post('/register', async (req, res) => {
 // ── Sign Out ────────────────────────────────────────────────────────────────
 router.post('/logout', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization || ''
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null
+    if (bearerToken) {
+      const db = await getMongoDb()
+      await db.collection('session').deleteOne({ token: bearerToken }).catch(() => {})
+    }
+
     const result = await auth.api.signOut({
-      headers: req.headers,
+      headers: fromNodeHeaders(req.headers),
       asResponse: true
     })
-    const setCookie = result.headers.get('set-cookie')
-    if (setCookie) {
-      res.setHeader('set-cookie', setCookie)
-    }
+    forwardCookies(result, res)
     return res.json({ success: true, message: 'Signed out successfully.' })
   } catch (err) {
     return res.json({ success: true, message: 'Signed out.' })

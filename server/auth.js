@@ -44,7 +44,14 @@ export function getLatestResetToken(email) {
 export const auth = betterAuth({
   database: mongodbAdapter(mongoDbInstance),
   secret: process.env.BETTER_AUTH_SECRET || 'moviemind_super_secret_session_key_2026_xyz',
-  baseURL: process.env.BETTER_AUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5001'),
+  baseURL: process.env.BETTER_AUTH_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5001')),
+  trustedOrigins: [
+    'http://localhost:5173',
+    'http://localhost:5001',
+    'https://moviemind-eight.vercel.app',
+    ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
+  ],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,

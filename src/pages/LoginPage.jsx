@@ -149,7 +149,7 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error || data.message || 'Login failed. Please check credentials.')
       }
-      login(data.user, rememberMe)
+      login(data.user, rememberMe, data.token)
     } catch (err) {
       setSignInError(err.message)
     } finally {
@@ -202,7 +202,7 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error || data.message || 'Registration failed.')
       }
-      login(data.user, true)
+      login(data.user, true, data.token)
     } catch (err) {
       setRegError(err.message)
     } finally {

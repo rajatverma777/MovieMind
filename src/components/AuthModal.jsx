@@ -98,7 +98,7 @@ export default function AuthModal({ isOpen, onClose }) {
       if (!res.ok) {
         throw new Error(data.error || 'Login failed')
       }
-      login(data.user)
+      login(data.user, true, data.token)
       onClose()
     } catch (err) {
       setSignInError(err.message)
@@ -123,7 +123,7 @@ export default function AuthModal({ isOpen, onClose }) {
       })
       const data = await res.json()
       if (res.ok) {
-        login(data.user)
+        login(data.user, true, data.token)
         onClose()
       } else {
         throw new Error(data.error)
@@ -160,7 +160,7 @@ export default function AuthModal({ isOpen, onClose }) {
       if (!res.ok) {
         throw new Error(data.error || 'Sign up failed')
       }
-      login(data.user)
+      login(data.user, true, data.token)
       onClose()
     } catch (err) {
       setRegError(err.message)

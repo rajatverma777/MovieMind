@@ -11,9 +11,23 @@ export const useApp = () => {
 }
 
 export function AppProvider({ children }) {
-  // ── Authentication State ──────────────────────────────────────────────────
-  const [user, setUser] = useState(null)
-  const [authChecking, setAuthChecking] = useState(true)
+  // ── Authentication State with Resilient Persistent Session Cache ───────────
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('moviemind_user')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+  const [authChecking, setAuthChecking] = useState(() => {
+    try {
+      // If user is already cached in localStorage, do not block the page with a loading spinner
+      return !localStorage.getItem('moviemind_user')
+    } catch {
+      return true
+    }
+  })
   const [redirectAfterLogin, setRedirectAfterLogin] = useState('landing')
 
   // Modals
@@ -22,13 +36,31 @@ export function AppProvider({ children }) {
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false)
   const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false)
 
-  // ── Navigation (Login-First Flow) ─────────────────────────────────────────
-  const [page, setPage] = useState('login')
+  // ── Navigation (Restores last visited page on refresh if logged in) ────────
+  const [page, setPage] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('moviemind_user')
+      if (!savedUser) return 'login'
+      const savedPage = localStorage.getItem('moviemind_page')
+      return savedPage && savedPage !== 'login' ? savedPage : 'landing'
+    } catch {
+      return 'login'
+    }
+  })
   const [previousPage, setPreviousPage] = useState(null)
   const [navHistory, setNavHistory] = useState([])
   const [movieId, setMovieId] = useState(null)
   const [activeChatFriend, setActiveChatFriend] = useState(null)
   const [viewingUser, setViewingUser] = useState(null)
+
+  // Save current active page to localStorage
+  useEffect(() => {
+    if (page && page !== 'login') {
+      try {
+        localStorage.setItem('moviemind_page', page)
+      } catch {}
+    }
+  }, [page])
 
   // ── API config ────────────────────────────────────────────────────────────
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_TMDB_API_KEY || 'DEMO')
@@ -40,25 +72,56 @@ export function AppProvider({ children }) {
   // ── Realtime Redis & SSE Hook ─────────────────────────────────────────────
   const realtime = useRealtime(user)
 
-  // ── Check Current Session on Mount ────────────────────────────────────────
+  // ── Check Current Session on Mount (Dual Cookie + Bearer Token) ───────────
   const checkSession = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' })
+      const savedToken = localStorage.getItem('moviemind_session_token')
+      const headers = {}
+      if (savedToken) {
+        headers['Authorization'] = `Bearer ${savedToken}`
+      }
+
+      const res = await fetch('/api/auth/me', {
+        credentials: 'include',
+        headers
+      })
+
       if (res.ok) {
         const data = await res.json()
         if (data.authenticated && data.user) {
           setUser(data.user)
+          try {
+            localStorage.setItem('moviemind_user', JSON.stringify(data.user))
+            if (data.token) {
+              localStorage.setItem('moviemind_session_token', data.token)
+            }
+          } catch {}
           setPage(prev => (prev === 'login' ? 'landing' : prev))
           return data.user
         }
       }
-      setUser(null)
-      setPage('login')
-      return null
-    } catch {
-      setUser(null)
-      setPage('login')
-      return null
+
+      // Explicitly unauthenticated by server (e.g. 401 or 403)
+      if (res.status === 401 || res.status === 403) {
+        try {
+          localStorage.removeItem('moviemind_session_token')
+          localStorage.removeItem('moviemind_user')
+        } catch {}
+        setUser(null)
+        setPage('login')
+        return null
+      }
+    } catch (err) {
+      console.warn('[Session validation network issue]:', err.message)
+      // Keep offline/cached user session active on network glitch
+      try {
+        const cached = localStorage.getItem('moviemind_user')
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          setUser(parsed)
+          return parsed
+        }
+      } catch {}
     } finally {
       setAuthChecking(false)
     }
@@ -91,8 +154,14 @@ export function AppProvider({ children }) {
   }, [user])
 
   // ── Login Handler ─────────────────────────────────────────────────────────
-  const login = useCallback((userData, rememberMe = true) => {
+  const login = useCallback((userData, rememberMe = true, token = null) => {
     setUser(userData)
+    try {
+      localStorage.setItem('moviemind_user', JSON.stringify(userData))
+      if (token) {
+        localStorage.setItem('moviemind_session_token', token)
+      }
+    } catch {}
     setPage(prev => (prev === 'login' ? (redirectAfterLogin || 'landing') : prev))
     setRedirectAfterLogin('landing')
   }, [redirectAfterLogin])
@@ -100,7 +169,17 @@ export function AppProvider({ children }) {
   // ── Logout Handler ────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      const token = localStorage.getItem('moviemind_session_token')
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      })
+    } catch {}
+    try {
+      localStorage.removeItem('moviemind_session_token')
+      localStorage.removeItem('moviemind_user')
+      localStorage.removeItem('moviemind_page')
     } catch {}
     setUser(null)
     setWatchlist([])
