@@ -374,22 +374,22 @@ export default function SearchBar({
         </button>
       </div>
 
-      {/* ── Floating Liquid Glass Autocomplete Popover (as in user screenshot) ── */}
+      {/* ── Floating Liquid Glass Autocomplete Popover (Apple HIG Dark Mode) ── */}
       {isOpen && suggestions.length > 0 && (
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 10px)',
+            top: 'calc(100% + 8px)',
             left: 0,
             right: 0,
-            zIndex: 600,
-            background: 'rgba(18, 20, 30, 0.92)',
-            backdropFilter: 'blur(40px) saturate(190%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(190%)',
-            border: '1.2px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: 22,
-            padding: 8,
-            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.22)',
+            zIndex: 1000,
+            background: 'rgba(20, 22, 30, 0.98)',
+            backdropFilter: 'blur(50px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+            borderRadius: 20,
+            padding: '8px 6px',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08)',
             animation: 'appleMenuPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         >
@@ -416,8 +416,8 @@ export default function SearchBar({
                   padding: '9px 14px',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  background: isHighlighted ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
-                  border: isHighlighted ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid transparent',
+                  background: isHighlighted ? 'rgba(255, 255, 255, 0.10)' : 'transparent',
+                  border: isHighlighted ? '1px solid rgba(255, 255, 255, 0.14)' : '1px solid transparent',
                   transition: 'all 0.15s ease',
                   userSelect: 'none'
                 }}
@@ -426,7 +426,7 @@ export default function SearchBar({
                   <span style={{ fontSize: 13, opacity: 0.55, flexShrink: 0 }}>🔍</span>
                   <div
                     style={{
-                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
                       fontSize: 13.5,
                       lineHeight: 1.3,
                       whiteSpace: 'nowrap',
@@ -435,9 +435,9 @@ export default function SearchBar({
                     }}
                   >
                     {before && <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontWeight: 400 }}>{before}</span>}
-                    {/* Matched query is BOLD WHITE like "Design" in screenshot */}
+                    {/* Matched query is BOLD WHITE like "Design" in Apple HIG screenshot */}
                     <strong style={{ color: '#ffffff', fontWeight: 700 }}>{matched}</strong>
-                    {/* Suffix is MUTED GRAY like "systems", "language" in screenshot */}
+                    {/* Suffix is MUTED GRAY like "systems", "language" in Apple HIG screenshot */}
                     <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontWeight: 400 }}>{after}</span>
                   </div>
                 </div>

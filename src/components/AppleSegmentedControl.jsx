@@ -65,41 +65,39 @@ export default function AppleSegmentedControl({
   return (
     <div
       ref={containerRef}
-      className={`apple-segmented-group ${className}`}
+      className={`apple-segmented-group has-indicator ${className}`}
       style={{
         position: 'relative',
         display: fullWidth ? 'flex' : 'inline-flex',
         alignItems: 'center',
         background: 'rgba(255, 255, 255, 0.08)',
-        backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)',
-        backdropFilter: 'blur(28px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-        border: '1.2px solid rgba(255, 255, 255, 0.14)',
+        backdropFilter: 'blur(30px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: 9999,
-        padding: 3.5,
-        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.25)',
+        padding: 3,
+        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.35)',
         userSelect: 'none',
         width: fullWidth ? '100%' : 'auto',
         ...style
       }}
     >
-      {/* ── Active Floating Glass Pill (Dark Mode visionOS Liquid Glass) ──────── */}
+      {/* ── Active Floating Glass Pill (Authentic visionOS Liquid Glass) ─────────────── */}
       <div
         style={{
           position: 'absolute',
-          top: 3.5,
-          bottom: 3.5,
+          top: 3,
+          bottom: 3,
           left: indicatorStyle.left,
           width: indicatorStyle.width,
           opacity: indicatorStyle.opacity,
           borderRadius: 9999,
-          background: 'rgba(255, 255, 255, 0.18)',
-          backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 100%)',
+          background: 'rgba(255, 255, 255, 0.20)',
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.6), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
-          transition: 'all 0.28s cubic-bezier(0.34, 1.2, 0.64, 1)',
+          border: '1px solid rgba(255, 255, 255, 0.24)',
+          boxShadow: '0 3px 12px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.5)',
+          transition: 'all 0.26s cubic-bezier(0.34, 1.25, 0.64, 1)',
           pointerEvents: 'none',
           zIndex: 1
         }}
@@ -114,7 +112,7 @@ export default function AppleSegmentedControl({
             type="button"
             ref={el => { itemRefs.current[opt.id] = el }}
             onClick={() => onChange?.(opt.id)}
-            className={`apple-segmented-item ${isActive ? 'active' : ''}`}
+            className="apple-segmented-item"
             style={{
               position: 'relative',
               zIndex: 2,
@@ -125,22 +123,24 @@ export default function AppleSegmentedControl({
               gap: 6,
               background: 'transparent',
               border: 'none',
+              boxShadow: 'none',
               borderRadius: 9999,
               padding: sizeStyles.padding,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'DM Sans', sans-serif",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', -apple-system, sans-serif",
               fontSize: sizeStyles.fontSize,
-              fontWeight: isActive ? 700 : 550,
-              color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
-              textShadow: isActive ? '0 1px 2px rgba(0, 0, 0, 0.6)' : 'none',
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.62)',
+              textShadow: isActive ? '0 1px 2px rgba(0, 0, 0, 0.4)' : 'none',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              transition: 'color 0.22s ease, transform 0.18s ease'
+              outline: 'none',
+              transition: 'color 0.2s ease'
             }}
             onMouseOver={e => {
               if (!isActive) e.currentTarget.style.color = '#ffffff'
             }}
             onMouseOut={e => {
-              if (!isActive) e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
+              if (!isActive) e.currentTarget.style.color = 'rgba(255, 255, 255, 0.62)'
             }}
           >
             {opt.icon && <span style={{ fontSize: '1.1em', lineHeight: 1 }}>{opt.icon}</span>}

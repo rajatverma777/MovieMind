@@ -282,13 +282,21 @@ export default function SearchPage() {
       {searchCategory === 'movies' && (
         <>
           {/* Header */}
-          <div className="fu" style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+          <div className="fu" style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
-                Discovery & <span style={{ color: '#e50914' }}>Search</span>
+              <h1 style={{
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
+                fontSize: 'clamp(30px, 5vw, 42px)',
+                fontWeight: 700,
+                letterSpacing: -0.8,
+                color: '#ffffff',
+                marginBottom: 6,
+                lineHeight: 1.15
+              }}>
+                Discovery & Search
               </h1>
-              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
-                Search by title, or describe a scene you vaguely remember.
+              <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 13.5, margin: 0, fontWeight: 400 }}>
+                Explore cinema by title, actors, directors, or natural plot descriptions.
               </p>
             </div>
 
@@ -303,8 +311,8 @@ export default function SearchPage() {
             />
           </div>
 
-          {/* Search Input */}
-          <div className="fu d1" style={{ marginBottom: 20 }}>
+          {/* Search Input (Apple visionOS Proportioned Centered Search Bar) */}
+          <div className="fu d1" style={{ maxWidth: 680, margin: '0 auto 28px' }}>
             {mode === 'title' ? (
               <SearchBar value={q} onChange={setQ} />
             ) : (
@@ -392,13 +400,22 @@ export default function SearchPage() {
           {/* Genre browser (Only in Title mode when not searching) */}
           {mode === 'title' && !done && (
             <div className="fu d2">
-              <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, color: 'white', marginBottom: 13 }}>Browse by Genre</h2>
+              <h2 style={{
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+                fontSize: 20,
+                fontWeight: 600,
+                letterSpacing: -0.3,
+                color: 'rgba(255, 255, 255, 0.9)',
+                marginBottom: 14
+              }}>
+                Browse by Genre
+              </h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {Object.entries(GN).map(([id, name]) => (
                   <button key={id} onClick={() => browseGenre(+id)}
-                    style={{ padding: '8px 17px', borderRadius: 22, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', cursor: 'pointer', color: 'rgba(255,255,255,.68)', fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 500, transition: 'all .2s' }}
-                    onMouseOver={e => { e.target.style.borderColor = 'rgba(229,9,20,.42)'; e.target.style.color = 'white'; e.target.style.background = 'rgba(229,9,20,.07)' }}
-                    onMouseOut={e =>  { e.target.style.borderColor = 'rgba(255,255,255,.08)'; e.target.style.color = 'rgba(255,255,255,.68)'; e.target.style.background = 'rgba(255,255,255,.04)' }}>
+                    style={{ padding: '8px 18px', borderRadius: 22, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', color: 'rgba(255,255,255,.75)', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif", fontSize: 12.5, fontWeight: 500, transition: 'all .2s ease' }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.3)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,.12)' }}
+                    onMouseOut={e =>  { e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.color = 'rgba(255,255,255,.75)'; e.currentTarget.style.background = 'rgba(255,255,255,.05)' }}>
                     {name}
                   </button>
                 ))}
@@ -422,13 +439,13 @@ export default function SearchPage() {
 
           {/* Results */}
           {!busy && done && (
-            <div className="fu" style={{ marginTop: 16 }}>
+            <div className="fu" style={{ marginTop: 20 }}>
               {res.length ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 16 }}>
-                    <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13, margin: 0 }}>
-                      Found <strong style={{ color: 'white' }}>{res.filter(m => !minRating || (m.vote_average || 0) >= minRating).length}</strong> {mode === 'vague' ? 'semantic matches' : 'results'}
-                      {q && <> for "<strong style={{ color: mode === 'vague' ? '#a78bfa' : '#e50914' }}>{q}</strong>"</>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
+                    <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 13.5, margin: 0, fontWeight: 500 }}>
+                      Found <strong style={{ color: '#ffffff', fontWeight: 700 }}>{res.filter(m => !minRating || (m.vote_average || 0) >= minRating).length}</strong> {mode === 'vague' ? 'semantic matches' : 'results'}
+                      {q && <> for &ldquo;<strong style={{ color: mode === 'vague' ? '#a78bfa' : '#0a84ff', fontWeight: 600 }}>{q}</strong>&rdquo;</>}
                     </p>
 
                     {/* Apple Liquid Glass Slider for Minimum Rating Filter */}
@@ -443,7 +460,7 @@ export default function SearchPage() {
                           step={0.5}
                           value={minRating}
                           onChange={setMinRating}
-                          color="#007aff"
+                          color="#0a84ff"
                         />
                       </div>
                       {minRating > 0 && (
