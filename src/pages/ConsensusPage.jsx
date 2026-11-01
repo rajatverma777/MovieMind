@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext'
 import { MOCK_MOVIES, GN, imgUrl } from '@/data/constants'
 import MovieCard from '@/components/MovieCard'
 import Spinner from '@/components/Spinner'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 export default function ConsensusPage() {
   const { user, watchlist, navigate, toggleWatchlist, activeChatFriend, setActiveChatFriend, realtime } = useApp()
@@ -348,28 +349,14 @@ export default function ConsensusPage() {
         </div>
 
         {/* Apple Segmented Control Pill Switcher */}
-        <div className="apple-segmented-group">
-          <button
-            onClick={() => setMode('live')}
-            className={`apple-segmented-item ${mode === 'live' ? 'active' : ''}`}
-            style={{
-              background: mode === 'live' ? '#e50914' : 'transparent',
-              color: mode === 'live' ? 'white' : 'rgba(255,255,255,.55)'
-            }}
-          >
-            🌐 Live Friend Matcher
-          </button>
-          <button
-            onClick={() => setMode('local')}
-            className={`apple-segmented-item ${mode === 'local' ? 'active' : ''}`}
-            style={{
-              background: mode === 'local' ? '#8b5cf6' : 'transparent',
-              color: mode === 'local' ? 'white' : 'rgba(255,255,255,.55)'
-            }}
-          >
-            💻 Split-Screen (Same Couch)
-          </button>
-        </div>
+        <AppleSegmentedControl
+          options={[
+            { id: 'live', label: '🌐 Live Friend Matcher' },
+            { id: 'local', label: '💻 Split-Screen (Same Couch)' }
+          ]}
+          value={mode}
+          onChange={setMode}
+        />
       </div>
 
       {/* ── LIVE FRIEND SELECTOR BAR (REPLACED INVITATION LINK & CODE INPUT) ── */}

@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import { GN } from '@/data/constants'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 const AVATARS = [
   { emoji: '🎬', label: 'Director' },
@@ -210,22 +211,20 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* Apple Segmented Tab Switcher */}
         <div style={{ padding: '14px 24px 6px', display: 'flex', justifyContent: 'center' }}>
-          <div className="apple-segmented-group" style={{ width: '100%' }}>
-            <button
-              onClick={() => { setTab('signin'); setSignInError('') }}
-              className={`apple-segmented-item ${tab === 'signin' ? 'active' : ''}`}
-              style={{ flex: 1, padding: '9px 0', textAlign: 'center' }}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => { setTab('signup'); setRegError('') }}
-              className={`apple-segmented-item ${tab === 'signup' ? 'active' : ''}`}
-              style={{ flex: 1, padding: '9px 0', textAlign: 'center' }}
-            >
-              Create New CineID
-            </button>
-          </div>
+          <AppleSegmentedControl
+            fullWidth
+            size="md"
+            options={[
+              { id: 'signin', label: 'Sign In' },
+              { id: 'signup', label: 'Create New CineID' }
+            ]}
+            value={tab}
+            onChange={newTab => {
+              setTab(newTab)
+              if (newTab === 'signin') setSignInError('')
+              else setRegError('')
+            }}
+          />
         </div>
 
         {/* ── TAB 1: SIGN IN ──────────────────────────────────────────────── */}

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { GN } from '@/data/constants'
 import Spinner from '@/components/Spinner'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 export default function FriendsPage() {
   const { user, watchlist, navigate, setActiveChatFriend, realtime } = useApp()
@@ -258,39 +259,18 @@ export default function FriendsPage() {
       </div>
 
       {/* ── TOP NAV TABS ────────────────────────────────────────────────── */}
-      <div className="apple-segmented-group fu d1" style={{ width: '100%', marginBottom: 24, display: 'flex' }}>
-        {[
-          { id: 'friends', label: '👥 My Friends', count: friends.length || null },
-          { id: 'search', label: '🔍 Find Cinephiles', count: null },
-          { id: 'requests', label: '📬 Requests', count: incomingRequests.length > 0 ? incomingRequests.length : (outgoingRequests.length > 0 ? outgoingRequests.length : null) },
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`apple-segmented-item ${activeTab === t.id ? 'active' : ''}`}
-            style={{
-              flex: 1,
-              padding: '10px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              fontSize: 13
-            }}
-          >
-            <span>{t.label}</span>
-            {t.count !== null && (
-              <span style={{
-                fontSize: 10,
-                background: activeTab === t.id ? 'rgba(56,189,248,.3)' : 'rgba(255,255,255,.12)',
-                color: activeTab === t.id ? '#ffffff' : 'rgba(255,255,255,.6)',
-                padding: '1px 7px', borderRadius: 100, fontWeight: 800
-              }}>
-                {t.count}
-              </span>
-            )}
-          </button>
-        ))}
+      <div style={{ width: '100%', marginBottom: 24 }}>
+        <AppleSegmentedControl
+          fullWidth
+          size="md"
+          options={[
+            { id: 'friends', label: '👥 My Friends', badge: friends.length || null },
+            { id: 'search', label: '🔍 Find Cinephiles' },
+            { id: 'requests', label: '📬 Requests', badge: incomingRequests.length > 0 ? incomingRequests.length : (outgoingRequests.length > 0 ? outgoingRequests.length : null) },
+          ]}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
       </div>
 
       {/* ── TAB 1: MY FRIENDS CIRCLE ────────────────────────────────────── */}

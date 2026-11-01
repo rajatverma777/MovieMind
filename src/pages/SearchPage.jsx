@@ -4,6 +4,8 @@ import { MOCK_MOVIES, GN } from '@/data/constants'
 import MovieCard from '@/components/MovieCard'
 import SearchBar from '@/components/SearchBar'
 import Spinner from '@/components/Spinner'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
+import AppleSlider from '@/components/AppleSlider'
 
 const VAGUE_PRESETS = [
   { label: '📞 Phone booth with sniper', query: 'trapped in a phone booth with a sniper on the phone' },
@@ -40,6 +42,7 @@ export default function SearchPage() {
   const [mode, setMode] = useState('title') // 'title' | 'vague'
   const [q, setQ] = useState('')
   const [res, setRes] = useState([])
+  const [minRating, setMinRating] = useState(0)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
   const [explanation, setExplanation] = useState('')
@@ -263,30 +266,14 @@ export default function SearchPage() {
     <div style={{ minHeight: '100vh', padding: '24px 20px 140px', maxWidth: 1200, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── Top Level Category Switcher: Movies (Default) vs Users ─────────── */}
       <div className="fu" style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
-        <div className="apple-segmented-group">
-          <button
-            onClick={() => setSearchCategory('movies')}
-            className={`apple-segmented-item ${searchCategory === 'movies' ? 'active' : ''}`}
-            style={{
-              background: searchCategory === 'movies' ? '#e50914' : 'transparent',
-              color: searchCategory === 'movies' ? 'white' : 'rgba(255,255,255,.6)',
-              display: 'flex', alignItems: 'center', gap: 7
-            }}
-          >
-            🎬 Movies
-          </button>
-          <button
-            onClick={() => setSearchCategory('users')}
-            className={`apple-segmented-item ${searchCategory === 'users' ? 'active' : ''}`}
-            style={{
-              background: searchCategory === 'users' ? '#38bdf8' : 'transparent',
-              color: searchCategory === 'users' ? '#090910' : 'rgba(255,255,255,.6)',
-              display: 'flex', alignItems: 'center', gap: 7
-            }}
-          >
-            👤 People
-          </button>
-        </div>
+        <AppleSegmentedControl
+          options={[
+            { id: 'movies', label: '🎬 Movies' },
+            { id: 'users', label: '👤 People' }
+          ]}
+          value={searchCategory}
+          onChange={setSearchCategory}
+        />
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════════ */}
@@ -305,30 +292,15 @@ export default function SearchPage() {
               </p>
             </div>
 
-            {/* Mode Switcher */}
-            <div className="apple-segmented-group">
-              <button
-                onClick={() => { setMode('title'); setDone(false); setQ('') }}
-                className={`apple-segmented-item ${mode === 'title' ? 'active' : ''}`}
-                style={{
-                  background: mode === 'title' ? '#e50914' : 'transparent',
-                  color: mode === 'title' ? 'white' : 'rgba(255,255,255,.55)'
-                }}
-              >
-                🔍 Title
-              </button>
-              <button
-                onClick={() => { setMode('vague'); setDone(false); setQ('') }}
-                className={`apple-segmented-item ${mode === 'vague' ? 'active' : ''}`}
-                style={{
-                  background: mode === 'vague' ? 'linear-gradient(135deg,#8b5cf6,#e50914)' : 'transparent',
-                  color: mode === 'vague' ? 'white' : 'rgba(255,255,255,.55)',
-                  display: 'flex', alignItems: 'center', gap: 5
-                }}
-              >
-                <span>🧠 AI Search</span>
-              </button>
-            </div>
+            {/* Apple Segmented Control Mode Switcher */}
+            <AppleSegmentedControl
+              options={[
+                { id: 'title', label: '🔍 Title' },
+                { id: 'vague', label: '🧠 AI Search' }
+              ]}
+              value={mode}
+              onChange={val => { setMode(val); setDone(false); setQ('') }}
+            />
           </div>
 
           {/* Search Input */}
@@ -418,12 +390,40 @@ export default function SearchPage() {
             <div className="fu" style={{ marginTop: 16 }}>
               {res.length ? (
                 <>
-                  <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 12, marginBottom: 16 }}>
-                    Found <strong style={{ color: 'white' }}>{res.length}</strong> {mode === 'vague' ? 'semantic matches' : 'results'}
-                    {q && <> for "<strong style={{ color: mode === 'vague' ? '#a78bfa' : '#e50914' }}>{q}</strong>"</>}
-                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 16 }}>
+                    <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13, margin: 0 }}>
+                      Found <strong style={{ color: 'white' }}>{res.filter(m => !minRating || (m.vote_average || 0) >= minRating).length}</strong> {mode === 'vague' ? 'semantic matches' : 'results'}
+                      {q && <> for "<strong style={{ color: mode === 'vague' ? '#a78bfa' : '#e50914' }}>{q}</strong>"</>}
+                    </p>
+
+                    {/* Apple Liquid Glass Slider for Minimum Rating Filter */}
+                    <div className="apple-glass-card" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '6px 16px', borderRadius: 100 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>
+                        ⭐ Min Rating: <strong style={{ color: '#fbbf24' }}>{minRating > 0 ? `${minRating.toFixed(1)}+` : 'All'}</strong>
+                      </span>
+                      <div style={{ width: 120 }}>
+                        <AppleSlider
+                          min={0}
+                          max={9}
+                          step={0.5}
+                          value={minRating}
+                          onChange={setMinRating}
+                          color="#007aff"
+                        />
+                      </div>
+                      {minRating > 0 && (
+                        <button
+                          onClick={() => setMinRating(0)}
+                          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 11, padding: 0 }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(168px,1fr))', gap: 16 }}>
-                    {res.map(m => (
+                    {res.filter(m => !minRating || (m.vote_average || 0) >= minRating).map(m => (
                       <div key={m.id} style={{ position: 'relative' }}>
                         <MovieCard movie={m} />
                         {m.matchReason && (

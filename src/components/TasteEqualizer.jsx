@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts'
 import { useApp } from '@/context/AppContext'
 import { MOCK_MOVIES, GN, imgUrl } from '@/data/constants'
+import AppleSlider from '@/components/AppleSlider'
 
 export default function TasteEqualizer() {
   const { navigate, toggleWatchlist, watchlist } = useApp()
@@ -91,19 +92,15 @@ export default function TasteEqualizer() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 24, alignItems: 'center' }}>
         {/* Sliders Console */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           {/* Slider 1: Pacing */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'white', fontWeight: 600, marginBottom: 6 }}>
               <span>⚡ Pacing Velocity</span>
               <span style={{ color: '#0ea5e9' }}>{pacing < 40 ? 'Slow-Burn' : pacing > 70 ? 'High-Octane' : 'Balanced'} ({pacing}%)</span>
             </div>
-            <input
-              type="range" min="0" max="100" value={pacing}
-              onChange={e => setPacing(+e.target.value)}
-              style={{ width: '100%', accentColor: '#0ea5e9', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 2 }}>
+            <AppleSlider min={0} max={100} value={pacing} onChange={setPacing} color="#007aff" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.45)', marginTop: 4 }}>
               <span>Arthouse Contemplative</span>
               <span>Relentless Action</span>
             </div>
@@ -115,12 +112,8 @@ export default function TasteEqualizer() {
               <span>🌑 Atmospheric Darkness</span>
               <span style={{ color: '#8b5cf6' }}>{darkness < 40 ? 'Light & Whimsical' : darkness > 70 ? 'Bleak & Gritty' : 'Neutral'} ({darkness}%)</span>
             </div>
-            <input
-              type="range" min="0" max="100" value={darkness}
-              onChange={e => setDarkness(+e.target.value)}
-              style={{ width: '100%', accentColor: '#8b5cf6', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 2 }}>
+            <AppleSlider min={0} max={100} value={darkness} onChange={setDarkness} color="#8b5cf6" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.45)', marginTop: 4 }}>
               <span>Feel-Good / Family</span>
               <span>Disturbing Neo-Noir</span>
             </div>
@@ -132,12 +125,8 @@ export default function TasteEqualizer() {
               <span>🧠 Intellectual Complexity</span>
               <span style={{ color: '#d4a843' }}>{complexity < 40 ? 'Straightforward Fun' : complexity > 70 ? 'Paradoxical Puzzle' : 'Medium'} ({complexity}%)</span>
             </div>
-            <input
-              type="range" min="0" max="100" value={complexity}
-              onChange={e => setComplexity(+e.target.value)}
-              style={{ width: '100%', accentColor: '#d4a843', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 2 }}>
+            <AppleSlider min={0} max={100} value={complexity} onChange={setComplexity} color="#d4a843" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.45)', marginTop: 4 }}>
               <span>Popcorn Escapism</span>
               <span>Mind-Bending Lore</span>
             </div>
@@ -149,12 +138,8 @@ export default function TasteEqualizer() {
               <span>⏳ Era & Vintage</span>
               <span style={{ color: '#10b981' }}>{era < 40 ? 'Golden Classics' : era > 70 ? 'Ultra-Modern' : '90s/2000s'} ({era}%)</span>
             </div>
-            <input
-              type="range" min="0" max="100" value={era}
-              onChange={e => setEra(+e.target.value)}
-              style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 2 }}>
+            <AppleSlider min={0} max={100} value={era} onChange={setEra} color="#10b981" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,.45)', marginTop: 4 }}>
               <span>1970s–1980s</span>
               <span>2020s Modern</span>
             </div>

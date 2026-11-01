@@ -3,6 +3,7 @@ import { useApp } from '@/context/AppContext'
 import { GN } from '@/data/constants'
 import MovieCard from '@/components/MovieCard'
 import OttOptimizer from '@/components/OttOptimizer'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 export default function WatchlistPage() {
   const { watchlist, toggleWatchlist, navigate } = useApp()
@@ -34,31 +35,15 @@ export default function WatchlistPage() {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="apple-segmented-group">
-          <button
-            onClick={() => setTab('list')}
-            className={`apple-segmented-item ${tab === 'list' ? 'active' : ''}`}
-            style={{
-              background: tab === 'list' ? '#e50914' : 'transparent',
-              color: tab === 'list' ? 'white' : 'rgba(255,255,255,.55)'
-            }}
-          >
-            📋 Movie Collection ({watchlist.length})
-          </button>
-          <button
-            onClick={() => setTab('optimizer')}
-            className={`apple-segmented-item ${tab === 'optimizer' ? 'active' : ''}`}
-            style={{
-              background: tab === 'optimizer' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
-              color: tab === 'optimizer' ? 'white' : 'rgba(255,255,255,.55)',
-              display: 'flex', alignItems: 'center', gap: 6
-            }}
-          >
-            <span>💰 OTT Arbitrage Optimizer</span>
-            <span style={{ fontSize: 9, background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>SAVE ₹</span>
-          </button>
-        </div>
+        {/* Apple Segmented Control Tab Switcher */}
+        <AppleSegmentedControl
+          options={[
+            { id: 'list', label: `📋 Collection (${watchlist.length})` },
+            { id: 'optimizer', label: '💰 OTT Optimizer', badge: 'SAVE ₹' }
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
       </div>
 
       {/* Tab: OTT Optimizer */}

@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext'
 import { GN, imgUrl, MOCK_MOVIES } from '@/data/constants'
 import TasteEqualizer from '@/components/TasteEqualizer'
 import Spinner from '@/components/Spinner'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 const CHART_COLORS = ['#e50914', '#d4a843', '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
 
@@ -746,45 +747,19 @@ export default function ProfilePage() {
           </div>
         ) : (
           <>
-            {/* ── TABS (only for non-private profiles) ──────────────────────── */}
-            <div className="fu d2" style={{
-              display: 'flex', gap: 6, marginBottom: 24,
-              background: 'rgba(255,255,255,.04)',
-              border: '1px solid rgba(255,255,255,.08)',
-              borderRadius: 14, padding: 6
-            }}>
-              {[
-                { id: 'watchlist', label: '🎬 Watchlist', count: isOwnProfile ? myWatchlist.length : (otherProfile?.watchlistCount ?? displayWatchlist.length) },
-                { id: 'taste', label: '🎚️ Taste' },
-                ...(isOwnProfile ? [{ id: 'friends', label: `👥 Friends`, count: friends.length }] : []),
-              ].map(tab => {
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    style={{
-                      flex: 1,
-                      background: isActive ? 'rgba(255,255,255,.1)' : 'transparent',
-                      border: isActive ? '1px solid rgba(255,255,255,.15)' : '1px solid transparent',
-                      borderRadius: 10, padding: '10px 14px',
-                      color: isActive ? 'white' : 'rgba(255,255,255,.5)',
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                      transition: 'all .2s',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                    }}
-                  >
-                    {tab.label}
-                    {tab.count !== undefined && (
-                      <span style={{
-                        background: isActive ? 'rgba(229,9,20,.2)' : 'rgba(255,255,255,.08)',
-                        color: isActive ? '#ff6b6b' : 'rgba(255,255,255,.4)',
-                        borderRadius: 100, padding: '1px 8px', fontSize: 11, fontWeight: 800
-                      }}>{tab.count}</span>
-                    )}
-                  </button>
-                )
-              })}
+            {/* ── APPLE SEGMENTED CONTROL TABS ──────────────────────────────── */}
+            <div className="fu d2" style={{ marginBottom: 24 }}>
+              <AppleSegmentedControl
+                fullWidth
+                size="md"
+                options={[
+                  { id: 'watchlist', label: '🎬 Watchlist', badge: isOwnProfile ? myWatchlist.length : (otherProfile?.watchlistCount ?? displayWatchlist.length) },
+                  { id: 'taste', label: '🎚️ Taste Profile' },
+                  ...(isOwnProfile ? [{ id: 'friends', label: '👥 Friends', badge: friends.length }] : []),
+                ]}
+                value={activeTab}
+                onChange={setActiveTab}
+              />
             </div>
 
             {/* ── TAB: WATCHLIST ────────────────────────────────────────────── */}

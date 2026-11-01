@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import { GN } from '@/data/constants'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 const AVATARS = [
   { emoji: '🎬', label: 'Director' },
@@ -405,66 +406,23 @@ export default function LoginPage() {
               </p>
 
               {/* Tab Selector Buttons */}
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 100, padding: 4, marginTop: 20, border: '1px solid rgba(255,255,255,0.08)' }}>
-                <button
-                  type="button"
-                  onClick={() => { setTab('signin'); setSignInError('') }}
-                  style={{
-                    flex: 1,
-                    background: tab === 'signin' ? 'rgba(255,255,255,0.14)' : 'transparent',
-                    border: tab === 'signin' ? '1px solid rgba(255,255,255,0.22)' : '1px solid transparent',
-                    borderRadius: 90,
-                    padding: '9px 0',
-                    color: tab === 'signin' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.45)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: tab === 'signin' ? 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3)' : 'none',
-                    ...S
+              <div style={{ marginTop: 20 }}>
+                <AppleSegmentedControl
+                  fullWidth
+                  size="md"
+                  options={[
+                    { id: 'signin', label: 'Sign In' },
+                    { id: 'signup', label: 'Create CineID' },
+                    ...(tab === 'forgot' ? [{ id: 'forgot', label: 'Reset' }] : []),
+                    ...(tab === 'reset' ? [{ id: 'reset', label: 'New Key' }] : [])
+                  ]}
+                  value={tab}
+                  onChange={newTab => {
+                    setTab(newTab)
+                    if (newTab === 'signin') setSignInError('')
+                    else setRegError('')
                   }}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setTab('signup'); setRegError('') }}
-                  style={{
-                    flex: 1,
-                    background: tab === 'signup' ? 'rgba(255,255,255,0.14)' : 'transparent',
-                    border: tab === 'signup' ? '1px solid rgba(255,255,255,0.22)' : '1px solid transparent',
-                    borderRadius: 90,
-                    padding: '9px 0',
-                    color: tab === 'signup' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.45)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: tab === 'signup' ? 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3)' : 'none',
-                    ...S
-                  }}
-                >
-                  Create CineID
-                </button>
-                {(tab === 'forgot' || tab === 'reset') && (
-                  <button
-                    type="button"
-                    style={{
-                      flex: 1,
-                      background: 'rgba(255,255,255,0.14)',
-                      border: '1px solid rgba(255,255,255,0.22)',
-                      borderRadius: 90,
-                      padding: '9px 0',
-                      color: 'rgba(255,255,255,0.95)',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
-                      ...S
-                    }}
-                  >
-                    {tab === 'forgot' ? 'Reset' : 'New Key'}
-                  </button>
-                )}
+                />
               </div>
             </div>
 

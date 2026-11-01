@@ -7,6 +7,7 @@ import MovieCard   from '@/components/MovieCard'
 import TrailerModal from '@/components/TrailerModal'
 import Spinner     from '@/components/Spinner'
 import MovieInsightsTab from '@/components/MovieInsightsTab'
+import AppleSegmentedControl from '@/components/AppleSegmentedControl'
 
 export default function MovieDetailPage({ movieId }) {
   const { tmdb, watchlist, toggleWatchlist, navigate, addToRecent, isDemo } = useApp()
@@ -445,28 +446,19 @@ export default function MovieDetailPage({ movieId }) {
               )
             })()}
 
-            {/* ── Tabs ─────────────────────────────────────────────────── */}
-            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,.06)', marginBottom: 16 }}>
-              {[
-                { id: 'overview', label: 'Overview' },
-                { id: 'cast', label: 'Cast' },
-                { id: 'insights', label: '🛡️ AI Shield & Arc' },
-                { id: 'similar', label: 'Similar' }
-              ].map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  style={{
-                    padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer',
-                    fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: 12,
-                    color: tab === t.id ? 'white' : 'rgba(255,255,255,.36)',
-                    borderBottom: tab === t.id ? '2px solid #e50914' : '2px solid transparent',
-                    marginBottom: -1, transition: 'all .2s'
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
+            {/* ── Apple Segmented Control Tabs ─────────────────────────── */}
+            <div style={{ marginBottom: 18 }}>
+              <AppleSegmentedControl
+                size="sm"
+                options={[
+                  { id: 'overview', label: 'Overview' },
+                  { id: 'cast', label: 'Cast' },
+                  { id: 'insights', label: '🛡️ AI Shield & Arc' },
+                  { id: 'similar', label: 'Similar' }
+                ]}
+                value={tab}
+                onChange={setTab}
+              />
             </div>
 
             {/* Tab content */}
