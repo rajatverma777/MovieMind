@@ -108,19 +108,19 @@ export default function ChatPage() {
   const S = { fontFamily: "'DM Sans',sans-serif" }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', maxWidth: 820, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '20px 24px 140px', display: 'flex', flexDirection: 'column', maxWidth: 880, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 20 }}>
-        <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 46, letterSpacing: 1, color: 'white', marginBottom: 3 }}>
+        <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 46, letterSpacing: 1, color: 'white', marginBottom: 3 }}>
           AI <span style={{ color: '#e50914' }}>Chatbot</span>
         </h1>
-        <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 13, ...S }}>
+        <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13 }}>
           Your personal movie assistant for smart recommendations and film discovery
         </p>
       </div>
 
       {/* Chat messages viewport */}
-      <div className="glass" style={{ flex: 1, minHeight: 400, borderRadius: 16, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
+      <div className="apple-glass-card" style={{ flex: 1, minHeight: 440, padding: 22, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
         {msgs.map((m, i) => (
           <div key={i} className="chat-msg" style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 10, alignItems: 'flex-start' }}>
             {m.role === 'assistant' && (
@@ -240,22 +240,22 @@ export default function ChatPage() {
       </div>
 
       {/* Input container */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         <input
-          className="cin-inp"
+          className="apple-glass-input"
           value={inp}
           onChange={e => setInp(e.target.value)}
           onKeyDown={handleKey}
           placeholder="Ask for recommendations, e.g. 'Movies like Interstellar' or 'Top thriller picks'…"
-          style={{ flex: 1, padding: '14px 18px', borderRadius: 12, fontSize: 14, ...S }}
+          style={{ flex: 1, padding: '14px 20px', borderRadius: 100, fontSize: 13.5 }}
         />
         <button
-          className="btn-r"
+          className="apple-glass-btn-primary"
           onClick={() => send()}
           disabled={busy || !inp.trim()}
-          style={{ border: 'none', padding: '14px 24px', borderRadius: 12, fontSize: 18, opacity: busy || !inp.trim() ? .45 : 1, transition: 'opacity .2s' }}
+          style={{ padding: '12px 26px', borderRadius: 100, fontSize: 16, opacity: busy || !inp.trim() ? .45 : 1, transition: 'all .2s' }}
         >
-          →
+          Send
         </button>
       </div>
 
@@ -265,9 +265,8 @@ export default function ChatPage() {
           <button
             key={s}
             onClick={() => send(s)}
-            style={{ padding: '6px 14px', borderRadius: 20, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', cursor: 'pointer', color: 'rgba(255,255,255,.55)', ...S, fontSize: 11, transition: 'all .2s' }}
-            onMouseOver={e => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'rgba(229,9,20,.4)' }}
-            onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,.55)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)' }}
+            className="apple-glass-btn"
+            style={{ padding: '6px 14px', borderRadius: 100, fontSize: 11 }}
           >
             {s}
           </button>

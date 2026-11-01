@@ -332,41 +332,39 @@ export default function ConsensusPage() {
   const isPartnerReady = !!partnerData?.ready
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 130px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '24px 24px 180px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
-      <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
+      <div className="fu" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.25)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#e50914', marginBottom: 8 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(229,9,20,.14)', border: '1.2px solid rgba(229,9,20,.3)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#e50914', marginBottom: 8, boxShadow: '0 0 14px rgba(229,9,20,0.2)' }}>
             <span>🛋️</span> REAL-TIME MULTIPLAYER TASTE FUSION
           </div>
-          <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
+          <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
             Couch <span style={{ color: '#e50914' }}>Consensus</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13, maxWidth: 650 }}>
+          <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13, maxWidth: 650 }}>
             Select your added cine-friend below. Both of you choose movies and genres in real time, and our harmonic Pareto engine finds the ideal compromise.
           </p>
         </div>
 
-        {/* Mode Switcher */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,.05)', padding: 4, borderRadius: 10, border: '1px solid rgba(255,255,255,.08)' }}>
+        {/* Apple Segmented Control Pill Switcher */}
+        <div className="apple-segmented-group">
           <button
             onClick={() => setMode('live')}
+            className={`apple-segmented-item ${mode === 'live' ? 'active' : ''}`}
             style={{
-              padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
               background: mode === 'live' ? '#e50914' : 'transparent',
-              color: mode === 'live' ? 'white' : 'rgba(255,255,255,.5)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s'
+              color: mode === 'live' ? 'white' : 'rgba(255,255,255,.55)'
             }}
           >
             🌐 Live Friend Matcher
           </button>
           <button
             onClick={() => setMode('local')}
+            className={`apple-segmented-item ${mode === 'local' ? 'active' : ''}`}
             style={{
-              padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
               background: mode === 'local' ? '#8b5cf6' : 'transparent',
-              color: mode === 'local' ? 'white' : 'rgba(255,255,255,.5)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s'
+              color: mode === 'local' ? 'white' : 'rgba(255,255,255,.55)'
             }}
           >
             💻 Split-Screen (Same Couch)
@@ -376,7 +374,7 @@ export default function ConsensusPage() {
 
       {/* ── LIVE FRIEND SELECTOR BAR (REPLACED INVITATION LINK & CODE INPUT) ── */}
       {mode === 'live' && (
-        <div className="fu d1" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: '18px 22px', marginBottom: 24 }}>
+        <div className="apple-glass-card fu d1" style={{ padding: '18px 22px', marginBottom: 26 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 18 }}>👥</span>
@@ -387,7 +385,8 @@ export default function ConsensusPage() {
 
             <button
               onClick={() => navigate('friends')}
-              style={{ background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)', color: '#e50914', borderRadius: 8, padding: '5px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+              className="apple-glass-btn"
+              style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, color: '#e50914', borderColor: 'rgba(229,9,20,.35)', background: 'rgba(229,9,20,.12)' }}
             >
               + Manage Cine-Friends
             </button>
@@ -395,7 +394,7 @@ export default function ConsensusPage() {
 
           {/* Friends List Chips */}
           {friends.length > 0 ? (
-            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 6 }}>
+            <div className="sx" style={{ paddingBottom: 6 }}>
               {friends.map(f => {
                 const fId = f.id || f._id
                 const isSelected = selectedFriendId === fId
@@ -406,12 +405,12 @@ export default function ConsensusPage() {
                     key={fId}
                     onClick={() => setSelectedFriend(f)}
                     style={{
-                      background: isSelected ? 'rgba(229,9,20,.18)' : 'rgba(255,255,255,.04)',
-                      border: isSelected ? '2px solid #e50914' : '1px solid rgba(255,255,255,.1)',
-                      borderRadius: 12, padding: '10px 16px', cursor: 'pointer',
+                      background: isSelected ? 'rgba(229,9,20,.2)' : 'rgba(255,255,255,.05)',
+                      border: isSelected ? '1.5px solid #e50914' : '1px solid rgba(255,255,255,.14)',
+                      borderRadius: 16, padding: '10px 16px', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
-                      boxShadow: isSelected ? '0 4px 18px rgba(229,9,20,.25)' : 'none',
-                      transition: 'all .2s'
+                      boxShadow: isSelected ? '0 8px 24px rgba(229,9,20,.35), inset 0 1px 1px rgba(255,255,255,0.3)' : 'none',
+                      transition: 'all .24s var(--apple-spring)'
                     }}
                   >
                     <div style={{ position: 'relative' }}>
@@ -477,21 +476,21 @@ export default function ConsensusPage() {
       )}
 
       {/* ── LIVE INTERACTIVE SELECTION GRID ─────────────────────────────── */}
-      <div className="fu d2" style={{ display: 'grid', gridTemplateColumns: mode === 'local' ? '1fr 1fr' : '1fr 360px', gap: 24, marginBottom: 28, alignItems: 'start' }}>
+      <div className="fu d2" style={{ display: 'grid', gridTemplateColumns: mode === 'local' ? '1fr 1fr' : '1fr 360px', gap: 24, marginBottom: 32, alignItems: 'start' }}>
         {/* Your Profile Card */}
-        <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 26 }}>{user?.avatar || '👑'}</span>
+        <div className="apple-glass-card" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 28 }}>{user?.avatar || '👑'}</span>
               <div>
                 <input
                   type="text"
                   value={userName}
                   onChange={e => { setUserName(e.target.value); syncUpdate(isReady, selectedMovies, selectedGenres) }}
                   placeholder="Your Name"
-                  style={{ background: 'none', border: 'none', borderBottom: '1px dashed rgba(229,9,20,.5)', color: 'white', fontSize: 18, fontWeight: 700, outline: 'none', width: 170 }}
+                  style={{ background: 'none', border: 'none', borderBottom: '1.5px dashed rgba(229,9,20,.6)', color: 'white', fontSize: 18, fontWeight: 700, outline: 'none', width: 170, fontFamily: 'inherit' }}
                 />
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginTop: 2 }}>
                   @{user?.username || 'you'} · Session Host (You)
                 </div>
               </div>
@@ -500,10 +499,15 @@ export default function ConsensusPage() {
             {/* Ready Button */}
             <button
               onClick={handleToggleReady}
+              className="apple-glass-btn"
               style={{
-                background: isReady ? '#10b981' : 'rgba(255,255,255,.08)',
-                color: 'white', border: isReady ? '1px solid #10b981' : '1px solid rgba(255,255,255,.15)',
-                borderRadius: 8, padding: '8px 18px', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
+                background: isReady ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(5, 150, 105, 0.95) 100%)' : 'rgba(255,255,255,.08)',
+                color: 'white',
+                borderColor: isReady ? 'rgba(16, 185, 129, 0.5)' : 'rgba(255,255,255,.16)',
+                padding: '8px 20px',
+                fontSize: 12,
+                fontWeight: 700,
+                boxShadow: isReady ? '0 8px 20px rgba(16, 185, 129, 0.35), inset 0 1px 1px rgba(255,255,255,0.4)' : 'none'
               }}
             >
               {isReady ? '✓ You Are Ready!' : 'Mark as Ready'}
@@ -511,11 +515,11 @@ export default function ConsensusPage() {
           </div>
 
           {/* Genres */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.55)', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 0.4 }}>
               Select Favorite Genres Tonight:
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {Object.entries(GN).slice(0, 10).map(([id, name]) => {
                 const active = selectedGenres.includes(+id)
                 return (
@@ -523,9 +527,16 @@ export default function ConsensusPage() {
                     key={id}
                     onClick={() => toggleGenreSelection(+id)}
                     style={{
-                      background: active ? '#e50914' : 'rgba(255,255,255,.05)',
-                      border: 'none', borderRadius: 14, padding: '5px 12px', fontSize: 11,
-                      color: active ? 'white' : 'rgba(255,255,255,.6)', cursor: 'pointer', fontWeight: 600
+                      background: active ? 'linear-gradient(135deg, #e50914 0%, #b91c1c 100%)' : 'rgba(255,255,255,.06)',
+                      border: active ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,.1)',
+                      borderRadius: 100,
+                      padding: '6px 14px',
+                      fontSize: 11,
+                      color: active ? 'white' : 'rgba(255,255,255,.7)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      boxShadow: active ? '0 4px 14px rgba(229,9,20,0.35), inset 0 1px 1px rgba(255,255,255,0.4)' : 'none',
+                      transition: 'all .2s var(--apple-spring)'
                     }}
                   >
                     {name}
@@ -623,7 +634,7 @@ export default function ConsensusPage() {
           const partnerMovies = activePartner?.likedMovies || []
 
           return (
-            <div style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 14, padding: 22 }}>
+            <div className="apple-glass-card" style={{ padding: 22 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 26 }}>{selectedFriend?.avatar || '👥'}</span>
@@ -639,10 +650,11 @@ export default function ConsensusPage() {
 
                 {/* Ready Badge */}
                 <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 12,
-                  background: isPartnerReady ? 'rgba(16,185,129,.15)' : 'rgba(251,191,36,.12)',
+                  fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                  background: isPartnerReady ? 'rgba(16,185,129,.18)' : 'rgba(251,191,36,.14)',
                   color: isPartnerReady ? '#10b981' : '#fbbf24',
-                  border: `1px solid ${isPartnerReady ? '#10b981' : '#fbbf24'}44`
+                  border: `1px solid ${isPartnerReady ? 'rgba(16,185,129,.4)' : 'rgba(251,191,36,.3)'}`,
+                  boxShadow: isPartnerReady ? '0 0 12px rgba(16,185,129,.25)' : 'none'
                 }}>
                   {isPartnerReady ? '✓ Friend is Ready' : 'Syncing picks'}
                 </span>
@@ -654,14 +666,13 @@ export default function ConsensusPage() {
                   <button
                     onClick={sendLiveInviteToFriend}
                     disabled={inviteStatus === 'sending'}
+                    className="apple-glass-btn"
                     style={{
                       width: '100%',
-                      background: inviteStatus === 'sent' ? 'rgba(16,185,129,.15)' : 'rgba(229,9,20,.12)',
-                      border: `1px solid ${inviteStatus === 'sent' ? '#10b981' : 'rgba(229,9,20,.35)'}`,
+                      background: inviteStatus === 'sent' ? 'rgba(16,185,129,.18)' : 'rgba(229,9,20,.14)',
+                      borderColor: inviteStatus === 'sent' ? 'rgba(16,185,129,.5)' : 'rgba(229,9,20,.35)',
                       color: inviteStatus === 'sent' ? '#10b981' : '#e50914',
-                      borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700,
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      transition: 'all .2s'
+                      padding: '9px 14px', fontSize: 12, fontWeight: 700
                     }}
                   >
                     <span>{inviteStatus === 'sent' ? '✓ In-App Alert Sent to Friend!' : inviteStatus === 'sending' ? 'Sending Alert...' : `📢 Send Live Alert to @${selectedFriend.username}`}</span>
@@ -855,28 +866,30 @@ export default function ConsensusPage() {
       </div>
 
       {/* ── ACTION TRIGGER ──────────────────────────────────────────────── */}
-      <div style={{ textAlign: 'center', marginBottom: 44 }}>
+      <div style={{ textAlign: 'center', marginTop: 32, marginBottom: 72 }}>
         <button
           onClick={handleCompute}
           disabled={busy}
+          className="apple-glass-pill"
           style={{
             background: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
-              ? 'linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)'
-              : 'linear-gradient(135deg, #e50914 0%, #8b5cf6 100%)',
-            border: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
-              ? '1.5px solid rgba(16, 185, 129, 0.5)'
-              : 'none',
-            borderRadius: 14,
-            padding: '16px 48px',
+              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.92) 0%, rgba(14, 165, 233, 0.95) 100%)'
+              : 'linear-gradient(135deg, rgba(229, 9, 20, 0.92) 0%, rgba(139, 92, 246, 0.95) 100%)',
+            border: '1.2px solid rgba(255, 255, 255, 0.35)',
+            borderRadius: 100,
+            padding: '16px 44px',
             color: 'white',
-            fontFamily: "'DM Sans',sans-serif",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
             fontSize: 16,
             fontWeight: 700,
             cursor: 'pointer',
             boxShadow: (mode === 'live' ? (isReady && isPartnerReady) : (isReady && isReadyB))
-              ? '0 12px 36px rgba(16, 185, 129, 0.45)'
-              : '0 8px 32px rgba(229, 9, 20, 0.35)',
-            transition: 'all .25s ease'
+              ? '0 16px 48px rgba(16, 185, 129, 0.45), inset 0 1.5px 2px rgba(255, 255, 255, 0.6)'
+              : '0 16px 48px rgba(229, 9, 20, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.5)',
+            transition: 'all .25s var(--apple-spring)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10
           }}
           onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'}
           onMouseOut={e => e.currentTarget.style.transform = 'translateY(0) scale(1)'}

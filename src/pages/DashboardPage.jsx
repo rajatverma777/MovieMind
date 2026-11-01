@@ -51,24 +51,24 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 56px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '24px 24px 140px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 34 }}>
-        <h1 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Bebas Neue', sans-serif", fontSize: 44, fontWeight: 700, letterSpacing: -0.5, color: 'white', marginBottom: 6 }}>
+        <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', sans-serif", fontSize: 44, fontWeight: 700, letterSpacing: -0.5, color: 'white', marginBottom: 6 }}>
           Your <span style={{ color: '#38bdf8' }}>Stats</span> & Analytics
         </h1>
-        <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
+        <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13 }}>
           Personal Taste & Watchlist Analytics · AI-Powered Insights
         </p>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(185px,1fr))', gap: 13, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(185px,1fr))', gap: 14, marginBottom: 32 }}>
         {stats.map((s, i) => (
-          <div key={s.label} className={`glass ch fu d${i + 1}`} style={{ borderRadius: 15, padding: 22 }}>
-            <div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 34, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
-            <div style={{ color: 'rgba(255,255,255,.38)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.6px' }}>{s.label}</div>
+          <div key={s.label} className={`apple-glass-card fu d${i + 1}`} style={{ borderRadius: 18, padding: 22 }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
+            <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 36, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
+            <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.6px', fontWeight: 700 }}>{s.label}</div>
           </div>
         ))}
       </div>

@@ -260,42 +260,28 @@ export default function SearchPage() {
   }, [q, mode, searchCategory, doTitleSearch, doSemanticSearch])
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 20px 56px', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '24px 20px 140px', maxWidth: 1200, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── Top Level Category Switcher: Movies (Default) vs Users ─────────── */}
       <div className="fu" style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
-        <div style={{
-          display: 'inline-flex',
-          background: 'rgba(255,255,255,.05)',
-          border: '1px solid rgba(255,255,255,.10)',
-          borderRadius: 100,
-          padding: 4,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}>
+        <div className="apple-segmented-group">
           <button
             onClick={() => setSearchCategory('movies')}
+            className={`apple-segmented-item ${searchCategory === 'movies' ? 'active' : ''}`}
             style={{
-              padding: '9px 24px', borderRadius: 100, border: 'none', cursor: 'pointer',
               background: searchCategory === 'movies' ? '#e50914' : 'transparent',
               color: searchCategory === 'movies' ? 'white' : 'rgba(255,255,255,.6)',
-              fontSize: 13, fontWeight: 700,
-              display: 'flex', alignItems: 'center', gap: 7,
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: searchCategory === 'movies' ? '0 4px 14px rgba(229,9,20,.35)' : 'none'
+              display: 'flex', alignItems: 'center', gap: 7
             }}
           >
             🎬 Movies
           </button>
           <button
             onClick={() => setSearchCategory('users')}
+            className={`apple-segmented-item ${searchCategory === 'users' ? 'active' : ''}`}
             style={{
-              padding: '9px 24px', borderRadius: 100, border: 'none', cursor: 'pointer',
               background: searchCategory === 'users' ? '#38bdf8' : 'transparent',
               color: searchCategory === 'users' ? '#090910' : 'rgba(255,255,255,.6)',
-              fontSize: 13, fontWeight: 700,
-              display: 'flex', alignItems: 'center', gap: 7,
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: searchCategory === 'users' ? '0 4px 14px rgba(56,189,248,.35)' : 'none'
+              display: 'flex', alignItems: 'center', gap: 7
             }}
           >
             👤 People
@@ -309,36 +295,34 @@ export default function SearchPage() {
       {searchCategory === 'movies' && (
         <>
           {/* Header */}
-          <div className="fu" style={{ marginBottom: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+          <div className="fu" style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
+              <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
                 Discovery & <span style={{ color: '#e50914' }}>Search</span>
               </h1>
-              <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
+              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
                 Search by title, or describe a scene you vaguely remember.
               </p>
             </div>
 
             {/* Mode Switcher */}
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,.05)', padding: 4, borderRadius: 100, border: '1px solid rgba(255,255,255,.08)' }}>
+            <div className="apple-segmented-group">
               <button
                 onClick={() => { setMode('title'); setDone(false); setQ('') }}
+                className={`apple-segmented-item ${mode === 'title' ? 'active' : ''}`}
                 style={{
-                  padding: '8px 18px', borderRadius: 100, border: 'none', cursor: 'pointer',
                   background: mode === 'title' ? '#e50914' : 'transparent',
-                  color: mode === 'title' ? 'white' : 'rgba(255,255,255,.5)',
-                  fontSize: 12, fontWeight: 700, transition: 'all .2s'
+                  color: mode === 'title' ? 'white' : 'rgba(255,255,255,.55)'
                 }}
               >
                 🔍 Title
               </button>
               <button
                 onClick={() => { setMode('vague'); setDone(false); setQ('') }}
+                className={`apple-segmented-item ${mode === 'vague' ? 'active' : ''}`}
                 style={{
-                  padding: '8px 18px', borderRadius: 100, border: 'none', cursor: 'pointer',
                   background: mode === 'vague' ? 'linear-gradient(135deg,#8b5cf6,#e50914)' : 'transparent',
-                  color: mode === 'vague' ? 'white' : 'rgba(255,255,255,.5)',
-                  fontSize: 12, fontWeight: 700, transition: 'all .2s',
+                  color: mode === 'vague' ? 'white' : 'rgba(255,255,255,.55)',
                   display: 'flex', alignItems: 'center', gap: 5
                 }}
               >

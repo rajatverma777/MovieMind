@@ -62,23 +62,19 @@ export default function AccountSettingsModal() {
   return (
     <div className="mod-bg" onClick={() => setAccountSettingsModalOpen(false)}>
       <div
-        className="glass fu"
+        className="apple-glass-sheet fu"
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 460,
-          background: '#0a0a16',
-          borderRadius: 20,
-          border: '1px solid rgba(255,255,255,0.12)',
-          padding: '28px 24px',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.88)'
+          maxWidth: 470,
+          padding: '28px 24px'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 24 }}>⚙️</span>
             <div>
-              <h3 style={{ margin: 0, fontSize: 20, color: 'white', fontFamily: "'Bebas Neue', cursive", letterSpacing: 1 }}>
+              <h3 style={{ margin: 0, fontSize: 20, color: 'white', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", letterSpacing: 1 }}>
                 Account Settings
               </h3>
               <div style={{ fontSize: 11, color: '#e50914' }}>@{user.username}</div>
@@ -86,7 +82,8 @@ export default function AccountSettingsModal() {
           </div>
           <button
             onClick={() => setAccountSettingsModalOpen(false)}
-            style={{ background: 'transparent', border: 'none', color: 'white', fontSize: 20, cursor: 'pointer' }}
+            className="apple-glass-btn"
+            style={{ width: 32, height: 32, padding: 0, borderRadius: '50%', fontSize: 15 }}
           >
             ✕
           </button>
@@ -157,19 +154,20 @@ export default function AccountSettingsModal() {
 
           <button
             type="submit"
-            className="btn-r"
+            className="apple-glass-btn-primary"
             disabled={busy}
-            style={{ border: 'none', padding: '10px 0', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: busy ? 'not-allowed' : 'pointer', marginTop: 4 }}
+            style={{ width: '100%', padding: '12px 0', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: busy ? 'not-allowed' : 'pointer', marginTop: 6 }}
           >
             {busy ? 'Updating...' : 'Update Password'}
           </button>
         </form>
 
         {/* Sign Out Button */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 18, paddingTop: 14 }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 20, paddingTop: 16 }}>
           <button
             onClick={() => { logout(); setAccountSettingsModalOpen(false) }}
-            style={{ width: '100%', background: 'rgba(229, 9, 20, 0.12)', border: '1px solid rgba(229, 9, 20, 0.25)', color: '#ff6b6b', padding: '10px 0', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            className="apple-glass-btn"
+            style={{ width: '100%', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.12)', color: '#ff6b6b', padding: '11px 0', borderRadius: 100, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
           >
             🚪 Sign Out Active Session
           </button>

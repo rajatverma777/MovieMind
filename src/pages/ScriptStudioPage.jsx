@@ -93,13 +93,13 @@ FADE OUT.`,
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 64px', maxWidth: 1400, margin: '0 auto', fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '24px 24px 140px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="fu" style={{ marginBottom: 28 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(212,168,67,.12)', border: '1px solid rgba(212,168,67,.25)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#d4a843', marginBottom: 8 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(212,168,67,.14)', border: '1.2px solid rgba(212,168,67,.35)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#d4a843', marginBottom: 8, boxShadow: '0 0 12px rgba(212,168,67,0.2)' }}>
           <span>🎬</span> GENERATIVE SCRIPT LAB & WRITERS ROOM
         </div>
-        <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
+        <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
           AI Script <span style={{ color: '#d4a843' }}>Studio</span>
         </h1>
         <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13, maxWidth: 680 }}>

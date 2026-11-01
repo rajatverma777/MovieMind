@@ -34,26 +34,26 @@ export default function MovieShareModal({ isOpen, onClose, onShareMovie, recipie
   return (
     <div className="mod-bg" onClick={onClose} style={{ zIndex: 1200 }}>
       <div
-        className="glass ch"
+        className="apple-glass-sheet fu"
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 520, borderRadius: 16, background: '#0e0e1c',
-          border: '1px solid rgba(255,255,255,.12)', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.9)'
+          width: '100%', maxWidth: 520, overflow: 'hidden'
         }}
       >
         {/* Header */}
-        <div style={{ padding: '18px 22px', borderBottom: '1px solid rgba(255,255,255,.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,.09)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, color: 'white', letterSpacing: '.5px', margin: 0 }}>
+            <h3 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 22, color: 'white', letterSpacing: '.5px', margin: 0 }}>
               🎬 Recommend Movie to {recipientName || 'Friend'}
             </h3>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
               Sends an interactive movie card directly into your chat with live trailer & watchlist actions.
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', fontSize: 20, cursor: 'pointer' }}
+            className="apple-glass-btn"
+            style={{ width: 32, height: 32, padding: 0, borderRadius: '50%', fontSize: 15 }}
           >
             ✕
           </button>
@@ -142,10 +142,16 @@ export default function MovieShareModal({ isOpen, onClose, onShareMovie, recipie
           {/* Send Button */}
           <button
             onClick={handleSend}
+            disabled={!selectedMovie}
+            className="apple-glass-btn-primary"
             style={{
-              width: '100%', background: 'linear-gradient(135deg,#e50914,#8b5cf6)', border: 'none',
-              borderRadius: 8, padding: '12px 0', color: 'white', fontFamily: "'DM Sans',sans-serif",
-              fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
+              width: '100%',
+              borderRadius: 100,
+              padding: '12px 0',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: selectedMovie ? 'pointer' : 'default',
+              opacity: selectedMovie ? 1 : 0.4
             }}
           >
             🚀 Send Recommendation Card

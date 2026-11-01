@@ -150,22 +150,22 @@ export default function MovieDetailPage({ movieId }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(6,6,15,1) 0%,rgba(6,6,15,.52) 40%,rgba(6,6,15,.08) 100%)' }} />
 
         {/* Back button */}
-        <button onClick={() => navigate('landing')} style={{ position: 'absolute', top: 24, left: 22, background: 'rgba(0,0,0,.52)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.09)', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', color: 'white', fontFamily: "'DM Sans',sans-serif", fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button onClick={() => navigate('landing')} className="apple-glass-btn" style={{ position: 'absolute', top: 24, left: 22, zIndex: 10, padding: '8px 18px', fontSize: 12 }}>
           ← Back
         </button>
 
         {/* Play button */}
         {tk && (
-          <button onClick={() => setShowT(true)} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 64, height: 64, borderRadius: '50%', background: 'rgba(229,9,20,.9)', border: '3px solid rgba(255,255,255,.18)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 38px rgba(229,9,20,.58)', transition: 'all .2s' }}
+          <button onClick={() => setShowT(true)} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 68, height: 68, borderRadius: '50%', background: 'rgba(229,9,20,.9)', border: '2px solid rgba(255,255,255,.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 44px rgba(229,9,20,.65), inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'all .24s var(--apple-spring)' }}
             onMouseOver={e => e.currentTarget.style.transform = 'translate(-50%,-50%) scale(1.12)'}
             onMouseOut={e =>  e.currentTarget.style.transform = 'translate(-50%,-50%) scale(1)'}>
-            <span style={{ fontSize: 24, marginLeft: 4 }}>▶</span>
+            <span style={{ fontSize: 26, marginLeft: 4 }}>▶</span>
           </button>
         )}
       </div>
 
       {/* Detail content */}
-      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 24px 56px', marginTop: -96, position: 'relative', zIndex: 2 }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 24px 140px', marginTop: -96, position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           {/* Poster */}
           <img src={pSrc} alt={movie.title} style={{ width: 205, borderRadius: 14, boxShadow: '0 18px 56px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.04)', flexShrink: 0 }}

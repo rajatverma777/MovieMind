@@ -211,22 +211,19 @@ export default function FriendsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 20px 64px', maxWidth: 1200, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', padding: '24px 20px 140px', maxWidth: 1200, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* ── USER PROFILE HERO BAR ───────────────────────────────────────── */}
-      <div className="fu" style={{
-        background: 'linear-gradient(135deg, rgba(229,9,20,.1) 0%, rgba(9,9,16,.9) 60%, rgba(139,92,246,.06) 100%)',
-        border: '1px solid rgba(255,255,255,.09)',
-        borderRadius: 18, padding: '16px 22px', marginBottom: 20,
+      <div className="apple-glass-card fu" style={{
+        padding: '18px 24px', marginBottom: 22,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: 14,
-        backdropFilter: 'blur(20px)'
+        flexWrap: 'wrap', gap: 14
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: 'rgba(229,9,20,.15)', border: '2px solid rgba(229,9,20,.4)',
+            width: 48, height: 48, borderRadius: 14,
+            background: 'rgba(229,9,20,.18)', border: '1.5px solid rgba(229,9,20,.45)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 24, boxShadow: '0 0 16px rgba(229,9,20,.2)'
+            fontSize: 24, boxShadow: '0 8px 20px rgba(229,9,20,.25), inset 0 1px 1px rgba(255,255,255,0.4)'
           }}>
             {user?.avatar || '🎬'}
           </div>
@@ -235,11 +232,11 @@ export default function FriendsPage() {
               <span style={{ fontSize: 17, fontWeight: 700, color: 'white' }}>
                 {user?.displayName || user?.name}
               </span>
-              <span style={{ fontSize: 12, color: '#e50914', fontWeight: 700, background: 'rgba(229,9,20,.12)', padding: '2px 8px', borderRadius: 6 }}>
+              <span style={{ fontSize: 12, color: '#e50914', fontWeight: 700, background: 'rgba(229,9,20,.14)', padding: '2px 8px', borderRadius: 8 }}>
                 @{user?.username}
               </span>
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>
               {friends.length} friends · {watchlist.length} saved movies
             </div>
           </div>
@@ -248,24 +245,20 @@ export default function FriendsPage() {
         {/* Quick jump to Messages */}
         <button
           onClick={() => navigate('messages')}
+          className="apple-glass-btn-primary"
           style={{
-            background: '#e50914', border: 'none', borderRadius: 10, padding: '9px 18px',
-            color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6,
-            boxShadow: '0 4px 16px rgba(229,9,20,.3)'
+            padding: '9px 18px',
+            borderRadius: 100,
+            fontSize: 12.5,
+            fontWeight: 700
           }}
         >
-          💬 Messages
+          <span>💬</span> Open CineChat ({incomingRequests.length})
         </button>
       </div>
 
       {/* ── TOP NAV TABS ────────────────────────────────────────────────── */}
-      <div className="fu d1" style={{
-        display: 'flex', gap: 6, marginBottom: 20,
-        background: 'rgba(255,255,255,.04)',
-        border: '1px solid rgba(255,255,255,.08)',
-        borderRadius: 14, padding: 6
-      }}>
+      <div className="apple-segmented-group fu d1" style={{ width: '100%', marginBottom: 24, display: 'flex' }}>
         {[
           { id: 'friends', label: '👥 My Friends', count: friends.length || null },
           { id: 'search', label: '🔍 Find Cinephiles', count: null },
@@ -274,23 +267,23 @@ export default function FriendsPage() {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
+            className={`apple-segmented-item ${activeTab === t.id ? 'active' : ''}`}
             style={{
               flex: 1,
-              background: activeTab === t.id ? 'rgba(255,255,255,.1)' : 'transparent',
-              border: activeTab === t.id ? '1px solid rgba(255,255,255,.15)' : '1px solid transparent',
-              borderRadius: 10, padding: '10px 14px',
-              color: activeTab === t.id ? 'white' : 'rgba(255,255,255,.5)',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              transition: 'all .2s',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              fontSize: 13
             }}
           >
             <span>{t.label}</span>
             {t.count !== null && (
               <span style={{
                 fontSize: 10,
-                background: activeTab === t.id ? 'rgba(229,9,20,.2)' : 'rgba(255,255,255,.08)',
-                color: activeTab === t.id ? '#ff6b6b' : 'rgba(255,255,255,.4)',
+                background: activeTab === t.id ? 'rgba(56,189,248,.3)' : 'rgba(255,255,255,.12)',
+                color: activeTab === t.id ? '#ffffff' : 'rgba(255,255,255,.6)',
                 padding: '1px 7px', borderRadius: 100, fontWeight: 800
               }}>
                 {t.count}

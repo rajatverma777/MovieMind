@@ -65,16 +65,12 @@ export default function EditProfileModal() {
   return (
     <div className="mod-bg" onClick={() => setEditProfileModalOpen(false)}>
       <div
-        className="glass fu"
+        className="apple-glass-sheet fu"
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
           maxWidth: 480,
-          background: '#0a0a16',
-          borderRadius: 20,
-          border: '1px solid rgba(255,255,255,0.12)',
-          padding: '28px 24px',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.88)'
+          padding: '28px 24px'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
@@ -198,19 +194,20 @@ export default function EditProfileModal() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
             <button
               type="button"
               onClick={() => setEditProfileModalOpen(false)}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '11px 0', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}
+              className="apple-glass-btn"
+              style={{ flex: 1, padding: '12px 0', borderRadius: 100, fontSize: 13 }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-r"
+              className="apple-glass-btn-primary"
               disabled={busy}
-              style={{ flex: 1, border: 'none', padding: '11px 0', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: busy ? 'not-allowed' : 'pointer' }}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: busy ? 'not-allowed' : 'pointer' }}
             >
               {busy ? 'Saving...' : 'Save Profile'}
             </button>

@@ -178,78 +178,72 @@ export default function AuthModal({ isOpen, onClose }) {
   return (
     <div className="mod-bg" onClick={onClose} style={{ zIndex: 1100 }}>
       <div
-        className="glass ch"
+        className="apple-glass-sheet fu"
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 460, borderRadius: 18, background: '#0a0a16',
-          border: '1px solid rgba(255,255,255,.12)', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.9)'
+          width: '100%', maxWidth: 470, overflow: 'hidden'
         }}
       >
         {/* Header */}
-        <div style={{ padding: '22px 24px 16px', borderBottom: '1px solid rgba(255,255,255,.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '22px 24px 16px', borderBottom: '1px solid rgba(255,255,255,.09)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, background: '#e50914', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 14px rgba(229,9,20,.4)' }}>
-              <span style={{ color: 'white', fontFamily: "'Bebas Neue',cursive", fontSize: 18 }}>M</span>
+            <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, #e50914 0%, #b91c1c 100%)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(229,9,20,.45), inset 0 1px 1px rgba(255,255,255,0.4)' }}>
+              <span style={{ color: 'white', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 18 }}>M</span>
             </div>
             <div>
-              <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, color: 'white', letterSpacing: 1, margin: 0, lineHeight: 1 }}>
+              <h2 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 22, color: 'white', letterSpacing: 1, margin: 0, lineHeight: 1 }}>
                 CINE<span style={{ color: '#e50914' }}>MIND</span> COMMUNITY
               </h2>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', marginTop: 2 }}>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', marginTop: 3 }}>
                 Social Movie Discovery & Friend Chat
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}
+            className="apple-glass-btn"
+            style={{ width: 32, height: 32, padding: 0, borderRadius: '50%', fontSize: 15 }}
           >
             ✕
           </button>
         </div>
 
-        {/* Tab switchers */}
-        <div style={{ display: 'flex', background: 'rgba(0,0,0,.3)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-          <button
-            onClick={() => { setTab('signin'); setSignInError('') }}
-            style={{
-              flex: 1, padding: '12px 0', background: 'none', border: 'none',
-              borderBottom: tab === 'signin' ? '2px solid #e50914' : '2px solid transparent',
-              color: tab === 'signin' ? 'white' : 'rgba(255,255,255,.45)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => { setTab('signup'); setRegError('') }}
-            style={{
-              flex: 1, padding: '12px 0', background: 'none', border: 'none',
-              borderBottom: tab === 'signup' ? '2px solid #e50914' : '2px solid transparent',
-              color: tab === 'signup' ? 'white' : 'rgba(255,255,255,.45)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
-            }}
-          >
-            Create New CineID
-          </button>
+        {/* Apple Segmented Tab Switcher */}
+        <div style={{ padding: '14px 24px 6px', display: 'flex', justifyContent: 'center' }}>
+          <div className="apple-segmented-group" style={{ width: '100%' }}>
+            <button
+              onClick={() => { setTab('signin'); setSignInError('') }}
+              className={`apple-segmented-item ${tab === 'signin' ? 'active' : ''}`}
+              style={{ flex: 1, padding: '9px 0', textAlign: 'center' }}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => { setTab('signup'); setRegError('') }}
+              className={`apple-segmented-item ${tab === 'signup' ? 'active' : ''}`}
+              style={{ flex: 1, padding: '9px 0', textAlign: 'center' }}
+            >
+              Create New CineID
+            </button>
+          </div>
         </div>
 
         {/* ── TAB 1: SIGN IN ──────────────────────────────────────────────── */}
         {tab === 'signin' && (
-          <div style={{ padding: 24 }}>
+          <div style={{ padding: '16px 24px 24px' }}>
             <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {signInError && (
-                <div style={{ background: 'rgba(229,9,20,.12)', border: '1px solid rgba(229,9,20,.3)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#ff6b6b' }}>
+                <div style={{ background: 'rgba(229,9,20,.14)', border: '1px solid rgba(229,9,20,.35)', borderRadius: 12, padding: '9px 14px', fontSize: 12, color: '#ff6b6b' }}>
                   {signInError}
                 </div>
               )}
 
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase', marginBottom: 6 }}>
                   Unique Username
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 9, padding: '0 12px' }}>
-                  <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 13, marginRight: 4 }}>@</span>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,.06)', border: '1.2px solid rgba(255,255,255,.14)', borderRadius: 14, padding: '0 14px', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.25)' }}>
+                  <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 13, marginRight: 4 }}>@</span>
                   <input
                     type="text"
                     value={signInUsername}
@@ -262,7 +256,7 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase', marginBottom: 6 }}>
                   Password
                 </label>
                 <input
@@ -271,17 +265,19 @@ export default function AuthModal({ isOpen, onClose }) {
                   onChange={e => setSignInPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  style={{ width: '100%', padding: '11px 12px', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 9, color: 'white', fontSize: 13, outline: 'none' }}
+                  className="apple-glass-input"
+                  style={{ width: '100%' }}
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={signInBusy}
+                className="apple-glass-btn-primary"
                 style={{
-                  background: '#e50914', border: 'none', borderRadius: 9, padding: '12px 0',
-                  color: 'white', fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700,
-                  cursor: signInBusy ? 'default' : 'pointer', marginTop: 4, transition: 'all .2s'
+                  borderRadius: 14, padding: '12px 0',
+                  color: 'white', fontSize: 14, fontWeight: 700,
+                  cursor: signInBusy ? 'default' : 'pointer', marginTop: 6
                 }}
               >
                 {signInBusy ? 'Authenticating...' : 'Sign In to CineMind'}
@@ -289,8 +285,8 @@ export default function AuthModal({ isOpen, onClose }) {
             </form>
 
             {/* Quick Demo Switcher */}
-            <div style={{ marginTop: 22, borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.45)', textTransform: 'uppercase', marginBottom: 10 }}>
                 ⚡ Fast Demo Accounts (Click to test friend chat instantly):
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -299,13 +295,11 @@ export default function AuthModal({ isOpen, onClose }) {
                     key={acc.username}
                     type="button"
                     onClick={() => handleQuickDemoLogin(acc)}
+                    className="apple-glass-btn"
                     style={{
-                      background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)',
-                      borderRadius: 9, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      cursor: 'pointer', transition: 'all .2s'
+                      borderRadius: 12, padding: '9px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      width: '100%', fontSize: 12
                     }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,.07)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.03)'}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 16 }}>{acc.avatar}</span>

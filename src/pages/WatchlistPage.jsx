@@ -22,43 +22,41 @@ export default function WatchlistPage() {
   const topGenre = genreStats[0]?.name || 'eclectic'
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 24px 56px', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', padding: '24px 24px 140px', maxWidth: 1400, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
       {/* Header */}
       <div className="fu" style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
+          <h1 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Bebas Neue', cursive", fontSize: 50, letterSpacing: 1, color: 'white', marginBottom: 5 }}>
             My <span style={{ color: '#e50914' }}>Watchlist</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 13 }}>
+          <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13 }}>
             {watchlist.length} movie{watchlist.length !== 1 ? 's' : ''} saved · Real-time streaming availability and budget optimization
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,.05)', padding: 4, borderRadius: 10, border: '1px solid rgba(255,255,255,.08)' }}>
+        <div className="apple-segmented-group">
           <button
             onClick={() => setTab('list')}
+            className={`apple-segmented-item ${tab === 'list' ? 'active' : ''}`}
             style={{
-              padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
               background: tab === 'list' ? '#e50914' : 'transparent',
-              color: tab === 'list' ? 'white' : 'rgba(255,255,255,.5)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s'
+              color: tab === 'list' ? 'white' : 'rgba(255,255,255,.55)'
             }}
           >
             📋 Movie Collection ({watchlist.length})
           </button>
           <button
             onClick={() => setTab('optimizer')}
+            className={`apple-segmented-item ${tab === 'optimizer' ? 'active' : ''}`}
             style={{
-              padding: '8px 16px', borderRadius: 7, border: 'none', cursor: 'pointer',
-              background: tab === 'optimizer' ? '#10b981' : 'transparent',
-              color: tab === 'optimizer' ? 'white' : 'rgba(255,255,255,.5)',
-              fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, transition: 'all .2s',
+              background: tab === 'optimizer' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+              color: tab === 'optimizer' ? 'white' : 'rgba(255,255,255,.55)',
               display: 'flex', alignItems: 'center', gap: 6
             }}
           >
             <span>💰 OTT Arbitrage Optimizer</span>
-            <span style={{ fontSize: 9, background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: 10 }}>SAVE ₹</span>
+            <span style={{ fontSize: 9, background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>SAVE ₹</span>
           </button>
         </div>
       </div>

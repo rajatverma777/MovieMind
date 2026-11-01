@@ -98,6 +98,18 @@ export default function MessagesPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Lock window scroll on Messages page so only chat streams scroll, preventing page rubberbanding
+  useEffect(() => {
+    const origOverflow = document.body.style.overflow
+    const origPaddingBottom = document.body.style.paddingBottom
+    document.body.style.overflow = 'hidden'
+    document.body.style.paddingBottom = '0px'
+    return () => {
+      document.body.style.overflow = origOverflow
+      document.body.style.paddingBottom = origPaddingBottom
+    }
+  }, [])
+
   // Friends & Conversation Partners
   const [friends, setFriends] = useState([])
   const [selectedFriend, setSelectedFriend] = useState(null)
@@ -543,16 +555,16 @@ export default function MessagesPage() {
   return (
     <div
       style={{
-        height: 'calc(100vh - 84px)',
-        maxHeight: 'calc(100vh - 84px)',
+        height: 'calc(100dvh - 104px)',
+        maxHeight: 'calc(100dvh - 104px)',
         maxWidth: 1340,
         margin: '0 auto',
-        padding: '8px 16px 0',
+        padding: '6px 16px 0',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         boxSizing: 'border-box',
-        fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif"
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif"
       }}
     >
       {/* ── MINIMALIST HEADER ────────────────────────────────────────────── */}
@@ -572,20 +584,21 @@ export default function MessagesPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 5,
-              background: 'rgba(56, 189, 248, 0.12)',
-              border: '1px solid rgba(56, 189, 248, 0.28)',
+              background: 'rgba(56, 189, 248, 0.14)',
+              border: '1.2px solid rgba(56, 189, 248, 0.35)',
               borderRadius: 20,
               padding: '3px 10px',
               fontSize: 11,
               fontWeight: 700,
-              color: '#38bdf8'
+              color: '#38bdf8',
+              boxShadow: '0 0 12px rgba(56, 189, 248, 0.2)'
             }}
           >
             <span>💬</span> CINECHAT
           </div>
           <h1
             style={{
-              fontFamily: "-apple-system, 'SF Pro Display', 'DM Sans', sans-serif",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
               fontSize: 20,
               fontWeight: 700,
               color: 'white',
@@ -599,28 +612,11 @@ export default function MessagesPage() {
 
         <button
           onClick={() => navigate('friends')}
+          className="apple-glass-btn"
           style={{
-            background: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
-            borderRadius: 20,
-            padding: '5px 14px',
-            color: 'rgba(255, 255, 255, 0.9)',
+            padding: '6px 14px',
             fontSize: 11.5,
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            backdropFilter: 'blur(16px)',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'
-            e.currentTarget.style.color = '#ffffff'
-          }}
-          onMouseOut={e => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
+            fontWeight: 600
           }}
         >
           <span>👥</span> Manage Cine-Friends
@@ -629,18 +625,16 @@ export default function MessagesPage() {
 
       {/* ── LIQUID GLASS MESSENGER CONTAINER ─────────────────────────────── */}
       <div
+        className="apple-glass-card"
         style={{
-          flex: 1,
+          flex: '1 1 0',
+          height: '100%',
           minHeight: 0,
+          maxHeight: '100%',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '300px 1fr',
-          background: 'rgba(14, 17, 28, 0.72)',
-          backdropFilter: 'blur(32px) saturate(190%)',
-          WebkitBackdropFilter: 'blur(32px) saturate(190%)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: 22,
-          overflow: 'hidden',
-          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18)'
+          gridTemplateRows: '100%',
+          overflow: 'hidden'
         }}
       >
         {/* ── LEFT SIDEBAR: CONVERSATIONS ──────────────────────────────────── */}
@@ -656,17 +650,18 @@ export default function MessagesPage() {
             }}
           >
             {/* Search Pill */}
-            <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', flexShrink: 0 }}>
+            <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', flexShrink: 0 }}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: 20,
-                  padding: '7px 12px',
+                  border: '1.2px solid rgba(255, 255, 255, 0.14)',
+                  borderRadius: 100,
+                  padding: '7px 14px',
                   gap: 8,
-                  backdropFilter: 'blur(10px)'
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
                 }}
               >
                 <span style={{ fontSize: 13, opacity: 0.55 }}>🔍</span>
@@ -890,6 +885,7 @@ export default function MessagesPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
+                maxHeight: '100%',
                 minHeight: 0,
                 overflow: 'hidden',
                 position: 'relative',
@@ -1101,8 +1097,9 @@ export default function MessagesPage() {
                 ref={chatScrollContainerRef}
                 onScroll={handleChatScroll}
                 style={{
-                  flex: 1,
+                  flex: '1 1 0',
                   minHeight: 0,
+                  maxHeight: '100%',
                   padding: '16px 20px',
                   overflowY: 'auto',
                   overscrollBehavior: 'contain',
@@ -1417,10 +1414,12 @@ export default function MessagesPage() {
                   style={{
                     flexShrink: 0,
                     padding: '12px 18px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: 'rgba(11, 14, 24, 0.88)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                    background: 'rgba(14, 18, 30, 0.88)',
+                    backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                    backdropFilter: 'blur(28px) saturate(190%)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                    boxShadow: '0 -6px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10
@@ -1429,23 +1428,16 @@ export default function MessagesPage() {
                   <button
                     type="button"
                     onClick={() => setShareModalOpen(true)}
+                    className="apple-glass-btn"
                     style={{
-                      background: 'rgba(56, 189, 248, 0.12)',
-                      border: '1px solid rgba(56, 189, 248, 0.28)',
-                      color: '#38bdf8',
-                      borderRadius: 20,
                       padding: '8px 14px',
                       fontSize: 11.5,
                       fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.18s'
+                      color: '#38bdf8',
+                      borderColor: 'rgba(56, 189, 248, 0.35)',
+                      background: 'rgba(56, 189, 248, 0.12)',
+                      whiteSpace: 'nowrap'
                     }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.12)'}
                   >
                     <span>🎬</span> Recommend
                   </button>
@@ -1456,11 +1448,12 @@ export default function MessagesPage() {
                       flex: 1,
                       display: 'flex',
                       alignItems: 'center',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      borderRadius: 24,
-                      padding: '4px 6px 4px 14px',
-                      backdropFilter: 'blur(16px)'
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1.2px solid rgba(255, 255, 255, 0.16)',
+                      borderRadius: 100,
+                      padding: '4px 6px 4px 16px',
+                      backdropFilter: 'blur(16px)',
+                      boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)'
                     }}
                   >
                     <input
@@ -1486,24 +1479,21 @@ export default function MessagesPage() {
                     <button
                       type="submit"
                       disabled={!chatInput.trim() || sendingMsg}
+                      className="apple-glass-btn-primary"
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
                         borderRadius: '50%',
                         border: 'none',
-                        background: chatInput.trim() && !sendingMsg
-                          ? 'linear-gradient(135deg, #0ea5e9, #2563eb)'
-                          : 'rgba(255, 255, 255, 0.08)',
-                        color: chatInput.trim() && !sendingMsg ? 'white' : 'rgba(255, 255, 255, 0.3)',
+                        padding: 0,
+                        opacity: chatInput.trim() && !sendingMsg ? 1 : 0.4,
                         cursor: chatInput.trim() && !sendingMsg ? 'pointer' : 'default',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        boxShadow: chatInput.trim() && !sendingMsg ? '0 0 12px rgba(14, 165, 233, 0.4)' : 'none'
+                        justifyContent: 'center'
                       }}
                     >
-                      <SendArrowIcon size={14} color={chatInput.trim() && !sendingMsg ? 'white' : 'rgba(255, 255, 255, 0.3)'} />
+                      <SendArrowIcon size={14} color="white" />
                     </button>
                   </form>
                 </div>
@@ -1513,14 +1503,17 @@ export default function MessagesPage() {
                   style={{
                     flexShrink: 0,
                     padding: '20px 24px',
-                    background: 'rgba(14, 18, 28, 0.92)',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'rgba(16, 20, 32, 0.92)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(28px) saturate(190%)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 10,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 -6px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2)'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fbbf24', fontWeight: 600, fontSize: 13 }}>

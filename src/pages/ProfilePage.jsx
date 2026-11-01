@@ -555,7 +555,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── CONTENT AREA ─────────────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px 80px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px 140px' }}>
 
         {/* ── STATS PILLS ROW ───────────────────────────────────────────────── */}
         <div className="fu d1" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28, marginTop: -10 }}>

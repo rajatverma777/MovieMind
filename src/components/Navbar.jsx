@@ -173,18 +173,7 @@ export default function Navbar() {
         }}
       >
         {/* Main Liquid Glass Navigation Capsule */}
-        <nav
-          className="bottom-nav-pill"
-          style={{
-            background: 'rgba(14, 17, 28, 0.72)',
-            backdropFilter: 'blur(24px) saturate(190%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(190%)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: 100,
-            padding: '6px 8px',
-            boxShadow: '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)',
-          }}
-        >
+        <nav className="bottom-nav-pill">
           {primaryItems.map(item => {
             const isActive = page === item.id
             const activeColor = '#38bdf8'
@@ -506,35 +495,8 @@ export default function Navbar() {
                 go('login')
               }
             }}
-            style={{
-              position: 'relative',
-              width: 54,
-              height: 54,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(14, 17, 28, 0.72)',
-              backdropFilter: 'blur(24px) saturate(190%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(190%)',
-              border: '1px solid rgba(255, 255, 255, 0.16)',
-              boxShadow: '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)',
-              cursor: 'pointer',
-              color: 'white',
-              transition: 'all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1)'
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(22, 26, 42, 0.85)'
-              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.55)'
-              e.currentTarget.style.transform = 'scale(1.06)'
-              e.currentTarget.style.boxShadow = '0 16px 44px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(14, 17, 28, 0.72)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
-              e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 16px 44px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)'
-            }}
+            title={user ? `@${user.username}` : 'Sign In'}
+            aria-label={user ? 'User Profile' : 'Sign In'}
           >
             {user ? (
               <span style={{ fontSize: 24, userSelect: 'none' }}>{user.avatar || '🎬'}</span>
