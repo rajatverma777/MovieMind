@@ -263,17 +263,34 @@ export default function SearchPage() {
   }, [q, mode, searchCategory, doTitleSearch, doSemanticSearch])
 
   return (
-    <div style={{ minHeight: '100vh', padding: '24px 20px 140px', maxWidth: 1200, margin: '0 auto', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif" }}>
-      {/* ── Top Level Category Switcher: Movies (Default) vs Users ─────────── */}
-      <div className="fu" style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
+    <div style={{
+      minHeight: '100vh',
+      padding: '24px 20px 140px',
+      maxWidth: 1200,
+      margin: '0 auto',
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', -apple-system, sans-serif",
+      backgroundImage: 'radial-gradient(ellipse 80% 40% at 50% -10%, rgba(10, 132, 255, 0.08) 0%, transparent 70%)'
+    }}>
+      {/* ── Top Level Category Switcher: Movies (Default) vs Cinephiles ─────────── */}
+      <div className="fu" style={{ marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <AppleSegmentedControl
           options={[
             { id: 'movies', label: '🎬 Movies' },
-            { id: 'users', label: '👤 People' }
+            { id: 'users', label: '👤 Cinephiles' }
           ]}
           value={searchCategory}
           onChange={setSearchCategory}
         />
+        {searchCategory === 'movies' && (
+          <AppleSegmentedControl
+            options={[
+              { id: 'title', label: '🔍 Title' },
+              { id: 'vague', label: '🧠 AI Concept' }
+            ]}
+            value={mode}
+            onChange={val => { setMode(val); setDone(false); setQ('') }}
+          />
+        )}
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════════ */}
@@ -282,33 +299,23 @@ export default function SearchPage() {
       {searchCategory === 'movies' && (
         <>
           {/* Header */}
-          <div className="fu" style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <h1 style={{
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
-                fontSize: 'clamp(30px, 5vw, 42px)',
-                fontWeight: 700,
-                letterSpacing: -0.8,
-                color: '#ffffff',
-                marginBottom: 6,
-                lineHeight: 1.15
-              }}>
-                Discovery & Search
-              </h1>
-              <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 13.5, margin: 0, fontWeight: 400 }}>
-                Explore cinema by title, actors, directors, or natural plot descriptions.
-              </p>
-            </div>
-
-            {/* Apple Segmented Control Mode Switcher */}
-            <AppleSegmentedControl
-              options={[
-                { id: 'title', label: '🔍 Title' },
-                { id: 'vague', label: '🧠 AI Search' }
-              ]}
-              value={mode}
-              onChange={val => { setMode(val); setDone(false); setQ('') }}
-            />
+          <div className="fu" style={{ marginBottom: 28 }}>
+            <h1 style={{
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
+              fontSize: 'clamp(32px, 5vw, 44px)',
+              fontWeight: 700,
+              letterSpacing: -0.8,
+              color: '#ffffff',
+              marginBottom: 6,
+              lineHeight: 1.15
+            }}>
+              Discovery & Search
+            </h1>
+            <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 14, margin: 0, fontWeight: 400 }}>
+              {mode === 'title'
+                ? 'Explore cinema by title, actors, directors, or curated genres.'
+                : 'Describe that elusive scene or narrative premise in your own words.'}
+            </p>
           </div>
 
           {/* Search Input (Apple visionOS Proportioned Centered Search Bar) */}
@@ -316,24 +323,37 @@ export default function SearchPage() {
             {mode === 'title' ? (
               <SearchBar value={q} onChange={setQ} />
             ) : (
-              <div style={{ position: 'relative' }}>
+              <div
+                className="apple-glass-card"
+                style={{
+                  background: 'rgba(139, 92, 246, 0.05)',
+                  backgroundImage: 'radial-gradient(ellipse 90% 60% at 50% 0%, rgba(139, 92, 246, 0.14) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                  backdropFilter: 'blur(40px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                  border: '1.2px solid rgba(167, 139, 250, 0.28)',
+                  borderRadius: 26,
+                  padding: '24px 20px',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.2)'
+                }}
+              >
+                {/* Apple Intelligence Pill Input */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    height: 50,
+                    height: 52,
                     borderRadius: 9999,
-                    background: 'rgba(139, 92, 246, 0.08)',
-                    backgroundImage: 'linear-gradient(135deg, rgba(139, 92, 246, 0.14) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                    background: 'rgba(255, 255, 255, 0.08)',
                     backdropFilter: 'blur(28px) saturate(190%)',
                     WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-                    border: '1.2px solid rgba(139, 92, 246, 0.35)',
-                    padding: '0 16px',
-                    gap: 12,
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)'
+                    border: '1.2px solid rgba(167, 139, 250, 0.38)',
+                    padding: '0 20px',
+                    gap: 14,
+                    boxShadow: '0 4px 24px rgba(139, 92, 246, 0.22), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <span style={{ fontSize: 18, color: '#a78bfa' }}>🧠</span>
+                  <span style={{ fontSize: 20, color: '#a78bfa', filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.6))' }}>🧠</span>
                   <input
                     type="text"
                     value={q}
@@ -344,27 +364,28 @@ export default function SearchPage() {
                       background: 'none',
                       border: 'none',
                       outline: 'none',
-                      color: 'white',
+                      color: '#ffffff',
                       caretColor: '#a78bfa',
-                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
-                      fontSize: 14.5
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+                      fontSize: 14.5,
+                      fontWeight: 450
                     }}
                   />
                   {q && (
                     <button
                       onClick={() => setQ('')}
                       style={{
-                        width: 22,
-                        height: 22,
+                        width: 20,
+                        height: 20,
                         borderRadius: '50%',
                         background: 'rgba(255, 255, 255, 0.16)',
                         border: 'none',
-                        color: 'rgba(255, 255, 255, 0.8)',
+                        color: 'rgba(255, 255, 255, 0.85)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        fontSize: 10.5,
+                        fontSize: 10,
                         fontWeight: 800,
                         padding: 0
                       }}
@@ -375,47 +396,129 @@ export default function SearchPage() {
                 </div>
 
                 {/* Vague Preset Chips */}
-                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', fontWeight: 600 }}>Try asking:</span>
-                  {VAGUE_PRESETS.map((p, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setQ(p.query)}
-                      style={{
-                        background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)',
-                        borderRadius: 16, padding: '4px 12px', fontSize: 11, color: 'rgba(255,255,255,.7)',
-                        cursor: 'pointer', transition: 'all .2s'
-                      }}
-                      onMouseOver={e => { e.currentTarget.style.background = 'rgba(139,92,246,.15)'; e.currentTarget.style.borderColor = 'rgba(139,92,246,.4)' }}
-                      onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)' }}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
+                <div style={{ marginTop: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <span style={{ fontSize: 12.5, color: '#c4b5fd', fontWeight: 600 }}>✨ Narrative Presets:</span>
+                    <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)' }}>Tap to test AI reasoning</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {VAGUE_PRESETS.map((p, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setQ(p.query)}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.06)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: 9999,
+                          padding: '7px 15px',
+                          fontSize: 12,
+                          fontWeight: 550,
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+                          transition: 'all 0.2s var(--apple-spring-smooth)'
+                        }}
+                        onMouseOver={e => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
+                          e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.5)'
+                          e.currentTarget.style.color = '#ffffff'
+                          e.currentTarget.style.transform = 'translateY(-2px)'
+                          e.currentTarget.style.boxShadow = '0 6px 18px rgba(139, 92, 246, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+                        }}
+                        onMouseOut={e => {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'
+                          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)'
+                          e.currentTarget.style.transform = 'none'
+                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15)'
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Genre browser (Only in Title mode when not searching) */}
+          {/* Genre browser (Only in Title mode when not searching) - Apple Liquid Glass Section */}
           {mode === 'title' && !done && (
-            <div className="fu d2">
-              <h2 style={{
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-                fontSize: 20,
-                fontWeight: 600,
-                letterSpacing: -0.3,
-                color: 'rgba(255, 255, 255, 0.9)',
-                marginBottom: 14
-              }}>
-                Browse by Genre
-              </h2>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div
+              className="fu d2 apple-glass-card"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                backdropFilter: 'blur(40px) saturate(190%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(190%)',
+                border: '1.2px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: 24,
+                padding: '28px 24px',
+                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.15)',
+                marginTop: 12
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                    🎬
+                  </div>
+                  <div>
+                    <h2 style={{
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      letterSpacing: -0.4,
+                      color: '#ffffff',
+                      margin: 0
+                    }}>
+                      Browse by Genre
+                    </h2>
+                    <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255, 255, 255, 0.5)' }}>
+                      Explore cinema catalogue by curated mood and genre
+                    </p>
+                  </div>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255, 255, 255, 0.45)' }}>
+                  {Object.keys(GN).length} Genres
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {Object.entries(GN).map(([id, name]) => (
-                  <button key={id} onClick={() => browseGenre(+id)}
-                    style={{ padding: '8px 18px', borderRadius: 22, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', color: 'rgba(255,255,255,.75)', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif", fontSize: 12.5, fontWeight: 500, transition: 'all .2s ease' }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.3)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,.12)' }}
-                    onMouseOut={e =>  { e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.color = 'rgba(255,255,255,.75)'; e.currentTarget.style.background = 'rgba(255,255,255,.05)' }}>
+                  <button
+                    key={id}
+                    onClick={() => browseGenre(+id)}
+                    style={{
+                      padding: '9px 20px',
+                      borderRadius: 9999,
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      cursor: 'pointer',
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 550,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.18)',
+                      transition: 'all 0.22s var(--apple-spring-smooth)'
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.35)'
+                      e.currentTarget.style.color = '#ffffff'
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)'
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)'
+                      e.currentTarget.style.transform = 'none'
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.18)'
+                    }}
+                  >
                     {name}
                   </button>
                 ))}
@@ -512,10 +615,24 @@ export default function SearchPage() {
                   </div>
                 </>
               ) : (
-                <div style={{ textAlign: 'center', padding: '56px 0' }}>
-                  <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-                  <h3 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 26, color: 'white' }}>No movies found</h3>
-                  <p style={{ color: 'rgba(255,255,255,.38)', marginTop: 7, fontSize: 13 }}>
+                <div
+                  className="apple-glass-card"
+                  style={{
+                    maxWidth: 600,
+                    margin: '40px auto',
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1.2px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 24
+                  }}
+                >
+                  <div style={{ fontSize: 44, marginBottom: 12 }}>🔍</div>
+                  <h3 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif", fontSize: 22, fontWeight: 700, color: 'white', marginBottom: 6 }}>
+                    No movies found
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,.48)', marginTop: 6, fontSize: 13.5 }}>
                     {mode === 'vague' ? 'Try describing the plot using specific keywords, character goals, or setting details.' : 'Try a different title or browse by genre above.'}
                   </p>
                 </div>
@@ -531,91 +648,171 @@ export default function SearchPage() {
       {searchCategory === 'users' && (
         <div className="fu">
           {/* Header */}
-          <div style={{ marginBottom: 22 }}>
-            <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 'clamp(36px,6vw,52px)', letterSpacing: 1.5, color: 'white', marginBottom: 4, lineHeight: 1 }}>
-              Find <span style={{ color: '#38bdf8' }}>Cinephiles</span>
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
+              fontSize: 'clamp(32px, 5vw, 44px)',
+              fontWeight: 700,
+              letterSpacing: -0.8,
+              color: '#ffffff',
+              marginBottom: 6,
+              lineHeight: 1.15
+            }}>
+              Find Cinephiles
             </h1>
-            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
-              Search by @username or name, check compatibility, and connect.
+            <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 14, margin: 0, fontWeight: 400 }}>
+              Search by @username or name, check cinematic taste compatibility, and connect.
             </p>
           </div>
 
-          {/* User Search Input (Apple Liquid Glass Capsule) */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              height: 50,
-              borderRadius: 9999,
-              background: 'rgba(56, 189, 248, 0.08)',
-              backgroundImage: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)',
-              border: '1.2px solid rgba(56, 189, 248, 0.35)',
-              padding: '0 16px',
-              gap: 12,
-              backdropFilter: 'blur(28px) saturate(190%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)',
-              marginBottom: 24
-            }}
-          >
-            <span style={{ fontSize: 18, color: '#38bdf8' }}>🔍</span>
-            <input
-              type="text"
-              value={userQuery}
-              onChange={e => setUserQuery(e.target.value)}
-              placeholder="Search cinephiles by unique @username or name (e.g. alok, pratik, rajat)..."
+          {/* User Search Input (Apple Liquid Glass Capsule Centered) */}
+          <div style={{ maxWidth: 680, margin: '0 auto 32px', position: 'relative' }}>
+            <div
               style={{
-                width: '100%',
-                background: 'none',
-                border: 'none',
-                outline: 'none',
-                color: 'white',
-                caretColor: '#38bdf8',
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
-                fontSize: 14.5
+                display: 'flex',
+                alignItems: 'center',
+                height: 52,
+                borderRadius: 9999,
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(30px) saturate(190%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+                border: '1.2px solid rgba(56, 189, 248, 0.35)',
+                padding: '0 20px',
+                gap: 12,
+                boxShadow: '0 4px 24px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)',
+                transition: 'all 0.2s ease'
               }}
-            />
-            {userQuery && (
-              <button
-                onClick={() => { setUserQuery(''); setUserResults([]); setUserSearchDone(false); }}
+            >
+              <span style={{ fontSize: 16, color: '#38bdf8' }}>🔍</span>
+              <input
+                type="text"
+                value={userQuery}
+                onChange={e => setUserQuery(e.target.value)}
+                placeholder="Search cinephiles by @username or name (e.g. alok, pratik, rajat)..."
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.16)',
+                  width: '100%',
+                  background: 'none',
                   border: 'none',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontSize: 10.5,
-                  fontWeight: 800,
-                  padding: 0
+                  outline: 'none',
+                  color: '#ffffff',
+                  caretColor: '#38bdf8',
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+                  fontSize: 14.5,
+                  fontWeight: 450
                 }}
-              >
-                ✕
-              </button>
-            )}
+              />
+              {userQuery && (
+                <button
+                  onClick={() => { setUserQuery(''); setUserResults([]); setUserSearchDone(false); }}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.16)',
+                    border: 'none',
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: 0
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Searching Spinner */}
           {searchingUsers && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
-              <Spinner size={36} />
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 56 }}>
+              <Spinner size={38} />
             </div>
           )}
 
-          {/* Empty initial state before typing */}
+          {/* Empty initial state before typing - Apple Liquid Glass Showcase Card */}
           {!searchingUsers && !userQuery && (
-            <div style={{ textAlign: 'center', padding: '64px 0' }} className="fu">
-              <div style={{ fontSize: 44, marginBottom: 12 }}>👤</div>
-              <h3 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 26, color: 'white', marginBottom: 6 }}>
+            <div
+              className="fu apple-glass-card"
+              style={{
+                maxWidth: 680,
+                margin: '0 auto',
+                textAlign: 'center',
+                padding: '48px 32px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                backdropFilter: 'blur(40px) saturate(190%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(190%)',
+                border: '1.2px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: 24,
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.16)'
+              }}
+            >
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: 20,
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.28)',
+                boxShadow: '0 8px 24px rgba(56, 189, 248, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 30,
+                marginBottom: 16
+              }}>
+                👥
+              </div>
+              <h3 style={{
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: -0.4,
+                color: '#ffffff',
+                marginBottom: 8
+              }}>
                 Discover Fellow Cinephiles
               </h3>
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, maxWidth: 440, margin: '0 auto' }}>
-                Type any username or name above to find other movie buffs, check taste compatibility, and send friend requests.
+              <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: 14, maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.5 }}>
+                Type any username or name above to find other movie lovers, evaluate live taste fit, and initiate friend requests.
               </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.45)', fontWeight: 550 }}>Suggested:</span>
+                {['alok', 'pratik', 'rajat'].map(u => (
+                  <button
+                    key={u}
+                    onClick={() => setUserQuery(u)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.14)',
+                      borderRadius: 9999,
+                      padding: '6px 16px',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: '#38bdf8',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(56, 189, 248, 0.16)'
+                      e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.4)'
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)'
+                      e.currentTarget.style.transform = 'none'
+                    }}
+                  >
+                    @{u}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -624,10 +821,20 @@ export default function SearchPage() {
             <div>
               {userResults.length > 0 ? (
                 <>
-                  <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, marginBottom: 16 }}>
-                    Found <strong style={{ color: 'white' }}>{userResults.length}</strong> cinephile{userResults.length !== 1 ? 's' : ''} for "<strong style={{ color: '#38bdf8' }}>{userQuery}</strong>"
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 20,
+                    paddingBottom: 14,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                  }}>
+                    <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 14, margin: 0, fontWeight: 500 }}>
+                      Found <strong style={{ color: '#ffffff', fontWeight: 700 }}>{userResults.length}</strong> cinephile{userResults.length !== 1 ? 's' : ''} for &ldquo;<strong style={{ color: '#38bdf8' }}>{userQuery}</strong>&rdquo;
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {userResults.map(targetUser => {
                       const targetId = targetUser.id || targetUser._id
                       const isAlreadyFriend = friends.some(f => (f.id || f._id) === targetId)
@@ -639,62 +846,78 @@ export default function SearchPage() {
                       return (
                         <div
                           key={targetId}
+                          className="apple-glass-card"
                           style={{
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: 16,
-                            padding: '16px 20px',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                            backdropFilter: 'blur(30px) saturate(190%)',
+                            WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+                            border: '1.2px solid rgba(255, 255, 255, 0.14)',
+                            borderRadius: 22,
+                            padding: '18px 24px',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             flexWrap: 'wrap',
-                            gap: 14,
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-                            transition: 'all 0.2s ease'
+                            gap: 16,
+                            boxShadow: '0 10px 36px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.18)',
+                            transition: 'all 0.22s var(--apple-spring-smooth)'
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.26)'
+                            e.currentTarget.style.transform = 'translateY(-2px)'
+                            e.currentTarget.style.boxShadow = '0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)'
+                            e.currentTarget.style.transform = 'none'
+                            e.currentTarget.style.boxShadow = '0 10px 36px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.18)'
                           }}
                         >
                           {/* User Info */}
                           <div
                             onClick={() => navigate('profile', targetUser)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
                             title={`View @${targetUser.username}'s public profile`}
                           >
                             <div
                               style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 14,
-                                background: 'rgba(255, 255, 255, 0.08)',
-                                border: '1px solid rgba(255, 255, 255, 0.14)',
+                                width: 52,
+                                height: 52,
+                                borderRadius: 16,
+                                background: 'rgba(255, 255, 255, 0.09)',
+                                border: '1.2px solid rgba(255, 255, 255, 0.2)',
+                                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: 24,
+                                fontSize: 26,
                                 flexShrink: 0
                               }}
                             >
                               {targetUser.avatar || '🍿'}
                             </div>
                             <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', letterSpacing: -0.3 }}>
                                   {targetUser.displayName || targetUser.name}
                                 </span>
-                                <span style={{ fontSize: 12, color: '#38bdf8', fontWeight: 600 }}>
+                                <span style={{ fontSize: 13, color: '#38bdf8', fontWeight: 600 }}>
                                   @{targetUser.username}
                                 </span>
                                 {isAlreadyFriend ? (
                                   <span
                                     style={{
-                                      fontSize: 10,
+                                      fontSize: 10.5,
                                       fontWeight: 700,
-                                      color: matchScore > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.4)',
-                                      background: matchScore > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-                                      border: `1px solid ${matchScore > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.1)'}`,
-                                      padding: '1px 8px',
-                                      borderRadius: 10
+                                      color: matchScore > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.5)',
+                                      background: matchScore > 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                                      border: `1px solid ${matchScore > 0 ? 'rgba(16, 185, 129, 0.35)' : 'rgba(255, 255, 255, 0.12)'}`,
+                                      padding: '2px 9px',
+                                      borderRadius: 10,
+                                      boxShadow: matchScore > 0 ? '0 0 10px rgba(16, 185, 129, 0.25)' : 'none'
                                     }}
                                   >
                                     {matchScore > 0 ? `⚡ ${matchScore}% Fit` : '0% Fit'}
@@ -702,12 +925,12 @@ export default function SearchPage() {
                                 ) : (
                                   <span
                                     style={{
-                                      fontSize: 10,
+                                      fontSize: 10.5,
                                       fontWeight: 700,
                                       color: '#f87171',
                                       background: 'rgba(239, 68, 68, 0.12)',
                                       border: '1px solid rgba(239, 68, 68, 0.28)',
-                                      padding: '1px 8px',
+                                      padding: '2px 9px',
                                       borderRadius: 10,
                                       display: 'inline-flex',
                                       alignItems: 'center',
@@ -719,35 +942,45 @@ export default function SearchPage() {
                                 )}
                               </div>
                               {targetUser.bio && (
-                                <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)', marginTop: 2 }}>
+                                <div style={{ fontSize: 12.5, color: 'rgba(255, 255, 255, 0.65)', marginTop: 3 }}>
                                   {targetUser.bio}
                                 </div>
                               )}
-                              <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.4)', marginTop: 4 }}>
+                              <div style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 4 }}>
                                 {isAlreadyFriend
                                   ? `Favorite Genres: ${(targetUser.favoriteGenres || []).map(id => GN[id]).filter(Boolean).slice(0, 3).join(' · ') || 'Cinema Enthusiast'}`
-                                  : '🔒 Details & chat private until friend request accepted'}
+                                  : '🔒 Details & live sync private until friend request accepted'}
                               </div>
                             </div>
                           </div>
 
                           {/* Action Buttons */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <button
                               onClick={() => navigate('profile', targetUser)}
                               style={{
-                                background: 'rgba(255, 255, 255, 0.06)',
-                                border: '1px solid rgba(255, 255, 255, 0.12)',
-                                borderRadius: 10,
-                                padding: '8px 14px',
-                                color: 'white',
-                                fontSize: 12,
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                backdropFilter: 'blur(16px)',
+                                border: '1px solid rgba(255, 255, 255, 0.16)',
+                                borderRadius: 9999,
+                                padding: '8px 18px',
+                                color: '#ffffff',
+                                fontSize: 12.5,
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 6,
-                                transition: 'all 0.2s'
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                                transition: 'all 0.18s ease'
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
                               }}
                             >
                               <span>👤</span>
@@ -758,25 +991,29 @@ export default function SearchPage() {
                               <button
                                 onClick={() => openChatWithFriend(targetUser)}
                                 style={{
-                                  background: '#38bdf8',
+                                  background: '#0a84ff',
                                   border: 'none',
-                                  borderRadius: 10,
-                                  padding: '8px 16px',
-                                  color: '#090910',
-                                  fontSize: 12,
-                                  fontWeight: 700,
+                                  borderRadius: 9999,
+                                  padding: '8px 20px',
+                                  color: '#ffffff',
+                                  fontSize: 12.5,
+                                  fontWeight: 650,
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 6
+                                  gap: 6,
+                                  boxShadow: '0 4px 14px rgba(10, 132, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+                                  transition: 'all 0.18s ease'
                                 }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
                               >
                                 <span>💬</span>
                                 <span>Chat</span>
                               </button>
                             ) : outgoingReq || status === 'sent' ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 700, background: 'rgba(251,191,36,.12)', border: '1px solid rgba(251,191,36,.25)', padding: '5px 12px', borderRadius: 8 }}>
+                                <span style={{ fontSize: 11.5, color: '#fbbf24', fontWeight: 700, background: 'rgba(251,191,36,.14)', border: '1px solid rgba(251,191,36,.3)', padding: '6px 14px', borderRadius: 9999 }}>
                                   ⏳ Requested
                                 </span>
                                 {outgoingReq && (
@@ -784,11 +1021,11 @@ export default function SearchPage() {
                                     onClick={() => handleCancelRequest(outgoingReq.id, targetId)}
                                     style={{
                                       background: 'rgba(255,255,255,0.06)',
-                                      border: '1px solid rgba(255,255,255,0.12)',
-                                      color: 'rgba(255,255,255,0.6)',
-                                      borderRadius: 8,
-                                      padding: '5px 10px',
-                                      fontSize: 11,
+                                      border: '1px solid rgba(255,255,255,0.14)',
+                                      color: 'rgba(255,255,255,0.7)',
+                                      borderRadius: 9999,
+                                      padding: '6px 12px',
+                                      fontSize: 11.5,
                                       cursor: 'pointer'
                                     }}
                                   >
@@ -797,7 +1034,7 @@ export default function SearchPage() {
                                 )}
                               </div>
                             ) : incomingReq ? (
-                              <span style={{ fontSize: 11, color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)', padding: '5px 12px', borderRadius: 8 }}>
+                              <span style={{ fontSize: 11.5, color: '#34d399', fontWeight: 700, background: 'rgba(16,185,129,.16)', border: '1px solid rgba(16,185,129,.35)', padding: '6px 14px', borderRadius: 9999 }}>
                                 📩 Incoming Request
                               </span>
                             ) : (
@@ -805,19 +1042,22 @@ export default function SearchPage() {
                                 onClick={() => handleSendFriendRequest(targetUser)}
                                 disabled={status === 'sending'}
                                 style={{
-                                  background: 'rgba(255, 255, 255, 0.92)',
+                                  background: '#ffffff',
                                   border: 'none',
-                                  borderRadius: 10,
-                                  padding: '8px 16px',
+                                  borderRadius: 9999,
+                                  padding: '8px 20px',
                                   color: '#090910',
-                                  fontSize: 12,
-                                  fontWeight: 700,
+                                  fontSize: 12.5,
+                                  fontWeight: 650,
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 6,
-                                  transition: 'all 0.2s'
+                                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px #ffffff',
+                                  transition: 'all 0.18s ease'
                                 }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
                               >
                                 <span>+</span>
                                 <span>{status === 'sending' ? 'Sending...' : 'Add Friend'}</span>
@@ -830,13 +1070,25 @@ export default function SearchPage() {
                   </div>
                 </>
               ) : (
-                <div style={{ textAlign: 'center', padding: '56px 0' }}>
+                <div
+                  className="apple-glass-card"
+                  style={{
+                    maxWidth: 600,
+                    margin: '32px auto',
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1.2px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 24
+                  }}
+                >
                   <div style={{ fontSize: 44, marginBottom: 12 }}>🔍</div>
-                  <h3 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 26, color: 'white' }}>
+                  <h3 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif", fontSize: 22, fontWeight: 700, color: 'white', marginBottom: 6 }}>
                     No Cinephiles Found
                   </h3>
-                  <p style={{ color: 'rgba(255,255,255,.38)', marginTop: 6, fontSize: 13 }}>
-                    No users matching "@{userQuery}". Try checking the spelling of their username.
+                  <p style={{ color: 'rgba(255,255,255,.45)', marginTop: 6, fontSize: 13.5 }}>
+                    No users matching &ldquo;@{userQuery}&rdquo;. Try checking the spelling of their username.
                   </p>
                 </div>
               )}
