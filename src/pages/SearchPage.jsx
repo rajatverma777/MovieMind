@@ -309,22 +309,57 @@ export default function SearchPage() {
               <SearchBar value={q} onChange={setQ} />
             ) : (
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(139,92,246,.06)', border: '1px solid rgba(139,92,246,.3)', borderRadius: 12, padding: '12px 18px', gap: 12, boxShadow: '0 8px 32px rgba(139,92,246,.08)' }}>
-                  <span style={{ fontSize: 20 }}>🧠</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: 50,
+                    borderRadius: 9999,
+                    background: 'rgba(139, 92, 246, 0.08)',
+                    backgroundImage: 'linear-gradient(135deg, rgba(139, 92, 246, 0.14) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                    backdropFilter: 'blur(28px) saturate(190%)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                    border: '1.2px solid rgba(139, 92, 246, 0.35)',
+                    padding: '0 16px',
+                    gap: 12,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)'
+                  }}
+                >
+                  <span style={{ fontSize: 18, color: '#a78bfa' }}>🧠</span>
                   <input
                     type="text"
                     value={q}
                     onChange={e => setQ(e.target.value)}
-                    placeholder="Describe that film you can't remember... (e.g. 'time loop on an alien beach', 'guy trapped in phone booth')"
+                    placeholder="Describe that film you can't remember... (e.g. 'time loop on an alien beach')"
                     style={{
-                      width: '100%', background: 'none', border: 'none', outline: 'none',
-                      color: 'white', fontFamily: "'DM Sans',sans-serif", fontSize: 14
+                      width: '100%',
+                      background: 'none',
+                      border: 'none',
+                      outline: 'none',
+                      color: 'white',
+                      caretColor: '#a78bfa',
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
+                      fontSize: 14.5
                     }}
                   />
                   {q && (
                     <button
                       onClick={() => setQ('')}
-                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.4)', cursor: 'pointer', fontSize: 16 }}
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.16)',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontSize: 10.5,
+                        fontWeight: 800,
+                        padding: 0
+                      }}
                     >
                       ✕
                     </button>
@@ -464,19 +499,21 @@ export default function SearchPage() {
             </p>
           </div>
 
-          {/* User Search Input */}
+          {/* User Search Input (Apple Liquid Glass Capsule) */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: 14,
-              padding: '12px 18px',
+              height: 50,
+              borderRadius: 9999,
+              background: 'rgba(56, 189, 248, 0.08)',
+              backgroundImage: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)',
+              border: '1.2px solid rgba(56, 189, 248, 0.35)',
+              padding: '0 16px',
               gap: 12,
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+              backdropFilter: 'blur(28px) saturate(190%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)',
               marginBottom: 24
             }}
           >
@@ -492,21 +529,28 @@ export default function SearchPage() {
                 border: 'none',
                 outline: 'none',
                 color: 'white',
+                caretColor: '#38bdf8',
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'DM Sans', sans-serif",
-                fontSize: 14
+                fontSize: 14.5
               }}
             />
             {userQuery && (
               <button
                 onClick={() => { setUserQuery(''); setUserResults([]); setUserSearchDone(false); }}
                 style={{
-                  background: 'rgba(255,255,255,0.08)',
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.16)',
                   border: 'none',
-                  color: 'rgba(255,255,255,0.6)',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  fontSize: 12,
-                  borderRadius: 6,
-                  padding: '3px 8px'
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  padding: 0
                 }}
               >
                 ✕

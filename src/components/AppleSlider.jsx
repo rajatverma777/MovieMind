@@ -13,7 +13,7 @@ export default function AppleSlider({
   max = 100,
   step = 1,
   onChange,
-  color = '#007aff',
+  color = '#0a84ff',
   disabled = false,
   ariaLabel = 'Slider',
   style = {},

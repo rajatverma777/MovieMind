@@ -70,20 +70,20 @@ export default function AppleSegmentedControl({
         position: 'relative',
         display: fullWidth ? 'flex' : 'inline-flex',
         alignItems: 'center',
-        background: 'rgba(255, 255, 255, 0.12)',
-        backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%)',
+        background: 'rgba(255, 255, 255, 0.08)',
+        backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)',
         backdropFilter: 'blur(28px) saturate(190%)',
         WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-        border: '1.2px solid rgba(255, 255, 255, 0.18)',
+        border: '1.2px solid rgba(255, 255, 255, 0.14)',
         borderRadius: 9999,
         padding: 3.5,
-        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.28), 0 4px 16px rgba(0, 0, 0, 0.2)',
+        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.25)',
         userSelect: 'none',
         width: fullWidth ? '100%' : 'auto',
         ...style
       }}
     >
-      {/* ── Active Floating Glass Pill ─────────────────────────────── */}
+      {/* ── Active Floating Glass Pill (Dark Mode visionOS Liquid Glass) ──────── */}
       <div
         style={{
           position: 'absolute',
@@ -93,9 +93,12 @@ export default function AppleSegmentedControl({
           width: indicatorStyle.width,
           opacity: indicatorStyle.opacity,
           borderRadius: 9999,
-          background: '#ffffff',
-          backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #f1f1f5 100%)',
-          boxShadow: '0 3px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.18), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.95)',
+          background: 'rgba(255, 255, 255, 0.18)',
+          backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 100%)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.6), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
           transition: 'all 0.28s cubic-bezier(0.34, 1.2, 0.64, 1)',
           pointerEvents: 'none',
           zIndex: 1
@@ -127,7 +130,8 @@ export default function AppleSegmentedControl({
               fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'DM Sans', sans-serif",
               fontSize: sizeStyles.fontSize,
               fontWeight: isActive ? 700 : 550,
-              color: isActive ? '#090910' : 'rgba(255, 255, 255, 0.65)',
+              color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+              textShadow: isActive ? '0 1px 2px rgba(0, 0, 0, 0.6)' : 'none',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               transition: 'color 0.22s ease, transform 0.18s ease'
