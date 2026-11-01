@@ -312,7 +312,7 @@ export default function SearchPage() {
           </div>
 
           {/* Search Input (Apple visionOS Proportioned Centered Search Bar) */}
-          <div className="fu d1" style={{ maxWidth: 680, margin: '0 auto 28px' }}>
+          <div style={{ maxWidth: 680, margin: '0 auto 32px', position: 'relative', zIndex: 100 }}>
             {mode === 'title' ? (
               <SearchBar value={q} onChange={setQ} />
             ) : (
@@ -439,19 +439,43 @@ export default function SearchPage() {
 
           {/* Results */}
           {!busy && done && (
-            <div className="fu" style={{ marginTop: 20 }}>
+            <div className="fu" style={{ marginTop: 24, position: 'relative', zIndex: 1 }}>
               {res.length ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
-                    <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 13.5, margin: 0, fontWeight: 500 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 16,
+                      marginBottom: 24,
+                      paddingBottom: 16,
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
+                  >
+                    <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 14, margin: 0, fontWeight: 500, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" }}>
                       Found <strong style={{ color: '#ffffff', fontWeight: 700 }}>{res.filter(m => !minRating || (m.vote_average || 0) >= minRating).length}</strong> {mode === 'vague' ? 'semantic matches' : 'results'}
                       {q && <> for &ldquo;<strong style={{ color: mode === 'vague' ? '#a78bfa' : '#0a84ff', fontWeight: 600 }}>{q}</strong>&rdquo;</>}
                     </p>
 
                     {/* Apple Liquid Glass Slider for Minimum Rating Filter */}
-                    <div className="apple-glass-card" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '6px 16px', borderRadius: 100 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>
-                        ⭐ Min Rating: <strong style={{ color: '#fbbf24' }}>{minRating > 0 ? `${minRating.toFixed(1)}+` : 'All'}</strong>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '6px 16px',
+                        borderRadius: 9999,
+                        background: 'rgba(255, 255, 255, 0.07)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255, 255, 255, 0.14)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
+                      }}
+                    >
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(255,255,255,0.75)', whiteSpace: 'nowrap' }}>
+                        ⭐ Min Rating: <strong style={{ color: '#fbbf24', marginLeft: 2 }}>{minRating > 0 ? `${minRating.toFixed(1)}+` : 'All'}</strong>
                       </span>
                       <div style={{ width: 120 }}>
                         <AppleSlider

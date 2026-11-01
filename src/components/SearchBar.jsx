@@ -248,7 +248,7 @@ export default function SearchBar({
   return (
     <div
       ref={containerRef}
-      style={{ position: 'relative', width: '100%', ...style }}
+      style={{ position: 'relative', width: '100%', zIndex: 100, ...style }}
       className={`apple-search-engine-wrap ${className}`}
     >
       {/* ── Main Liquid Glass Capsule Pill ──────────────────────────── */}
@@ -261,13 +261,13 @@ export default function SearchBar({
           borderRadius: 9999,
           background: 'rgba(255, 255, 255, 0.08)',
           backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)',
-          backdropFilter: 'blur(28px) saturate(190%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-          border: '1.2px solid rgba(255, 255, 255, 0.16)',
-          padding: '0 16px',
+          backdropFilter: 'blur(30px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+          border: '1.2px solid rgba(255, 255, 255, 0.18)',
+          padding: '0 18px',
           gap: 12,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.22)',
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease'
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.25)',
+          transition: 'all 0.2s ease'
         }}
         onFocus={() => setIsOpen(suggestions.length > 0)}
       >
@@ -379,17 +379,18 @@ export default function SearchBar({
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 8px)',
+            top: 'calc(100% + 10px)',
             left: 0,
             right: 0,
             zIndex: 1000,
-            background: 'rgba(20, 22, 30, 0.98)',
-            backdropFilter: 'blur(50px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(50px) saturate(200%)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
-            borderRadius: 20,
-            padding: '8px 6px',
-            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+            background: 'rgba(32, 35, 48, 0.98)',
+            backgroundImage: 'linear-gradient(180deg, rgba(38, 42, 58, 0.98) 0%, rgba(26, 28, 40, 0.98) 100%)',
+            backdropFilter: 'blur(50px) saturate(210%)',
+            WebkitBackdropFilter: 'blur(50px) saturate(210%)',
+            border: '1.2px solid rgba(255, 255, 255, 0.22)',
+            borderRadius: 22,
+            padding: '8px 8px',
+            boxShadow: '0 28px 70px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.25)',
             animation: 'appleMenuPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         >
@@ -413,46 +414,47 @@ export default function SearchBar({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '9px 14px',
+                  padding: '10px 14px',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  background: isHighlighted ? 'rgba(255, 255, 255, 0.10)' : 'transparent',
-                  border: isHighlighted ? '1px solid rgba(255, 255, 255, 0.14)' : '1px solid transparent',
+                  background: isHighlighted ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+                  border: isHighlighted ? '1px solid rgba(255, 255, 255, 0.22)' : '1px solid transparent',
+                  boxShadow: isHighlighted ? '0 2px 8px rgba(0, 0, 0, 0.3)' : 'none',
                   transition: 'all 0.15s ease',
                   userSelect: 'none'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-                  <span style={{ fontSize: 13, opacity: 0.55, flexShrink: 0 }}>🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
+                  <span style={{ fontSize: 13.5, color: isHighlighted ? '#ffffff' : 'rgba(255, 255, 255, 0.65)', flexShrink: 0 }}>🔍</span>
                   <div
                     style={{
                       fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
-                      fontSize: 13.5,
-                      lineHeight: 1.3,
+                      fontSize: 14,
+                      lineHeight: 1.35,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {before && <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontWeight: 400 }}>{before}</span>}
+                    {before && <span style={{ color: 'rgba(255, 255, 255, 0.70)', fontWeight: 450 }}>{before}</span>}
                     {/* Matched query is BOLD WHITE like "Design" in Apple HIG screenshot */}
                     <strong style={{ color: '#ffffff', fontWeight: 700 }}>{matched}</strong>
-                    {/* Suffix is MUTED GRAY like "systems", "language" in Apple HIG screenshot */}
-                    <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontWeight: 400 }}>{after}</span>
+                    {/* Suffix is CLEAR LIGHT SILVER */}
+                    <span style={{ color: 'rgba(255, 255, 255, 0.70)', fontWeight: 450 }}>{after}</span>
                   </div>
                 </div>
 
-                {/* Subtle Category Pill Badge */}
+                {/* Apple Category Pill Badge */}
                 <span
                   style={{
-                    fontSize: 9.5,
+                    fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: 0.3,
-                    padding: '2px 8px',
+                    padding: '3px 9px',
                     borderRadius: 10,
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    color: item.type === 'movie' ? '#38bdf8' : item.type === 'director' ? '#a78bfa' : item.type === 'genre' ? '#f59e0b' : 'rgba(255, 255, 255, 0.5)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: item.type === 'movie' ? 'rgba(56, 189, 248, 0.18)' : item.type === 'director' ? 'rgba(167, 139, 250, 0.18)' : item.type === 'genre' ? 'rgba(251, 191, 36, 0.18)' : 'rgba(255, 255, 255, 0.12)',
+                    color: item.type === 'movie' ? '#38bdf8' : item.type === 'director' ? '#c4b5fd' : item.type === 'genre' ? '#fbbf24' : 'rgba(255, 255, 255, 0.8)',
+                    border: item.type === 'movie' ? '1px solid rgba(56, 189, 248, 0.35)' : item.type === 'director' ? '1px solid rgba(167, 139, 250, 0.35)' : item.type === 'genre' ? '1px solid rgba(251, 191, 36, 0.35)' : '1px solid rgba(255, 255, 255, 0.18)',
                     flexShrink: 0
                   }}
                 >
