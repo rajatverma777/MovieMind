@@ -188,6 +188,14 @@ export function AppProvider({ children }) {
 
   // ── Protected Navigation ──────────────────────────────────────────────────
   const navigate = useCallback((targetPage, id = null) => {
+    // If leaving messages/chat, guarantee body scroll lock is fully removed
+    if (targetPage !== 'messages') {
+      document.body.style.removeProperty('overflow')
+      document.body.style.removeProperty('padding-bottom')
+      document.body.style.overflow = ''
+      document.body.style.paddingBottom = ''
+    }
+
     // If not authenticated and attempting to visit private pages, redirect to login
     if (!user && targetPage !== 'login') {
       setRedirectAfterLogin(targetPage)
@@ -228,6 +236,12 @@ export function AppProvider({ children }) {
       const copy = [...prev]
       const last = copy.pop()
       const target = last || previousPage || fallback
+      if (target !== 'messages') {
+        document.body.style.removeProperty('overflow')
+        document.body.style.removeProperty('padding-bottom')
+        document.body.style.overflow = ''
+        document.body.style.paddingBottom = ''
+      }
       if (target === 'own_profile') {
         setPage('profile')
       } else {

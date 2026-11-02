@@ -1,4 +1,5 @@
 // src/App.jsx — Main Application Router with Login-First Flow & Profile Suite
+import { useEffect } from 'react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import Navbar          from '@/components/Navbar'
 import SetupPage       from '@/pages/SetupPage'
@@ -24,6 +25,16 @@ import Spinner         from '@/components/Spinner'
 
 function Router() {
   const { page, apiKey, movieId, user, authChecking, authModalOpen, setAuthModalOpen, realtime, setActiveChatFriend, navigate } = useApp()
+
+  // Ensure window/body scroll lock is completely cleared whenever navigating to any page outside of messages
+  useEffect(() => {
+    if (page !== 'messages') {
+      document.body.style.removeProperty('overflow')
+      document.body.style.removeProperty('padding-bottom')
+      document.body.style.overflow = ''
+      document.body.style.paddingBottom = ''
+    }
+  }, [page])
 
   if (authChecking) {
     return (

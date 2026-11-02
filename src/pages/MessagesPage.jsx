@@ -100,13 +100,15 @@ export default function MessagesPage() {
 
   // Lock window scroll on Messages page so only chat streams scroll, preventing page rubberbanding
   useEffect(() => {
-    const origOverflow = document.body.style.overflow
-    const origPaddingBottom = document.body.style.paddingBottom
     document.body.style.overflow = 'hidden'
     document.body.style.paddingBottom = '0px'
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+
     return () => {
-      document.body.style.overflow = origOverflow
-      document.body.style.paddingBottom = origPaddingBottom
+      document.body.style.removeProperty('overflow')
+      document.body.style.removeProperty('padding-bottom')
+      document.body.style.overflow = ''
+      document.body.style.paddingBottom = ''
     }
   }, [])
 
@@ -537,20 +539,6 @@ export default function MessagesPage() {
     (f.displayName || f.name || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
     (f.username || '').toLowerCase().includes(searchFilter.toLowerCase())
   )
-
-  useEffect(() => {
-    // Lock body scrolling while inside Messages page so gestures never scroll the webpage
-    const prevOverflow = document.body.style.overflow
-    const prevPaddingBottom = document.body.style.paddingBottom
-    document.body.style.overflow = 'hidden'
-    document.body.style.paddingBottom = '0px'
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-
-    return () => {
-      document.body.style.overflow = prevOverflow
-      document.body.style.paddingBottom = prevPaddingBottom
-    }
-  }, [])
 
   return (
     <div
