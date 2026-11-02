@@ -143,6 +143,76 @@ export default function CineGraphPage() {
     }
   }, [activeFranchise, targetMovieId, watchedMap])
 
+  // 8. Theatrical Premiere Countdown Calculation
+  const releaseCountdown = useMemo(() => {
+    if (!targetMovie?.releaseDate) return null
+    const targetDate = new Date(targetMovie.releaseDate + 'T00:00:00')
+    const now = new Date()
+    const diffMs = targetDate.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+    const formattedDate = targetDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+
+    if (diffDays > 0) {
+      const months = Math.floor(diffDays / 30.4)
+      const weeks = Math.floor(diffDays / 7)
+
+      let badgeText = ''
+      if (diffDays > 60) {
+        badgeText = `${diffDays} Days Left (~${months} mo)`
+      } else if (diffDays > 14) {
+        badgeText = `${diffDays} Days Left (~${weeks} wks)`
+      } else {
+        badgeText = `${diffDays} Days Left!`
+      }
+
+      return {
+        isUpcoming: true,
+        daysLeft: diffDays,
+        monthsLeft: months,
+        badgeText,
+        formattedDate,
+        label: 'Upcoming Theatrical Premiere'
+      }
+    } else {
+      return {
+        isUpcoming: false,
+        daysLeft: 0,
+        badgeText: 'Now Streaming & In Theaters',
+        formattedDate,
+        label: 'Released'
+      }
+    }
+  }, [targetMovie])
+
+  // Total Franchise Runtime for comparison
+  const totalFranchiseRuntime = useMemo(() => {
+    const mins = activeFranchise.movies.reduce((acc, m) => acc + (m.runtime || 120), 0)
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`
+  }, [activeFranchise])
+
+  // Smart Binge Pacing
+  const bingePacingText = useMemo(() => {
+    if (!releaseCountdown?.isUpcoming) return null
+    const uncompleted = stats.totalCritical - stats.watchedCritical
+    if (uncompleted <= 0) return '🎉 All critical prerequisites completed! You are 100% theater-ready.'
+
+    const daysLeft = releaseCountdown.daysLeft
+    const daysPerFilm = Math.max(1, Math.floor(daysLeft / uncompleted))
+    if (daysPerFilm >= 14) {
+      const weeks = (daysPerFilm / 7).toFixed(1)
+      return `Pacing: Watch ~1 film every ${weeks} weeks to finish before premiere!`
+    } else if (daysPerFilm >= 3) {
+      return `Pacing: Watch ~1 film every ${daysPerFilm} days to finish before premiere!`
+    } else {
+      return `Pacing: Watch ${Math.ceil(uncompleted / Math.max(1, Math.floor(daysLeft / 7)))} films per week to finish before premiere!`
+    }
+  }, [releaseCountdown, stats])
+
   // Auto-select first movie for detail preview if none selected
   useEffect(() => {
     if (processedMovies.length > 0 && !selectedMovieForDetail) {
@@ -248,23 +318,56 @@ export default function CineGraphPage() {
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.2)',
           marginBottom: 32,
           display: 'grid',
-          gridTemplateColumns: 'minmax(300px, 1.4fr) minmax(280px, 1fr)',
+          gridTemplateColumns: 'minmax(320px, 1.35fr) minmax(320px, 1fr)',
           gap: 28,
           alignItems: 'center'
         }}
       >
-        {/* Left Column: Target Destination Picker */}
+        {/* Left Column: Target Destination Picker & Scope */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, color: '#38bdf8' }}>
-              🎯 Target Destination Movie:
+              🎯 Target Destination:
             </span>
-            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: 9999, color: 'rgba(255,255,255,0.7)' }}>
-              {targetMovie?.year || 'Upcoming'}
-            </span>
+
+            {/* Glowing Premiere Countdown Pill */}
+            {releaseCountdown?.isUpcoming ? (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(168, 85, 247, 0.2) 100%)',
+                border: '1px solid rgba(236, 72, 153, 0.45)',
+                borderRadius: 9999,
+                padding: '3px 12px',
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: '#f472b6',
+                boxShadow: '0 0 12px rgba(236, 72, 153, 0.25)'
+              }}>
+                <span>⏳</span>
+                <span>Premiere: {releaseCountdown.badgeText} ({releaseCountdown.formattedDate})</span>
+              </div>
+            ) : (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(52, 211, 153, 0.16)',
+                border: '1px solid rgba(52, 211, 153, 0.35)',
+                borderRadius: 9999,
+                padding: '3px 12px',
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: '#34d399'
+              }}>
+                <span>🍿</span>
+                <span>Now Streaming (Released {releaseCountdown?.formattedDate})</span>
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
             <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, margin: 0, letterSpacing: -0.5 }}>
               {targetMovie?.title}
             </h2>
@@ -296,109 +399,194 @@ export default function CineGraphPage() {
             )}
           </div>
 
-          <div style={{ fontSize: 13, color: '#fbbf24', fontWeight: 650, marginBottom: 6 }}>
+          <div style={{ fontSize: 13, color: '#fbbf24', fontWeight: 650, marginBottom: 8 }}>
             {targetMovie?.headline}
           </div>
 
-          <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.72)', lineHeight: 1.6, margin: 0, maxWidth: 640 }}>
+          <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.72)', lineHeight: 1.6, margin: '0 0 14px 0', maxWidth: 640 }}>
             {targetMovie?.loreSummary}
           </p>
+
+          {/* Quick Franchise Scope Pills */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 9999, color: 'rgba(255,255,255,0.8)' }}>
+              🔴 <strong>{stats.totalCritical}</strong> Critical Prerequisites
+            </span>
+            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 9999, color: 'rgba(255,255,255,0.8)' }}>
+              ⏱️ <strong>{stats.totalTimeFormatted}</strong> Prerequisite Watch Time
+            </span>
+            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 9999, color: 'rgba(255,255,255,0.6)' }}>
+              📚 Complete Franchise: <strong>{activeFranchise.movies.length}</strong> Titles (~{totalFranchiseRuntime})
+            </span>
+          </div>
         </div>
 
-        {/* Right Column: Readiness Meter & Binge Estimator */}
-        <div
-          style={{
-            background: 'rgba(0, 0, 0, 0.35)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: 20,
-            padding: 20,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Theater Readiness:
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: stats.percentage >= 100 ? '#34d399' : '#38bdf8' }}>
-              {stats.percentage}% Prepared
-            </span>
+        {/* Right Column: Countdown Clock & Theater Readiness Dashboard */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Top Clock Sub-panel: Theatrical Premiere Countdown */}
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.42)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 18,
+              padding: '14px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 }}>
+                ⏳ Theatrical Premiere Countdown
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#ffffff', letterSpacing: -0.5 }}>
+                {releaseCountdown?.isUpcoming ? `${releaseCountdown.daysLeft} Days Left` : 'Released in Theaters'}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)' }}>
+                Target Premiere: <strong>{releaseCountdown?.formattedDate}</strong>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: 14,
+              padding: '8px 14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: 20 }}>{releaseCountdown?.isUpcoming ? '🗓️' : '🍿'}</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: '#fbbf24', marginTop: 2 }}>
+                {targetMovie?.year}
+              </div>
+            </div>
           </div>
 
-          {/* Progress Bar */}
-          <div style={{ width: '100%', height: 10, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 9999, overflow: 'hidden', position: 'relative' }}>
-            <div
-              style={{
-                width: `${stats.percentage}%`,
-                height: '100%',
-                background: stats.percentage >= 100
-                  ? 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
-                  : 'linear-gradient(90deg, #0a84ff 0%, #38bdf8 100%)',
-                borderRadius: 9999,
-                boxShadow: '0 0 12px rgba(56, 189, 248, 0.5)',
-                transition: 'width 0.4s var(--apple-spring)'
-              }}
-            />
-          </div>
+          {/* Bottom Sub-panel: Theater Readiness & Smart Binge Meter */}
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 18,
+              padding: '16px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Theater Readiness:
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: stats.percentage >= 100 ? '#34d399' : '#38bdf8' }}>
+                {stats.percentage}% Prepared
+              </span>
+            </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: 'rgba(255,255,255,0.85)' }}>
-            <span>
-              <strong style={{ color: '#ffffff' }}>{stats.watchedCritical}</strong> of <strong style={{ color: '#ffffff' }}>{stats.totalCritical}</strong> Critical Prerequisites Watched
-            </span>
-            <span style={{ fontSize: 11.5, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span>⏱️</span> {stats.remainingMinutes > 0 ? `${stats.remainingTimeFormatted} left` : 'All Done!'}
-            </span>
-          </div>
+            {/* Progress Bar */}
+            <div style={{ width: '100%', height: 8, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 9999, overflow: 'hidden', position: 'relative' }}>
+              <div
+                style={{
+                  width: `${stats.percentage}%`,
+                  height: '100%',
+                  background: stats.percentage >= 100
+                    ? 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
+                    : 'linear-gradient(90deg, #0a84ff 0%, #38bdf8 100%)',
+                  borderRadius: 9999,
+                  boxShadow: '0 0 12px rgba(56, 189, 248, 0.5)',
+                  transition: 'width 0.4s var(--apple-spring)'
+                }}
+              />
+            </div>
 
-          {/* Quick Helper actions */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => {
-                const newMap = { ...watchedMap }
-                activeFranchise.movies.forEach(m => {
-                  if (m.prerequisiteFor?.[targetMovieId]?.tier === 'critical') {
-                    newMap[m.id] = true
-                  }
-                })
-                setWatchedMap(newMap)
-                localStorage.setItem('cinemind_timeline_watched', JSON.stringify(newMap))
-              }}
-              style={{
-                background: 'rgba(255, 255, 255, 0.07)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, color: 'rgba(255,255,255,0.85)', flexWrap: 'wrap', gap: 6 }}>
+              <span>
+                <strong style={{ color: '#ffffff' }}>{stats.watchedCritical}</strong> of <strong style={{ color: '#ffffff' }}>{stats.totalCritical}</strong> Critical Prerequisites Watched
+              </span>
+              <span style={{ fontSize: 11.5, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span>⏱️</span> {stats.remainingMinutes > 0 ? `${stats.remainingTimeFormatted} watch time left` : 'All Done!'}
+              </span>
+            </div>
+
+            {/* Clarification note on runtime */}
+            <div style={{
+              fontSize: 10.5,
+              color: 'rgba(255, 255, 255, 0.55)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: 8,
+              padding: '5px 8px',
+              lineHeight: 1.4
+            }}>
+              ℹ️ <em>{stats.totalTimeFormatted}</em> watch time is for the <strong>{stats.totalCritical} critical prerequisites</strong> only (full {activeFranchise.movies.length}-movie catalog is ~{totalFranchiseRuntime}).
+            </div>
+
+            {/* Smart Binge Pacing Alert */}
+            {bingePacingText && (
+              <div style={{
+                fontSize: 11,
+                color: '#a7f3d0',
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.22)',
                 borderRadius: 8,
-                padding: '4px 10px',
-                fontSize: 10.5,
-                color: 'rgba(255, 255, 255, 0.75)',
-                cursor: 'pointer'
-              }}
-            >
-              ✓ Mark All Critical Watched
-            </button>
+                padding: '6px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}>
+                <span>💡</span>
+                <span>{bingePacingText}</span>
+              </div>
+            )}
 
-            <button
-              onClick={() => {
-                const newMap = { ...watchedMap }
-                activeFranchise.movies.forEach(m => {
-                  delete newMap[m.id]
-                })
-                setWatchedMap(newMap)
-                localStorage.setItem('cinemind_timeline_watched', JSON.stringify(newMap))
-              }}
-              style={{
-                background: 'rgba(255, 255, 255, 0.07)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: 8,
-                padding: '4px 10px',
-                fontSize: 10.5,
-                color: 'rgba(255, 255, 255, 0.75)',
-                cursor: 'pointer'
-              }}
-            >
-              ↺ Reset
-            </button>
+            {/* Quick Helper actions */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  const newMap = { ...watchedMap }
+                  activeFranchise.movies.forEach(m => {
+                    if (m.prerequisiteFor?.[targetMovieId]?.tier === 'critical') {
+                      newMap[m.id] = true
+                    }
+                  })
+                  setWatchedMap(newMap)
+                  localStorage.setItem('cinemind_timeline_watched', JSON.stringify(newMap))
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontSize: 10.5,
+                  color: 'rgba(255, 255, 255, 0.75)',
+                  cursor: 'pointer'
+                }}
+              >
+                ✓ Mark All Critical Watched
+              </button>
+
+              <button
+                onClick={() => {
+                  const newMap = { ...watchedMap }
+                  activeFranchise.movies.forEach(m => {
+                    delete newMap[m.id]
+                  })
+                  setWatchedMap(newMap)
+                  localStorage.setItem('cinemind_timeline_watched', JSON.stringify(newMap))
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontSize: 10.5,
+                  color: 'rgba(255, 255, 255, 0.75)',
+                  cursor: 'pointer'
+                }}
+              >
+                ↺ Reset
+              </button>
+            </div>
           </div>
         </div>
       </div>
