@@ -200,14 +200,18 @@ export function AppProvider({ children }) {
     if (!user && targetPage !== 'login') {
       setRedirectAfterLogin(targetPage)
       setPage('login')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
       return
     }
 
     // If authenticated and visiting login, go to home
     if (user && targetPage === 'login') {
       setPage('landing')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
       return
     }
 
@@ -226,7 +230,9 @@ export function AppProvider({ children }) {
     } else if (targetPage === 'profile') {
       setViewingUser(id) // can be a user object, userId string, or null (self)
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }, [user, viewingUser])
 
   // ── Smart Go Back (Remembers source: Search, Friends, Chat, Watchlist, Home) ──
@@ -250,7 +256,9 @@ export function AppProvider({ children }) {
       setPreviousPage(copy[copy.length - 1] || null)
       return copy
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }, [previousPage])
 
   // ── Watchlist Management (Persisted in MongoDB Atlas per User) ─────────────

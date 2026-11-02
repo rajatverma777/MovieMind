@@ -1,5 +1,5 @@
 // src/App.jsx — Main Application Router with Login-First Flow & Profile Suite
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import Navbar          from '@/components/Navbar'
 import SetupPage       from '@/pages/SetupPage'
@@ -24,7 +24,7 @@ import MyProfileModal  from '@/components/MyProfileModal'
 import Spinner         from '@/components/Spinner'
 
 function Router() {
-  const { page, apiKey, movieId, user, authChecking, authModalOpen, setAuthModalOpen, realtime, setActiveChatFriend, navigate } = useApp()
+  const { page, apiKey, movieId, user, viewingUser, authChecking, authModalOpen, setAuthModalOpen, realtime, setActiveChatFriend, navigate } = useApp()
 
   // Ensure window/body scroll lock is completely cleared whenever navigating to any page outside of messages
   useEffect(() => {
@@ -35,6 +35,13 @@ function Router() {
       document.body.style.paddingBottom = ''
     }
   }, [page])
+
+  // Scroll Restoration: Instantly reset scroll to top so every newly opened page starts fresh at the top
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+  }, [page, movieId, viewingUser])
 
   if (authChecking) {
     return (
