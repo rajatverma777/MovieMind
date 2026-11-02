@@ -29,8 +29,8 @@ export default function CineGraphPage() {
     return activeFranchise.targetMovies.find(t => t.id === targetMovieId) || activeFranchise.targetMovies[0]
   }, [activeFranchise, targetMovieId])
 
-  // 3. View Mode: 'essential' (Road to Target) vs 'chronological' (In-Universe) vs 'release' (Theatrical Order)
-  const [viewMode, setViewMode] = useState('essential')
+  // 3. View Mode: 'chronological' (All 40 Titles in In-Universe Order) vs 'essential' (Road to Target) vs 'release' (Theatrical Order)
+  const [viewMode, setViewMode] = useState('chronological')
 
   // 4. Watched Status Tracking (persisted to localStorage)
   const [watchedMap, setWatchedMap] = useState(() => {
@@ -408,9 +408,9 @@ export default function CineGraphPage() {
         {/* Apple Segmented Control for Timeline Mode */}
         <AppleSegmentedControl
           options={[
+            { id: 'chronological', label: `⏱️ In-Universe Timeline (All ${activeFranchise.movies.length} Titles)` },
             { id: 'essential', label: `🎯 Essential Road to ${targetMovie?.title?.split(':')[1] || targetMovie?.title || 'Target'}` },
-            { id: 'chronological', label: '⏱️ In-Universe Timeline' },
-            { id: 'release', label: '📅 Theatrical Release Order' }
+            { id: 'release', label: '📅 Theatrical Release (Phases 1–6)' }
           ]}
           value={viewMode}
           onChange={setViewMode}
@@ -457,6 +457,18 @@ export default function CineGraphPage() {
             </label>
           )}
         </div>
+      </div>
+
+      {/* Active Mode Summary Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 12, background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.14)', padding: '4px 14px', borderRadius: 9999, color: '#38bdf8', fontWeight: 650 }}>
+          {viewMode === 'essential'
+            ? `🎯 Showing ${processedMovies.length} Critical & Recommended Prerequisites for ${targetMovie?.title}`
+            : `⏱️ Showing all ${processedMovies.length} ${activeFranchise.name} titles in sequence`}
+        </span>
+        <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.5)' }}>
+          Click on any film to inspect lore bridges and key characters.
+        </span>
       </div>
 
       {/* ── TIMELINE CONTAINER & SIDE INSPECTOR SPLIT ─────────────────────── */}
@@ -562,9 +574,13 @@ export default function CineGraphPage() {
                       {/* Poster Thumbnail */}
                       <div style={{ position: 'relative', width: 95, flexShrink: 0, borderRadius: 12, overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
                         <img
-                          src={imgUrl(movie.poster_path, 'w185') || `https://placehold.co/95x140/1a1a2e/ffffff?text=${encodeURIComponent(movie.title)}`}
+                          src={imgUrl(movie.poster_path, 'w185') || `https://placehold.co/95x142/13131f/ffffff?text=${encodeURIComponent(movie.title)}`}
                           alt={movie.title}
                           style={{ width: 95, height: 142, objectFit: 'cover', display: 'block' }}
+                          onError={e => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = `https://placehold.co/95x142/13131f/ffffff?text=${encodeURIComponent(movie.title)}`
+                          }}
                         />
                         {isWatched && (
                           <div style={{
@@ -779,6 +795,10 @@ export default function CineGraphPage() {
                 src={imgUrl(selectedMovieForDetail.backdrop_path || selectedMovieForDetail.poster_path, 'w500')}
                 alt={selectedMovieForDetail.title}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = `https://placehold.co/500x280/13131f/ffffff?text=${encodeURIComponent(selectedMovieForDetail.title)}`
+                }}
               />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(9, 9, 16, 0.95) 0%, rgba(9, 9, 16, 0.2) 100%)' }} />
               <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
