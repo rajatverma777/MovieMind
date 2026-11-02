@@ -140,7 +140,7 @@ export default function Navbar() {
     { id: 'friends',      icon: '👥', label: 'Friends',        badge: realtime?.socialAlerts?.requests || null },
     { id: 'consensus',    icon: '🛋️', label: 'Watch Together' },
     { id: 'chat',         icon: '🤖', label: 'AI Chat' },
-    { id: 'cinegraph',    icon: '🕸️', label: 'CineGraph 3D' },
+    { id: 'cinegraph',    icon: '⏳', label: 'CineTimeline' },
     { id: 'mood',         icon: '🎭', label: 'Mood Recs' },
     { id: 'scriptstudio', icon: '✍️', label: 'Script Studio' },
   ]
